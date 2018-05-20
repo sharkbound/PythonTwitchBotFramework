@@ -17,7 +17,7 @@ PREFIX = cfg.prefix
 @Command('addquote')
 async def cmd_quote_add(msg: Message, *args):
     if not args:
-        await msg.channel.send_message(f'missing args: {PREFIX}addquote "<quote text>" user=(user) alias=(alias)')
+        await msg.reply(f'missing args: {PREFIX}addquote "<quote text>" user=(user) alias=(alias)')
         return
 
     optionals = ' '.join(args[1:])
@@ -26,7 +26,7 @@ async def cmd_quote_add(msg: Message, *args):
     if 'user=' in optionals:
         m = re.search(r'user=(\w+)', msg.content)
         if not m:
-            await msg.channel.send_message('invalid user')
+            await msg.reply('invalid user')
             return
 
         user = m.group(1)
@@ -34,12 +34,12 @@ async def cmd_quote_add(msg: Message, *args):
     if 'alias=' in optionals:
         m = re.search('alias=(\w+)', msg.content)
         if not m:
-            await msg.channel.send_message('invalid alias')
+            await msg.reply('invalid alias')
             return
 
         alias = m.group(1)
         if get_quote_by_alias(msg.channel_name, alias) is not None:
-            await msg.channel.send_message('there is already a quote with that alias')
+            await msg.reply('there is already a quote with that alias')
             return
 
     if add_quote(Quote.create(channel=msg.channel_name, value=args[0], user=user, alias=alias)):
@@ -47,32 +47,32 @@ async def cmd_quote_add(msg: Message, *args):
     else:
         resp = 'failed to add quote, already exist'
 
-    await msg.channel.send_message(resp)
+    await msg.reply(resp)
 
 
 @Command('getquote')
 async def cmd_get_quote(msg: Message, *args):
     if not args:
-        await msg.channel.send_message(f'missing args: {PREFIX}getquote <ID or ALIAS>')
+        await msg.reply(f'missing args: {PREFIX}getquote <ID or ALIAS>')
 
     quote = get_quote(msg.channel_name, args[0])
     if quote is None:
-        await msg.channel.send_message(f'no quote found')
+        await msg.reply(f'no quote found')
         return
 
-    await msg.channel.send_message(f'"{quote.value}" user: {quote.user} alias: {quote.alias}')
+    await msg.reply(f'"{quote.value}" user: {quote.user} alias: {quote.alias}')
 
 
 @Command('delquote')
 async def cmd_del_quote(msg: Message, *args):
     if not args:
-        await msg.channel.send_message(f'missing args: {PREFIX}delquote <ID or ALIAS>')
+        await msg.reply(f'missing args: {PREFIX}delquote <ID or ALIAS>')
 
     quote = get_quote(msg.channel_name, args[0])
     if quote is None:
-        await msg.channel.send_message(f'no quote found')
+        await msg.reply(f'no quote found')
         return
 
     delete_quote_by_id(msg.channel_name, quote.id)
 
-    await msg.channel.send_message(f'successfully deleted quote, id: {quote.id}, alias: {quote.alias}')
+    await msg.reply(f'successfully deleted quote, id: {quote.id}, alias: {quote.alias}')

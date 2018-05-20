@@ -54,6 +54,7 @@ class Config:
                 nick='nick',
                 prefix='!',
                 default_balance=200,
+                owner='BOT_OWNER_NAME',
                 channels=['channel']
             ), file, indent=2)
 

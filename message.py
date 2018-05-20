@@ -6,7 +6,7 @@ from config import cfg
 from irc import Irc
 from regex import RE_PRIVMSG, RE_WHISPER
 from enums import MessageType
-from util import send_whisper, split_message
+from util import split_message
 
 
 class Message:
@@ -77,12 +77,10 @@ class Message:
             if self.irc is None:
                 raise ValueError('no irc instance set for this message')
 
-            await send_whisper(self.irc, self.author, msg)
-            if self.bot is not None:
-                await self.bot.on_whisper_sent(msg, self.author, cfg.nick)
+            await self.irc.send_whisper(self.author, msg)
 
-        else:
-            raise ValueError(f'invalid message type to reply, expected PRIVMSG or WHISPER, current: {self.type}')
+        # else:
+        #     raise ValueError(f'invalid message type to reply, expected PRIVMSG or WHISPER, current: {self.type}')
 
     def __str__(self):
         if self.type is MessageType.PRIVMSG:

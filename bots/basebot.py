@@ -35,9 +35,11 @@ class BaseBot:
         reader, writer = await util.get_connection()
         irc = Irc(reader, writer)
         bot = BaseBot(irc)
+        irc.bot = bot
 
         for name in cfg.channels:
-            Channel(name, irc, bot)
+            chan = Channel(name, irc, bot)
+            chan.start_update_loop()
 
         return bot
 
@@ -86,12 +88,11 @@ class BaseBot:
         triggered when the bot connects to all the channels specified in the config file
         """
 
-    async def on_privmsg_sent(self, msg: str, channel: Channel) -> None:
+    async def on_privmsg_sent(self, msg: str, channel: str, sender: str) -> None:
         """
         triggered when the bot sends a privmsg
-        :param privmsg:
         """
-        print(f'Sent "{msg}" to channel "{channel.name}"')
+        print(f'{sender}({channel}): {msg}')
 
     async def on_whisper_received(self, msg: Message):
         """
