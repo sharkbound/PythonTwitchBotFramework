@@ -35,6 +35,10 @@ async def cmd_get_currency_name(msg: Message, *args):
 async def cmd_get_bal(msg: Message, *args):
     if args:
         target = args[0]
+
+        if target not in msg.channel.chatters:
+            await msg.reply(msg=f'no viewer found by the name of "{target}"')
+            return
     else:
         target = msg.author
 
@@ -55,6 +59,10 @@ async def cmd_set_bal(msg: Message, *args):
         return
     elif len(args) == 2:
         target = args[1]
+
+        if target not in msg.channel.chatters:
+            await msg.reply(msg=f'no viewer found by the name of "{args[1]}"')
+            return
     else:
         target = msg.author
 
@@ -65,13 +73,18 @@ async def cmd_set_bal(msg: Message, *args):
         return
 
     await msg.reply(
-        f'@{target} now has {get_balance(msg.channel_name, msg.author).balance} {get_currency_name(msg.channel_name).name}')
+        f'@{target} now has {args[0]} '
+        f'{get_currency_name(msg.channel_name).name}')
 
 
 @Command('give')
 async def cmd_give(msg: Message, *args):
     if len(args) != 2:
         await msg.reply(f'missing args: {PREFIX}give <user> <amt>')
+        return
+
+    if args[0] not in msg.channel.chatters:
+        await msg.reply(msg=f'no viewer found by the name "{args[0]}"')
         return
 
     caller = get_balance_from_msg(msg)

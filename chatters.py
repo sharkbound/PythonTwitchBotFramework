@@ -14,6 +14,7 @@ class Chatters:
     admins: frozenset = frozenset()
     global_mods: frozenset = frozenset()
     viewers: frozenset = frozenset()
+    all_viewers: frozenset = frozenset()
     viewer_count: int = 0
 
     async def update(self):
@@ -26,3 +27,7 @@ class Chatters:
         self.global_mods = frozenset(chatters['global_mods'])
         self.viewers = frozenset(chatters['viewers'])
         self.viewer_count = json['chatter_count']
+        self.all_viewers = self.mods | self.staff | self.admins | self.global_mods | self.viewers
+
+    def __contains__(self, item):
+        return item.lower() in self.all_viewers
