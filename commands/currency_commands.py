@@ -1,4 +1,3 @@
-import re
 from datetime import datetime, timedelta
 from random import randint
 
@@ -177,11 +176,3 @@ async def cmd_mine(msg: Message, *args):
             whisper=True)
     else:
         await msg.reply(f'you cannot mine again for {int(abs(diff))} seconds', whisper=True)
-
-
-arena_running = False
-
-
-@Command('arena')
-async def cmd_arena(msg: Message, *args):
-    pass

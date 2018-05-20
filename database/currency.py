@@ -6,9 +6,13 @@ from .session import session
 currency_name_cache: Dict[Tuple[str, str], CurrencyName] = {}
 
 
-def set_balance(channel: str, user: str, new_balance: int) -> None:
-    bal = get_balance(channel, user)
-    bal.balance = new_balance
+def set_balance(channel: str, user: str, value: int) -> None:
+    get_balance(channel, user).balance = value
+    session.commit()
+
+
+def add_balance(channel: str, user: str, value: int) -> None:
+    get_balance(channel, user).balance += value
     session.commit()
 
 
