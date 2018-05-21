@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String
+from asyncio import Future, Task
+
+from sqlalchemy import Column, Integer, String, Float, Boolean
 
 from config import cfg
 from enums import CommandContext
@@ -61,6 +63,26 @@ class CurrencyName(Base):
     @classmethod
     def create(cls, channel: str, name: str):
         return CurrencyName(channel=channel.lower(), name=name)
+
+
+class MessageTimer(Base):
+    __tablename__ = 'message_timers'
+
+    id = Column(Integer, nullable=False, primary_key=True)
+    name = Column(String, nullable=False)
+    channel = Column(String, nullable=False)
+    message = Column(String, nullable=False)
+    interval = Column(Float, nullable=False)
+    active = Column(Boolean, nullable=False, default=False)
+    task: Task = None
+
+    @property
+    def running(self):
+        return self.task is not None and not self.task.done()
+
+    @classmethod
+    def create(cls, channel: str, name: str, message: str, interval: float, active=False):
+        return MessageTimer(name=name, channel=channel, message=message, interval=interval, active=active)
 
 
 database_init()

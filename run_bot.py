@@ -1,3 +1,5 @@
+#! python3.6
+
 from asyncio import get_event_loop
 
 from bots import BaseBot

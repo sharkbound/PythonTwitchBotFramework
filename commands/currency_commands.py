@@ -1,9 +1,12 @@
 from datetime import datetime, timedelta
 from random import randint
+from typing import Dict
 
+from arena import Arena, ARENA_DEFAULT_ENTRY_FEE
 from command import Command
 from message import Message
-from database import set_currency_name, get_currency_name, set_balance, get_balance, session, get_balance_from_msg
+from database import set_currency_name, get_currency_name, set_balance, get_balance, session, get_balance_from_msg, \
+    add_balance
 from config import cfg
 
 PREFIX = cfg.prefix
@@ -11,7 +14,7 @@ PREFIX = cfg.prefix
 
 @Command('setcurrencyname')
 async def cmd_set_currency_name(msg: Message, *args):
-    if msg.author != msg.channel_name:
+    if msg.author not in (msg.channel_name, cfg.owner):
         await msg.reply('only the channel owner can use this command')
         return
 
@@ -176,3 +179,76 @@ async def cmd_mine(msg: Message, *args):
             whisper=True)
     else:
         await msg.reply(f'you cannot mine again for {int(abs(diff))} seconds', whisper=True)
+
+
+running_arenas: Dict[str, Arena] = {}
+
+
+@Command('arena')
+async def cmd_arena(msg: Message, *args):
+    def _can_pay_entry_fee(fee):
+        return get_balance(msg.channel_name, msg.author).balance >= fee
+
+    arena = running_arenas.get(msg.channel_name)
+    curname = get_currency_name(msg.channel_name).name
+
+    # arena is already running for this channel
+    if arena:
+        if msg.author in arena.users:
+            await msg.reply(
+                whisper=True,
+                msg='you are already entered the in the arena')
+            return
+
+        elif not _can_pay_entry_fee(arena.entry_fee):
+            await msg.reply(
+                whisper=True,
+                msg=f'{msg.mention} you do not have enough {curname} '
+                    f'to join the arena, entry_fee is {arena.entry_fee} {curname}')
+            return
+
+        arena.add_user(msg.author)
+        add_balance(msg.channel_name, msg.author, -arena.entry_fee)
+
+        await msg.reply(
+            whisper=True,
+            msg=f'{msg.mention} you have been added to the arena, you were charged {arena.entry_fee} {curname} upon entry')
+
+    # start a new arena as one is not already running for this channel
+    else:
+        if args:
+            try:
+                entry_fee = int(args[0])
+            except ValueError:
+                await msg.reply(msg='invalid value for entry fee')
+                return
+        else:
+            entry_fee = ARENA_DEFAULT_ENTRY_FEE
+
+        if entry_fee and entry_fee < ARENA_DEFAULT_ENTRY_FEE:
+            await msg.reply(msg=f'entry fee cannot be less than {ARENA_DEFAULT_ENTRY_FEE}')
+            return
+
+        if not _can_pay_entry_fee(entry_fee):
+            await msg.reply(
+                whisper=True,
+                msg=f'{msg.mention} you do not have {entry_fee} {curname}')
+            return
+
+        arena = Arena(msg.channel, entry_fee, on_arena_ended_func=_remove_running_arena_entry)
+        arena.start()
+        arena.add_user(msg.author)
+
+        add_balance(msg.channel_name, msg.author, -arena.entry_fee)
+
+        running_arenas[msg.channel_name] = arena
+
+
+def _remove_running_arena_entry(arena: Arena):
+    global running_arenas
+
+    try:
+        del running_arenas[arena.channel.name]
+        print('success')
+    except:
+        pass

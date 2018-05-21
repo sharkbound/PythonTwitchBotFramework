@@ -1,12 +1,9 @@
 import asyncio
 from datetime import datetime
-from asyncio import StreamWriter, StreamReader
 from typing import Dict
-
 from api import StreamInfoApi
 from chatters import Chatters
 from irc import Irc
-from ratelimit import privmsg_ratelimit_async
 from config import cfg
 
 

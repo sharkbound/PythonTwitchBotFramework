@@ -94,10 +94,8 @@ class BaseBot:
         """
         print(f'{sender}({channel}): {msg}')
 
-    async def on_whisper_received(self, msg: Message):
-        """
-        triggered when a user sends the bot a whisper
-        """
+    async def on_privmsg_received(self, msg: Message) -> None:
+        """triggered when a privmsg is received, is not triggered if the msg is a command"""
 
     async def on_whisper_sent(self, msg: str, receiver: str, sender: str):
         """
@@ -105,8 +103,10 @@ class BaseBot:
         """
         print(f'{cfg.nick} -> {receiver}: {msg}')
 
-    async def on_privmsg_received(self, msg: Message) -> None:
-        """triggered when a privmsg is received, is not triggered if the msg is a command"""
+    async def on_whisper_received(self, msg: Message):
+        """
+        triggered when a user sends the bot a whisper
+        """
 
     async def on_before_command_execute(self, msg: Message, cmd: Command) -> bool:
         """
@@ -140,8 +140,11 @@ class BaseBot:
                         or (msg.is_privmsg and cmd.context & CommandContext.CHANNEL)):
                 coro = self.run_command(msg, cmd)
 
-            elif msg.type == MessageType.WHISPER:
+            elif msg.type is MessageType.WHISPER:
                 coro = self.on_whisper_received(msg)
+
+            elif msg.type is MessageType.PRIVMSG:
+                coro = self.on_privmsg_received(msg)
 
             elif msg.type is MessageType.PING:
                 self.irc.send_pong()
