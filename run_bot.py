@@ -1,9 +1,7 @@
 #! python3.6
 
 from asyncio import get_event_loop
-
-from twitchbot.bots import BaseBot
-from twitchbot.command import load_commands_from_folder
+from twitchbot import BaseBot
 
 
 async def main():

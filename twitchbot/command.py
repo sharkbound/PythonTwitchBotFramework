@@ -58,8 +58,7 @@ class CustomCommandAction(Command):
 
         for placeholder, func in PLACEHOLDERS:
             if placeholder in resp:
-                repl = func(msg)
-                resp = resp.replace(placeholder, repl)
+                resp = resp.replace(placeholder, func(msg))
 
         await msg.channel.send_message(resp)
 
