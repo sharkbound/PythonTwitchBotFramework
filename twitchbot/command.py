@@ -1,14 +1,14 @@
 import os
 import sys
 from typing import Dict, Callable
-from config import cfg
+from .config import cfg
 from importlib import import_module
 from glob import glob
 from contextlib import contextmanager
 
-from database import CustomCommand
-from enums import CommandContext
-from message import Message
+from twitchbot.database import CustomCommand
+from .enums import CommandContext
+from twitchbot.message import Message
 from datetime import datetime
 
 
@@ -68,6 +68,8 @@ commands: Dict[str, Command] = {}
 
 
 def load_commands_from_folder(path):
+    print(f'loading commands from {path}...')
+
     path = os.path.abspath(path)
 
     if not os.path.exists(path):

@@ -1,8 +1,10 @@
-from channel import channels
-from command import Command, commands
-from enums import CommandContext
-from message import Message
-from database import get_all_custom_commands
+from twitchbot import (
+    channels,
+    Command,
+    commands,
+    CommandContext,
+    Message, get_all_custom_commands
+)
 
 
 @Command('list')
@@ -24,5 +26,3 @@ async def cmd_help(msg: Message, *args):
 
 
 Command(name='commands')(cmd_help.func)
-
-

@@ -1,19 +1,15 @@
-import asyncio
-import shlex
-import time
-from asyncio import StreamReader, StreamWriter, get_event_loop
-from typing import List, Dict, Set, Union, Optional
+from asyncio import get_event_loop
+from typing import List, Optional
 
-import colors
-import util
-from channel import Channel, channels
-from command import Command, commands, CustomCommandAction
-from config import cfg
-from enums import MessageType, CommandContext
-from irc import Irc
-from message import Message
-from database import get_custom_command
-from permission import perms
+from .. import util
+from twitchbot.channel import Channel, channels
+from ..command import Command, commands, CustomCommandAction
+from ..config import cfg
+from ..enums import MessageType, CommandContext
+from ..irc import Irc
+from twitchbot.message import Message
+from twitchbot.database import get_custom_command
+from twitchbot.permission import perms
 
 
 class BaseBot:

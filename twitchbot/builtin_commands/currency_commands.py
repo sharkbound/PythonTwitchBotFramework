@@ -2,12 +2,21 @@ from datetime import datetime, timedelta
 from random import randint
 from typing import Dict
 
-from arena import Arena, ARENA_DEFAULT_ENTRY_FEE
-from command import Command
-from message import Message
-from database import set_currency_name, get_currency_name, set_balance, get_balance, session, get_balance_from_msg, \
-    add_balance
-from config import cfg
+from twitchbot import (
+    Arena,
+    ARENA_DEFAULT_ENTRY_FEE,
+    Command,
+    Message,
+    set_currency_name,
+    get_currency_name,
+    set_balance,
+    get_balance,
+    session,
+    get_balance_from_msg,
+    add_balance,
+    cfg
+
+)
 
 PREFIX = cfg.prefix
 PERMISSION = 'manage_currency'

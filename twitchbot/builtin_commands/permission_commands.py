@@ -1,7 +1,9 @@
-from command import Command
-from permission import perms
-from message import Message
-from config import cfg
+from twitchbot import (
+    Command,
+    perms,
+    Message,
+    cfg
+)
 
 WHISPER = True
 

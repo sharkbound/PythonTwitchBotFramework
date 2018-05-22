@@ -67,6 +67,7 @@ class Config:
 
 
 cfg = Config(oauth='oauth:',
+             client_id='CLIENT_ID',
              nick='nick',
              prefix='!',
              default_balance=200,

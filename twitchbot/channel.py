@@ -1,10 +1,10 @@
 import asyncio
 from datetime import datetime
 from typing import Dict
-from api import StreamInfoApi
-from chatters import Chatters
-from irc import Irc
-from config import cfg
+from twitchbot.api import StreamInfoApi
+from .chatters import Chatters
+from .irc import Irc
+from .config import cfg
 
 
 class Channel:
@@ -15,7 +15,7 @@ class Channel:
         self.is_mod = False
         self.stats = StreamInfoApi(cfg.client_id, self.name)
 
-        from bots import BaseBot
+        from twitchbot.bots import BaseBot
         self.bot: BaseBot = bot
 
         if register_globally:
@@ -35,11 +35,12 @@ class Channel:
     #     await self.send_command(f'ban {user}')
 
     async def update_loop(self):
-        while True:
-            await self.chatters.update()
-            await self.stats.update()
-            self.is_mod = cfg.nick.lower() in self.chatters.mods
-            await asyncio.sleep(60)
+        if cfg.client_id != 'CLIENT_ID':
+            while True:
+                await self.chatters.update()
+                await self.stats.update()
+                self.is_mod = cfg.nick.lower() in self.chatters.mods
+                await asyncio.sleep(60)
 
     def start_update_loop(self):
         asyncio.get_event_loop().create_task(self.update_loop())

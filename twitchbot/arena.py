@@ -1,9 +1,9 @@
 import asyncio
 from asyncio import Future, ensure_future
-from channel import Channel
+from twitchbot.channel import Channel
 from random import choice
-from database import add_balance, get_currency_name
-from config import cfg
+from twitchbot.database import add_balance, get_currency_name
+from .config import cfg
 
 ARENA_WAIT_TIME = 30
 ARENA_DEFAULT_ENTRY_FEE = 30

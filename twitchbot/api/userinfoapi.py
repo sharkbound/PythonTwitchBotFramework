@@ -1,6 +1,6 @@
 from .baseapi import Api
-from enums import UserType
-import util
+from ..enums import UserType
+from .. import util
 
 
 class UserInfoApi(Api):

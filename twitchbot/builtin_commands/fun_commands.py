@@ -1,8 +1,10 @@
 from random import randint
 
-from enums import CommandContext
-from message import Message
-from command import Command
+from twitchbot import (
+    Message,
+    CommandContext,
+    Command
+)
 
 
 @Command('roll', context=CommandContext.BOTH)
@@ -24,4 +26,3 @@ async def cmd_roll(msg: Message, *args):
 @Command('crashcode', permission='crashcode')
 async def cmd_crash_code(msg: Message, *args):
     await msg.reply(f'you may not crash me! {msg.mention}')
-

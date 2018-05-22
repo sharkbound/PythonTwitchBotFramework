@@ -2,8 +2,8 @@ from asyncio import Future, Task
 
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
-from config import cfg
-from enums import CommandContext
+from ..config import cfg
+from ..enums import CommandContext
 from .session import Base, database_init
 
 __all__ = ('Quote', 'CustomCommand')

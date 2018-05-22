@@ -1,6 +1,6 @@
 from typing import Dict, Iterable, Tuple, FrozenSet, Generator, Optional
 
-from config import Config, cfg
+from .config import Config, cfg
 
 __all__ = ('perms', 'Permissions')
 

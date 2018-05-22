@@ -1,5 +1,5 @@
 import asyncio
-import util
+from .. import util
 
 from datetime import datetime
 from .baseapi import Api

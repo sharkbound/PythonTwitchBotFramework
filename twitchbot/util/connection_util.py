@@ -1,8 +1,8 @@
 import asyncio
-from config import cfg
+from ..config import cfg
 import ssl
 
-from irc import Irc
+from ..irc import Irc
 
 SSL_PORT = 443
 HTTP_PORT = 6667

@@ -1,14 +1,14 @@
-import re
-
-from command import Command
-from message import Message
-from database import (
+from twitchbot import (
+    Message,
     add_custom_command,
     get_custom_command,
     delete_custom_command,
     custom_command_exist,
-    CustomCommand, session)
-from config import cfg
+    CustomCommand,
+    session,
+    cfg,
+    Command
+)
 
 PERMISSION = 'manange_commands'
 

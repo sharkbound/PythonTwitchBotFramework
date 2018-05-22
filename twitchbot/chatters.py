@@ -3,7 +3,7 @@ from typing import Tuple
 
 from dataclasses import dataclass
 
-from util import get_channel_chatters
+from .util import get_channel_chatters
 
 
 @dataclass()

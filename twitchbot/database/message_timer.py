@@ -1,9 +1,9 @@
-from asyncio import sleep, ensure_future, get_event_loop
+from asyncio import sleep, ensure_future
 from typing import Optional, Dict, List
 
 from .models import MessageTimer
 from .session import session
-from channel import channels
+from twitchbot.channel import channels
 
 __all__ = ('get_message_timer', 'set_message_timer', 'message_timer_exist', 'set_message_timer_interval',
            'set_message_timer_message', 'delete_all_message_timers', 'delete_message_timer', 'set_message_timer_active',

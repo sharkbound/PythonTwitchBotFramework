@@ -1,12 +1,10 @@
-import shlex
 from typing import List
 
-from channel import Channel, channels
-from config import cfg
-from irc import Irc
-from regex import RE_PRIVMSG, RE_WHISPER
-from enums import MessageType
-from util import split_message
+from twitchbot.channel import Channel, channels
+from .irc import Irc
+from .regex import RE_PRIVMSG, RE_WHISPER
+from .enums import MessageType
+from .util import split_message
 
 
 class Message:
@@ -20,7 +18,7 @@ class Message:
         self.receiver: str = None
         self.irc: Irc = irc
 
-        from bots import BaseBot
+        from twitchbot.bots import BaseBot
         self.bot: BaseBot = bot
 
         m = RE_PRIVMSG.search(msg)

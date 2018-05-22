@@ -1,15 +1,15 @@
 import re
 
-from command import Command
-from message import Message
-from database import (
+from twitchbot import (
+    Command,
+    Message,
     delete_quote_by_id,
     add_quote,
     get_quote_by_alias,
     get_quote,
+    Quote,
+    cfg
 )
-from database.models import Quote
-from config import cfg
 
 PREFIX = cfg.prefix
 

@@ -1,6 +1,6 @@
 from asyncio import StreamWriter, StreamReader
-from config import cfg
-from ratelimit import privmsg_ratelimit_async, whisper_ratelimit_async
+from .config import cfg
+from .ratelimit import privmsg_ratelimit_async, whisper_ratelimit_async
 
 
 class Irc:
@@ -8,7 +8,7 @@ class Irc:
         self.reader: StreamReader = reader
         self.writer: StreamWriter = writer
 
-        from bots import BaseBot
+        from twitchbot.bots import BaseBot
         self.bot: BaseBot = bot
 
     def send(self, msg):

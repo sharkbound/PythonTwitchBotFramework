@@ -4,7 +4,7 @@ from functools import wraps
 from collections import namedtuple
 
 # DelayedCall = namedtuple('DelayedCall', 'func args kwargs')
-from config import cfg
+from .config import cfg
 
 PRIVMSG_MAX_MOD = 100
 PRIVMSG_MAX_NORMAL = 20

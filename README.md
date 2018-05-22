@@ -40,4 +40,3 @@ in the `configs` folder
 # adding your own commands
 
 to register your own command you have 2 options:
-to register your own command you have 2 options:
