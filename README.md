@@ -1,7 +1,7 @@
 # PythonTwitchBotFramework
 working twitchbot framework made in python 3.6+
 
-#basic info
+# basic info
 This is a fully async twitch bot framework complete with:
 
 * builtin command system using decorators
