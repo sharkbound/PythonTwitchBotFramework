@@ -104,9 +104,9 @@ the default config values are:
 
 ```
 
-`oauth` is the twitch oauth used to login
+`oauth` is the twitch oauth used to login  
 
-`client_id` is the client_id used to login to from the TwitchAPI
+`client_id` is the client_id used to get info like channel title, ect ( this is not required but twitch API info will not be available without it )
 
 `nick` is the twitch accounts nickname
 
