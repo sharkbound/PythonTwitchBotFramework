@@ -49,10 +49,43 @@ from twitchbot import Command
 @Command('COMMAND_NAME')
 async def cmd_function(msg, *args):
     await msg.reply('i was called!')
+```
+* you can also limit the commands to be whisper or channel chat only 
+(default is channel chat only)
+```python
+from twitchbot import Command, CommandContext
 
+# other options are CommandContext.BOTH and CommandContext.WHISPER
+@Command('COMMAND_NAME', context=CommandContext.CHANNEL) # this is the default command context
+async def cmd_function(msg, *args):
+    await msg.reply('i was called!')
+```
+* you can also specify if a permission is required to be able to call
+the command:
+
+```python
+from twitchbot import Command
+
+@Command('COMMAND_NAME', permission='PERMISSION_NAME')
+async def cmd_function(msg, *args):
+    await msg.reply('i was called!')
 ```
 
+* commands can also be loaded from other directories using:
+```python
+from twitchbot import load_commands_from_folder
 
+load_commands_from_folder('PATH/TO/THE/DIRECTORY')
+``` 
+
+* so say i have this a folder called `my_commands`,
+so i would do this:
+
+```python
+from twitchbot import load_commands_from_folder
+
+load_commands_from_folder('my_commands')
+``` 
 # config
 
 the default config values are:
