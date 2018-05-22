@@ -61,7 +61,7 @@ async def cmd_function(msg, *args):
     await msg.reply('i was called!')
 ```
 * you can also specify if a permission is required to be able to call
-the command:
+the command (if no permission is specified anyone can call the command):
 
 ```python
 from twitchbot import Command
@@ -119,3 +119,101 @@ already have a economy balance
 `owner` is the bot's owner
 
 `channels` in the twitch channels the bot will join
+
+# permissions
+
+the bot comes default with permission support
+
+there are two ways to manage permissions,
+
+1. using chat commands 
+2. editing JSON permission files
+
+## managing permissions using chat commands
+to add a permission group: `!addgroup <group>`, ex: `!addgroup donators`
+
+to add a member to a group: `!addmember <group> <user>`, ex: 
+`!addmember donators johndoe`
+
+to add a permission to a group: `!addperm <group> <permission>`, ex: 
+`!addperm donators slap`
+
+to remove a group: `!delgroup <group>`, ex: `!delgroup donators`
+
+to remove a member from a group: `!delmember <group> <member>`, ex: 
+`!delmember donators johndoe`
+
+to remove a permission from a group: `!delperm <group> <permission>`, ex:
+`!delperm donators slap`
+
+## managing permission by editing the configs
+
+find the `configs` folder the bot generated (will be in same directory as the 
+script that run the bot)
+
+inside you will find `config.json` with the bot config values required for 
+authentication with twitch and such
+
+if the bot has joined any channels then you will see file names
+that look like `CHANNELNAME_perms.json`
+
+for this example i will use a `johndoe`
+
+so if you open `johndoe_perms.json` you will see this if you 
+have not changed anything in it:
+
+```json
+{
+  "admin": {
+    "name": "admin",
+    "permissions": [
+      "*"
+    ],
+    "members": [
+      "johndoe"
+    ]
+  }
+}
+```
+
+`name` is the name of the permission group
+
+`permissions` is the list of permissions the group has
+("*" is the "god" permission, granting access to all bot commands)
+
+`members` is the members of the group
+
+to add more permission groups by editing the config 
+you can just copy/paste the default one 
+(be sure to remove the "god" permission if you dont them 
+having access to all bot commands)
+
+so after copy/pasting the default group it will look like this
+ (dont forget to separate the groups using `,`):
+ 
+ 
+```json
+{
+  "admin": {
+    "name": "admin",
+    "permissions": [
+      "*"
+    ],
+    "members": [
+      "johndoe"
+    ]
+  },
+  "donator": {
+    "name": "donator",
+    "permissions": [
+      "slap"
+    ],
+    "members": [
+      "johndoe"
+    ]
+  }
+}
+```
+
+if the bot is running be sure to do `!reloadperms` to load
+the changes to the permission file
