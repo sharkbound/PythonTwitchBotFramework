@@ -10,9 +10,10 @@ from database import set_currency_name, get_currency_name, set_balance, get_bala
 from config import cfg
 
 PREFIX = cfg.prefix
+PERMISSION = 'manage_currency'
 
 
-@Command('setcurrencyname')
+@Command('setcurrencyname', permission=PERMISSION)
 async def cmd_set_currency_name(msg: Message, *args):
     if msg.author not in (msg.channel_name, cfg.owner):
         await msg.reply('only the channel owner can use this command')
@@ -50,14 +51,10 @@ async def cmd_get_bal(msg: Message, *args):
             f'{get_currency_name(msg.channel_name).name}')
 
 
-@Command('setbal')
+@Command('setbal', permission=PERMISSION)
 async def cmd_set_bal(msg: Message, *args):
-    if not msg.author in msg.channel.chatters.mods and msg.author != cfg.owner:
-        await msg.reply('only mods can use this command')
-        return
-
     if not len(args):
-        await msg.reply(f'missing args: {PREFIX}setbal <new_balance> (user)')
+        await msg.reply(f'invalid args: {PREFIX}setbal <new_balance> (user)')
         return
     elif len(args) == 2:
         target = args[1]
@@ -82,7 +79,7 @@ async def cmd_set_bal(msg: Message, *args):
 @Command('give')
 async def cmd_give(msg: Message, *args):
     if len(args) != 2:
-        await msg.reply(f'missing args: {PREFIX}give <user> <amt>')
+        await msg.reply(f'invalid args: {PREFIX}give <user> <amt>')
         return
 
     if args[0] not in msg.channel.chatters:

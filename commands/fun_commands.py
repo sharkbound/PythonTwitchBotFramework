@@ -19,3 +19,9 @@ async def cmd_roll(msg: Message, *args):
     num = randint(1, sides)
     user = msg.mention if msg.is_privmsg else ''
     await msg.reply(f'{user} you rolled a {num}')
+
+
+@Command('crashcode', permission='crashcode')
+async def cmd_crash_code(msg: Message, *args):
+    await msg.reply(f'you may not crash me! {msg.mention}')
+

@@ -31,7 +31,7 @@ async def _parse_interval(msg, value):
 @Command('addtimer')
 async def cmd_add_timer(msg: Message, *args):
     if len(args) < 3:
-        await msg.reply(f'missing args: {PREFIX}addtimer <name> <interval> <message>')
+        await msg.reply(f'invalid args: {PREFIX}addtimer <name> <interval> <message>')
         return
 
     valid, interval = await _parse_interval(msg, args[1])
@@ -53,7 +53,7 @@ async def cmd_add_timer(msg: Message, *args):
 @Command('starttimer')
 async def cmd_start_timer(msg: Message, *args):
     if not args:
-        await msg.reply(f'missing args: {PREFIX}starttimer <name>')
+        await msg.reply(f'invalid args: {PREFIX}starttimer <name>')
         return
 
     name = args[0]
@@ -76,7 +76,7 @@ async def cmd_start_timer(msg: Message, *args):
 @Command('stoptimer')
 async def cmd_start_timer(msg: Message, *args):
     if not args:
-        await msg.reply(f'missing args: {PREFIX}stoptimer <name>')
+        await msg.reply(f'invalid args: {PREFIX}stoptimer <name>')
         return
 
     name = args[0]
@@ -99,7 +99,7 @@ async def cmd_start_timer(msg: Message, *args):
 @Command('deltimer')
 async def cmd_del_timer(msg: Message, *args):
     if not args:
-        await msg.reply(f'missing args: {PREFIX}deltimer <name>')
+        await msg.reply(f'invalid args: {PREFIX}deltimer <name>')
         return
 
     name = args[0]

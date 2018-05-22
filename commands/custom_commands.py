@@ -10,21 +10,23 @@ from database import (
     CustomCommand, session)
 from config import cfg
 
+PERMISSION = 'manange_commands'
+
 PREFIX = cfg.prefix
 
 
 async def _verify_resp_text(msg: Message, resp: str):
     if resp[0] in './':
-        await msg.channel.send_message('responses cannot have . or / as the starting charater')
+        await msg.reply(msg='responses cannot have . or / as the starting charater')
         return False
 
     return True
 
 
-@Command('addcmd')
+@Command('addcmd', permission=PERMISSION)
 async def cmd_add_custom_command(msg: Message, *args):
     if len(args) < 2:
-        await msg.reply(f'missing args: {PREFIX}addcmd <name> <response>')
+        await msg.reply(f'invalid args: {PREFIX}addcmd <name> <response>')
         return
 
     name, resp = args[0], ' '.join(args[1:])
@@ -43,10 +45,10 @@ async def cmd_add_custom_command(msg: Message, *args):
         await msg.reply('failed to add command')
 
 
-@Command('updatecmd')
+@Command('updatecmd', permission=PERMISSION)
 async def cmd_update_custom_command(msg: Message, *args):
     if len(args) < 2:
-        await msg.reply(f'missing args: {PREFIX}updatecmd <name> <response>')
+        await msg.reply(f'invalid args: {PREFIX}updatecmd <name> <response>')
         return
 
     name, resp = args[0], ' '.join(args[1:])
@@ -67,10 +69,10 @@ async def cmd_update_custom_command(msg: Message, *args):
     await msg.reply(f'successfully updated {cmd.name}')
 
 
-@Command('delcmd')
+@Command('delcmd', permission=PERMISSION)
 async def cmd_add_custom_command(msg: Message, *args):
     if not args:
-        await msg.reply(f'missing args: {PREFIX}delcmd <name>')
+        await msg.reply(f'invalid args: {PREFIX}delcmd <name>')
         return
 
     cmd = get_custom_command(msg.channel_name, args[0].lower())
@@ -87,7 +89,7 @@ async def cmd_add_custom_command(msg: Message, *args):
 @Command('getcmd')
 async def cmd_get_custom_command(msg: Message, *args):
     if not args:
-        await msg.reply(f'missing args: {PREFIX}getcmd <name>')
+        await msg.reply(f'invalid args: {PREFIX}getcmd <name>')
         return
 
     cmd = get_custom_command(msg.channel_name, args[0].lower())

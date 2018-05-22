@@ -17,7 +17,7 @@ PREFIX = cfg.prefix
 @Command('addquote')
 async def cmd_quote_add(msg: Message, *args):
     if not args:
-        await msg.reply(f'missing args: {PREFIX}addquote "<quote text>" user=(user) alias=(alias)')
+        await msg.reply(f'invalid args: {PREFIX}addquote "<quote text>" user=(user) alias=(alias)')
         return
 
     optionals = ' '.join(args[1:])
@@ -53,7 +53,7 @@ async def cmd_quote_add(msg: Message, *args):
 @Command('getquote')
 async def cmd_get_quote(msg: Message, *args):
     if not args:
-        await msg.reply(f'missing args: {PREFIX}getquote <ID or ALIAS>')
+        await msg.reply(f'invalid args: {PREFIX}getquote <ID or ALIAS>')
 
     quote = get_quote(msg.channel_name, args[0])
     if quote is None:
@@ -63,10 +63,10 @@ async def cmd_get_quote(msg: Message, *args):
     await msg.reply(f'"{quote.value}" user: {quote.user} alias: {quote.alias}')
 
 
-@Command('delquote')
+@Command('delquote', permission='delete_quote')
 async def cmd_del_quote(msg: Message, *args):
     if not args:
-        await msg.reply(f'missing args: {PREFIX}delquote <ID or ALIAS>')
+        await msg.reply(f'invalid args: {PREFIX}delquote <ID or ALIAS>')
 
     quote = get_quote(msg.channel_name, args[0])
     if quote is None:

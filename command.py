@@ -13,7 +13,8 @@ from datetime import datetime
 
 
 class Command:
-    def __init__(self, name, prefix=None, func=None, global_command=True, context=CommandContext.CHANNEL):
+    def __init__(self, name, prefix=None, func=None, global_command=True, context=CommandContext.CHANNEL,
+                 permission=None):
         """
         :param name: name of the command (without the prefix)
         :param prefix: prefix require before the command name (defaults the the configs prefix if None)
@@ -21,6 +22,7 @@ class Command:
         :param global_command: should the command be registered globally?
         :param context: the context through which calling the command is allowed
         """
+        self.permission = permission
         self.context: CommandContext = context
         self.prefix: str = (prefix if prefix is not None else cfg.prefix).lower()
         self.func: Callable = func

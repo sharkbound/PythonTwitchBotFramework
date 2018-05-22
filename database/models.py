@@ -31,6 +31,7 @@ class CustomCommand(Base):
     channel = Column(String, nullable=False)
     response = Column(String, nullable=False)
     context = CommandContext.CHANNEL
+    permission = None
 
     @classmethod
     def create(cls, channel: str, name: str, response: str):

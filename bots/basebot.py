@@ -13,6 +13,7 @@ from enums import MessageType, CommandContext
 from irc import Irc
 from message import Message
 from database import get_custom_command
+from permission import perms
 
 
 class BaseBot:
@@ -113,6 +114,12 @@ class BaseBot:
         triggered before a command is executed
         :return bool, if return value is False, then the command will not be executed
         """
+        if cmd.permission and not perms.has_permission(msg.channel_name, msg.author, cmd.permission):
+            await msg.reply(
+                whisper=True,
+                msg=f'you do not have permission to execute {cmd.fullname} in #{msg.channel_name}')
+            return False
+
         return True
 
     async def on_after_command_execute(self, msg: Message, cmd: Command) -> None:
