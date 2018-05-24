@@ -1,4 +1,4 @@
-from typing import Dict, Iterable, Tuple, FrozenSet, Generator, Optional
+from typing import Dict, Iterable, Tuple, Optional
 
 from .config import Config, cfg
 
@@ -17,8 +17,9 @@ class Permissions:
     def __init__(self):
         self.channels: Dict[str, Config] = {}
 
-    def _load_config(self, channel: str, force_update=False):
+    def load_permissions(self, channel: str, force_update=False):
         """loads a config file (or creates the config if it doesnt exist) into the cache of the permission object"""
+        channel = channel.lower()
         if channel in self and not force_update:
             return
 
@@ -48,7 +49,7 @@ class Permissions:
         """checks if a user has a permission"""
         user, perm = user.lower(), perm.lower()
         search = {perm, '*'}
-        return any(p in search for p in self.iter_user_permissions(channel, user))
+        return user == cfg.owner or any(p in search for p in self.iter_user_permissions(channel, user))
 
     def get_group(self, channel: str, group: str) -> Optional[dict]:
         """gets a permission group by the name passed in, returns None if not found"""
@@ -131,11 +132,11 @@ class Permissions:
     def reload_permissions(self, channel=None):
         if not channel:
             for channel in tuple(self.channels):
-                self._load_config(channel, force_update=True)
+                self.load_permissions(channel, force_update=True)
             return True
 
         elif channel in self:
-            self._load_config(channel, force_update=True)
+            self.load_permissions(channel, force_update=True)
             return True
 
         return False
@@ -181,7 +182,7 @@ class Permissions:
     def __getitem__(self, item) -> Config:
         """gets a channels Config, creates if not exists"""
         if item not in self:
-            self._load_config(item)
+            self.load_permissions(item)
         return self.channels[item]
 
 

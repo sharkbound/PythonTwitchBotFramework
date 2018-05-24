@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from random import randint
 from typing import Dict
+from secrets import randbelow
 
 from twitchbot import (
     Arena,
@@ -22,12 +23,8 @@ PREFIX = cfg.prefix
 PERMISSION = 'manage_currency'
 
 
-@Command('setcurrencyname', permission=PERMISSION)
+@Command('setcurrencyname', permission=PERMISSION, syntax='<new_name>', help='sets the channels currency name')
 async def cmd_set_currency_name(msg: Message, *args):
-    if msg.author not in (msg.channel_name, cfg.owner):
-        await msg.reply('only the channel owner can use this command')
-        return
-
     if len(args) != 1:
         await msg.reply(f'missing/invalid args: {PREFIX}setcurrencyname <new_name>')
 
@@ -37,13 +34,13 @@ async def cmd_set_currency_name(msg: Message, *args):
         f"this channel's currency name is now \"{get_currency_name(msg.channel_name).name}\"")
 
 
-@Command('getcurrencyname')
+@Command('getcurrencyname', help='get the channels current currency name')
 async def cmd_get_currency_name(msg: Message, *args):
     await msg.reply(
         f"this channel's current currency name is \"{get_currency_name(msg.channel_name).name}\"")
 
 
-@Command('bal')
+@Command('bal', syntax='(target)', help='gets the caller\'s (or target\'s if specified) balance')
 async def cmd_get_bal(msg: Message, *args):
     if args:
         target = args[0]
@@ -60,7 +57,7 @@ async def cmd_get_bal(msg: Message, *args):
             f'{get_currency_name(msg.channel_name).name}')
 
 
-@Command('setbal', permission=PERMISSION)
+@Command('setbal', permission=PERMISSION, syntax='<new_balance> (target)', help='sets the callers or targets balance')
 async def cmd_set_bal(msg: Message, *args):
     if not len(args):
         await msg.reply(f'invalid args: {PREFIX}setbal <new_balance> (user)')
@@ -85,10 +82,11 @@ async def cmd_set_bal(msg: Message, *args):
         f'{get_currency_name(msg.channel_name).name}')
 
 
-@Command('give')
+@Command('give', syntax='<target> <amount>',
+         help='gives the target the specified amount from the callers currency balance')
 async def cmd_give(msg: Message, *args):
     if len(args) != 2:
-        await msg.reply(f'invalid args: {PREFIX}give <user> <amt>')
+        await msg.reply(f'invalid args: {PREFIX}give <target> <amount>')
         return
 
     if args[0] not in msg.channel.chatters:
@@ -120,15 +118,15 @@ async def cmd_give(msg: Message, *args):
         f"@{msg.author} you gave @{args[0]} {give} {cur_name}, @{args[0]}'s balance is now {target.balance}")
 
 
-@Command('gamble')
+@Command('gamble', syntax='<dice_sides> <bet>',
+         help='throws a X sided die and if it rolls on 1 you get twice your bet + (bet*(6/<dice_sides>)), '
+              'if the dice sides are more than 6 you get more payout, '
+              'but it is also a lower chance to roll a 1.')
 async def cmd_gamble(msg: Message, *args):
     if len(args) != 2:
         await msg.reply(
             f'USAGE: {PREFIX}gamble <dice_sides> <bet>, '
-            'higher the number, the higher chance of lossing, '
-            'but also gives you more when you win, '
-            'you win if you roll a 1, '
-            'any number less than 6 will give less than you bet')
+            f'do "{cfg.prefix}help {cfg.prefix}gamble" to get more details  ')
         return
 
     try:
@@ -150,11 +148,13 @@ async def cmd_gamble(msg: Message, *args):
         await msg.reply(f"you don't have enough {get_currency_name(msg.channel_name).name}")
         return
 
-    n = randint(1, sides)
+    n = randbelow(sides) + 1
     cur_name = get_currency_name(msg.channel_name).name
 
     if n == 1:
-        gain = int(bet * (sides / 6))
+        if sides >= 6:
+            bet *= 2
+        gain = bet + int(bet * (sides / 6))
         bal.balance += gain
         await msg.reply(f'you rolled {n} and won {gain} {cur_name}')
     else:

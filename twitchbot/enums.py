@@ -19,6 +19,7 @@ class MessageType(NamedEnum):
     WHISPER = auto()
     COMMAND = auto()
     PING = auto()
+    JOINED_CHANNEL = auto()
     NONE = auto()
 
 

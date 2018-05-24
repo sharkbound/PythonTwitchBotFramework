@@ -40,20 +40,24 @@ class BaseBot:
 
         return bot
 
+    def _request_permissions(self):
+        # enable receiving/sending whispers
+        self.irc.send('CAP REQ :twitch.tv/commands')
+
+        # enable seeing bit donations and such
+        self.irc.send('CAP REQ :twitch.tv/tags')
+
+        # what does this even do
+        # self.irc.send('CAP REQ :twitch.tv/membership')
+
     async def _connect(self) -> None:
         print(f'logging in as {cfg.nick}')
 
         util.connect(self.irc)
+        self._request_permissions()
 
         for chan in channels.values():
             self.irc.send(f'JOIN #{chan.name}')
-
-            print(f'joined channel #{chan.name}')
-
-        # enable receiving/sending whispers
-        self.irc.send('CAP REQ :twitch.tv/commands')
-        # self.irc.send('CAP REQ :twitch.tv/membership')
-        # self.irc.send('CAP REQ :twitch.tv/tags')
 
     async def get_command_from_msg(self, msg: Message) -> Optional[Command]:
         """
@@ -74,6 +78,12 @@ class BaseBot:
         return None
 
     async def run_command(self, msg: Message, cmd: Command):
+        if not self._check_permission(msg, cmd):
+            await msg.reply(
+                whisper=True,
+                msg=f'you do not have permission to execute {cmd.fullname} in #{msg.channel_name}')
+            return
+
         if not await self.on_before_command_execute(msg, cmd):
             return
 
@@ -110,18 +120,24 @@ class BaseBot:
         triggered before a command is executed
         :return bool, if return value is False, then the command will not be executed
         """
-        if cmd.permission and not perms.has_permission(msg.channel_name, msg.author, cmd.permission):
-            await msg.reply(
-                whisper=True,
-                msg=f'you do not have permission to execute {cmd.fullname} in #{msg.channel_name}')
-            return False
-
         return True
 
     async def on_after_command_execute(self, msg: Message, cmd: Command) -> None:
         """
         triggered after a command has executed
         """
+
+    async def on_channel_joined(self, channel: Channel):
+        """
+        triggered when the bot joins a channel
+        """
+        print(f'joined #{channel.name}')
+
+    def _check_permission(self, msg: Message, cmd: Command):
+        if not cmd.permission:
+            return True
+
+        return perms.has_permission(msg.channel_name, msg.author, cmd.permission)
 
     async def start(self):
         await self._connect()
@@ -148,6 +164,9 @@ class BaseBot:
 
             elif msg.type is MessageType.PRIVMSG:
                 coro = self.on_privmsg_received(msg)
+
+            elif msg.type is MessageType.JOINED_CHANNEL:
+                coro = self.on_channel_joined(msg.channel)
 
             elif msg.type is MessageType.PING:
                 self.irc.send_pong()

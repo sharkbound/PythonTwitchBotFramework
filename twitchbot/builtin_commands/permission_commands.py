@@ -89,7 +89,7 @@ async def cmd_add_member(msg: Message, *args):
 
 
 @Command('delmember', permission=PERMISSION)
-async def cmd_add_perm(msg: Message, *args):
+async def cmd_del_member(msg: Message, *args):
     if len(args) != 2:
         await msg.reply(f'invalid args: {PREFIX}delmember <group> <member>')
         return
@@ -105,4 +105,4 @@ async def cmd_add_perm(msg: Message, *args):
 
     g = perms.get_group(msg.channel_name, group)
     await msg.reply(whisper=WHISPER,
-                    msg='failed to add member, group does not exist' if not g else f'"{member}" is not in that group')
+                    msg='failed to remove member, group does not exist' if not g else f'"{member}" is not in that group')

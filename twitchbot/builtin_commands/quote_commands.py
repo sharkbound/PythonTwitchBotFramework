@@ -50,7 +50,7 @@ async def cmd_quote_add(msg: Message, *args):
     await msg.reply(resp)
 
 
-@Command('getquote')
+@Command('quote')
 async def cmd_get_quote(msg: Message, *args):
     if not args:
         await msg.reply(f'invalid args: {PREFIX}getquote <ID or ALIAS>')

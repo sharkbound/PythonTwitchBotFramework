@@ -2,7 +2,7 @@ from typing import List
 
 from twitchbot.channel import Channel, channels
 from .irc import Irc
-from .regex import RE_PRIVMSG, RE_WHISPER
+from .regex import RE_PRIVMSG, RE_WHISPER, RE_JOINED_CHANNEL
 from .enums import MessageType
 from .util import split_message
 
@@ -22,7 +22,7 @@ class Message:
         self.bot: BaseBot = bot
 
         m = RE_PRIVMSG.search(msg)
-        if m is not None:
+        if m:
             self.channel = channels[m['channel']]
             self.author = m['user']
             self.content = m['content']
@@ -36,6 +36,12 @@ class Message:
             self.content = m['content']
             self.type = MessageType.WHISPER
             self.parts = split_message(self.content)
+
+        m = RE_JOINED_CHANNEL.search(msg)
+        if m:
+            self.channel = channels[m['channel']]
+            self.author = m['user']
+            self.type = MessageType.JOINED_CHANNEL
 
         elif msg == 'PING :tmi.twitch.tv':
             self.type = MessageType.PING

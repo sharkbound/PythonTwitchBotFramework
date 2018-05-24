@@ -3,7 +3,8 @@ from twitchbot import (
     Command,
     commands,
     CommandContext,
-    Message, get_all_custom_commands
+    Message, get_all_custom_commands,
+    cfg,
 )
 
 
@@ -14,8 +15,8 @@ async def cmd_list(msg: Message, *args):
                         msg=f'channel: {c.name}, viewers: {c.chatters.viewer_count}, is_mod: {c.is_mod}, is_live: {c.live}')
 
 
-@Command('help', context=CommandContext.BOTH)
-async def cmd_help(msg: Message, *args):
+@Command('commands', context=CommandContext.BOTH, help='lists all commands')
+async def cmd_commands(msg: Message, *args):
     custom_commands_str = ', '.join(cmd.name for cmd in get_all_custom_commands(msg.channel_name))
     global_commands_str = ', '.join(cmd.fullname for cmd in commands.values())
 
@@ -25,4 +26,16 @@ async def cmd_help(msg: Message, *args):
         await msg.reply(whisper=True, msg=f'CUSTOM: {custom_commands_str}')
 
 
-Command(name='commands')(cmd_help.func)
+@Command(name='help', help='gets the help text for a command', syntax='<command>')
+async def cmd_help(msg: Message, *args):
+    if not args:
+        await msg.reply(whisper=False, msg=f'syntax for {cfg.prefix}help: <command>')
+        return
+
+    cmd = commands.get(args[0])
+
+    if not cmd:
+        await msg.reply(f'command not found, did you forget the prefix?')
+        return
+
+    await msg.reply(whisper=False, msg=f'help for "{cmd.fullname}", syntax: "{cmd.syntax}", help: "{cmd.help}"')

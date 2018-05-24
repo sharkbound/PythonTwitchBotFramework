@@ -1,10 +1,11 @@
 import asyncio
 from datetime import datetime
 from typing import Dict
-from twitchbot.api import StreamInfoApi
-from .chatters import Chatters
 from .irc import Irc
 from .config import cfg
+from .permission import perms
+from .chatters import Chatters
+from .api import StreamInfoApi
 
 
 class Channel:
@@ -20,6 +21,7 @@ class Channel:
 
         if register_globally:
             channels[self.name.lower()] = self
+            perms.load_permissions(name)
 
     @property
     def live(self):

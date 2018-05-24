@@ -1,6 +1,9 @@
 from asyncio import StreamWriter, StreamReader
 from .config import cfg
 from .ratelimit import privmsg_ratelimit_async, whisper_ratelimit_async
+from textwrap import wrap
+
+MAX_LINE_LENGTH = 450
 
 
 class Irc:
@@ -35,7 +38,8 @@ class Irc:
     @privmsg_ratelimit_async
     async def send_privmsg(self, channel: str, msg: str):
         """sends a message to a channel"""
-        self.send(f'PRIVMSG #{channel} :{msg}')
+        for line in self._wrap_message(msg):
+            self.send(f'PRIVMSG #{channel} :{line}')
 
         # exclude calls from send_whisper being sent to the bots on_privmsg_received event
         if self.bot and not msg.startswith('/w'):
@@ -51,6 +55,15 @@ class Irc:
 
     async def get_next_message(self):
         return (await self.reader.readline()).decode().strip()
+
+    def _wrap_message(self, msg):
+        prefix = '/w' if msg.startswith('/w') else None
+
+        for line in wrap(msg, width=MAX_LINE_LENGTH):
+            if prefix and not line.startswith(prefix):
+                line = prefix + line
+
+            yield line
 
     def send_pong(self):
         self.send('PONG :tmi.twitch.tv')
