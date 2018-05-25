@@ -26,7 +26,7 @@ async def _parse_interval(msg, value):
         return False, 0
 
 
-@Command('addtimer')
+@Command('addtimer', syntax='<name> <interval> <message>', help='adds a message timer')
 async def cmd_add_timer(msg: Message, *args):
     if len(args) < 3:
         await msg.reply(f'invalid args: {PREFIX}addtimer <name> <interval> <message>')
@@ -48,7 +48,7 @@ async def cmd_add_timer(msg: Message, *args):
     await msg.reply(f'created timer successfully')
 
 
-@Command('starttimer')
+@Command('starttimer', syntax='<name>', help='starts a message timer')
 async def cmd_start_timer(msg: Message, *args):
     if not args:
         await msg.reply(f'invalid args: {PREFIX}starttimer <name>')
@@ -71,7 +71,7 @@ async def cmd_start_timer(msg: Message, *args):
         await msg.reply(f'failed to start the timer "{name}"')
 
 
-@Command('stoptimer')
+@Command('stoptimer', syntax='<name>', help='stops a message timer')
 async def cmd_start_timer(msg: Message, *args):
     if not args:
         await msg.reply(f'invalid args: {PREFIX}stoptimer <name>')
@@ -94,7 +94,7 @@ async def cmd_start_timer(msg: Message, *args):
         await msg.reply(f'failed to stop the timer "{name}"')
 
 
-@Command('deltimer')
+@Command('deltimer', syntax='<name>', help='deletes a message timer')
 async def cmd_del_timer(msg: Message, *args):
     if not args:
         await msg.reply(f'invalid args: {PREFIX}deltimer <name>')
@@ -112,7 +112,7 @@ async def cmd_del_timer(msg: Message, *args):
         await msg.reply(f'failed to delete timer "{name}"')
 
 
-@Command('listtimers')
+@Command('listtimers', help='lists all message timers for a channel')
 async def cmd_list_timers(msg: Message, *args):
     timers = get_all_channel_timers(msg.channel_name)
     active_timers = ', '.join(timer.name for timer in timers if timer.active)

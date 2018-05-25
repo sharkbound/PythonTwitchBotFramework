@@ -23,7 +23,11 @@ async def _verify_resp_text(msg: Message, resp: str):
     return True
 
 
-@Command('addcmd', permission=PERMISSION)
+@Command('addcmd', permission=PERMISSION, syntax='<name> <response>',
+         help='adds a custom command to the database for the this channel.'
+              'place holders: %user : the name of the person that triggered the command,'
+              '%uptime : the channels live uptime,'
+              '%channel : the channels name')
 async def cmd_add_custom_command(msg: Message, *args):
     if len(args) < 2:
         await msg.reply(f'invalid args: {PREFIX}addcmd <name> <response>')
@@ -45,7 +49,8 @@ async def cmd_add_custom_command(msg: Message, *args):
         await msg.reply('failed to add command')
 
 
-@Command('updatecmd', permission=PERMISSION)
+@Command('updatecmd', permission=PERMISSION, syntax='<name> <response>',
+         help="updates a custom command's response message")
 async def cmd_update_custom_command(msg: Message, *args):
     if len(args) < 2:
         await msg.reply(f'invalid args: {PREFIX}updatecmd <name> <response>')
@@ -69,7 +74,7 @@ async def cmd_update_custom_command(msg: Message, *args):
     await msg.reply(f'successfully updated {cmd.name}')
 
 
-@Command('delcmd', permission=PERMISSION)
+@Command('delcmd', permission=PERMISSION, syntax='<name>', help='deletes a custom commands')
 async def cmd_add_custom_command(msg: Message, *args):
     if not args:
         await msg.reply(f'invalid args: {PREFIX}delcmd <name>')
@@ -86,7 +91,7 @@ async def cmd_add_custom_command(msg: Message, *args):
         await msg.reply(f'failed to delete command {cmd.name}')
 
 
-@Command('getcmd')
+@Command('cmd', syntax='<name>', help='gets a custom commmands response')
 async def cmd_get_custom_command(msg: Message, *args):
     if not args:
         await msg.reply(f'invalid args: {PREFIX}getcmd <name>')

@@ -8,7 +8,7 @@ from twitchbot import (
     cfg)
 
 
-@Command('roll', context=CommandContext.BOTH)
+@Command('roll', context=CommandContext.BOTH, syntax='(sides)', help='rolls a X sided die')
 async def cmd_roll(msg: Message, *args):
     if not args:
         sides = 6
@@ -24,12 +24,12 @@ async def cmd_roll(msg: Message, *args):
     await msg.reply(f'{user} you rolled a {num}')
 
 
-@Command('crashcode', permission='crashcode')
+@Command('crashcode', permission='crashcode', help='¯\_(ツ)_/¯')
 async def cmd_crash_code(msg: Message, *args):
     await msg.reply(f'you may not crash me! {msg.mention}')
 
 
-@Command('choose')
+@Command('choose', syntax='<option> <option> ect', help='chooses a random option passed to the command')
 async def cmd_choose(msg: Message, *args):
     if len(args) < 2:
         await msg.reply(f'invalid args: {cfg.prefix}choose <option1> <option2>, ect')

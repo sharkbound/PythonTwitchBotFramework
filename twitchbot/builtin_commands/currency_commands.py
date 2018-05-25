@@ -168,7 +168,7 @@ last_mine_time = {}
 mine_gain = 50
 
 
-@Command('mine')
+@Command('mine', help='mines for currency, gives you a predefined amount')
 async def cmd_mine(msg: Message, *args):
     key = (msg.author, msg.channel_name)
     diff = (datetime.now() - last_mine_time.get(key, datetime.now())).total_seconds()
@@ -190,7 +190,10 @@ async def cmd_mine(msg: Message, *args):
 running_arenas: Dict[str, Arena] = {}
 
 
-@Command('arena')
+@Command('arena', syntax='<entry_fee>',
+         help='starts a arena match, waits a certain amount of time for ppl to enter, '
+              'if not enough ppl enter the arena is cancelled and everyone is refunded,'
+              'the winner gets all of the entry_fee\'s paid')
 async def cmd_arena(msg: Message, *args):
     def _can_pay_entry_fee(fee):
         return get_balance(msg.channel_name, msg.author).balance >= fee

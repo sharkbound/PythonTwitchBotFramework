@@ -14,7 +14,7 @@ from twitchbot import (
 PREFIX = cfg.prefix
 
 
-@Command('addquote')
+@Command('addquote', syntax='"<quote text>" user=(user) alias=(alias)', help='adds a quote to the database')
 async def cmd_quote_add(msg: Message, *args):
     if not args:
         await msg.reply(f'invalid args: {PREFIX}addquote "<quote text>" user=(user) alias=(alias)')
@@ -50,7 +50,7 @@ async def cmd_quote_add(msg: Message, *args):
     await msg.reply(resp)
 
 
-@Command('quote')
+@Command('quote', syntax='<ID or ALIAS>', help='gets a quote by ID or ALIAS')
 async def cmd_get_quote(msg: Message, *args):
     if not args:
         await msg.reply(f'invalid args: {PREFIX}getquote <ID or ALIAS>')
@@ -63,7 +63,7 @@ async def cmd_get_quote(msg: Message, *args):
     await msg.reply(f'"{quote.value}" user: {quote.user} alias: {quote.alias}')
 
 
-@Command('delquote', permission='delete_quote')
+@Command('delquote', permission='delete_quote', syntax='<ID or ALIAS>', help='deletes the quote from the database')
 async def cmd_del_quote(msg: Message, *args):
     if not args:
         await msg.reply(f'invalid args: {PREFIX}delquote <ID or ALIAS>')
