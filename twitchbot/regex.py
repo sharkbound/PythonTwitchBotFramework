@@ -1,7 +1,8 @@
 import re
 
 RE_PRIVMSG = re.compile(
-    r':(?P<user>[\w\d]+)!(?P=user)@(?P=user)\.tmi\.twitch\.tv PRIVMSG #(?P<channel>[\w\d]+) :(?P<content>.+)'
+    r'(?P<tags>.*):'
+    r'(?P<user>[\w\d]+)!(?P=user)@(?P=user)\.tmi\.twitch\.tv PRIVMSG #(?P<channel>[\w\d]+) :(?P<content>.+)'
 )
 
 # example whisper

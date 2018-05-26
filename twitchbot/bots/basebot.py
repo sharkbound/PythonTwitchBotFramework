@@ -2,14 +2,14 @@ from asyncio import get_event_loop
 from typing import List, Optional
 
 from .. import util
-from twitchbot.channel import Channel, channels
+from ..channel import Channel, channels
 from ..command import Command, commands, CustomCommandAction
 from ..config import cfg
 from ..enums import MessageType, CommandContext
 from ..irc import Irc
-from twitchbot.message import Message
-from twitchbot.database import get_custom_command
-from twitchbot.permission import perms
+from ..message import Message
+from ..database import get_custom_command
+from ..permission import perms
 
 
 class BaseBot:
@@ -127,6 +127,12 @@ class BaseBot:
         triggered after a command has executed
         """
 
+    async def on_bits_donated(self, msg: Message, bits: int):
+        """
+        triggered when a bit donation is posted in chat
+        """
+        pass
+
     async def on_channel_joined(self, channel: Channel):
         """
         triggered when the bot joins a channel
@@ -170,6 +176,9 @@ class BaseBot:
 
             elif msg.type is MessageType.PING:
                 self.irc.send_pong()
+
+            if msg.is_privmsg and msg.tags and msg.tags.bits:
+                get_event_loop().create_task(self.on_bits_donated(msg, msg.tags.bits))
 
             if coro is not None:
                 get_event_loop().create_task(coro)

@@ -5,6 +5,7 @@ from .irc import Irc
 from .regex import RE_PRIVMSG, RE_WHISPER, RE_JOINED_CHANNEL
 from .enums import MessageType
 from .util import split_message
+from .tags import Tags
 
 
 class Message:
@@ -17,6 +18,7 @@ class Message:
         self.raw_msg: str = msg
         self.receiver: str = None
         self.irc: Irc = irc
+        self.tags: Tags = None
 
         from twitchbot.bots import BaseBot
         self.bot: BaseBot = bot
@@ -28,6 +30,7 @@ class Message:
             self.content = m['content']
             self.type = MessageType.PRIVMSG
             self.parts = split_message(self.content)
+            self.tags = Tags(m['tags'])
 
         m = RE_WHISPER.search(msg)
         if m:
