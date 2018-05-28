@@ -50,7 +50,7 @@ class BaseBot:
         # what does this even do
         # self.irc.send('CAP REQ :twitch.tv/membership')
 
-    async def _connect(self) -> None:
+    async def _connect(self):
         print(f'logging in as {cfg.nick}')
 
         util.connect(self.irc)
