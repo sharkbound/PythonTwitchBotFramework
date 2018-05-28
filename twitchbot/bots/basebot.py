@@ -10,6 +10,7 @@ from ..irc import Irc
 from ..message import Message
 from ..database import get_custom_command
 from ..permission import perms
+from ..emote import fetch_global_emotes, emotes
 
 
 class BaseBot:
@@ -41,6 +42,7 @@ class BaseBot:
         return bot
 
     def _request_permissions(self):
+        """requests permissions from twitch to be able to gets message tags, receive whispers, ect"""
         # enable receiving/sending whispers
         self.irc.send('CAP REQ :twitch.tv/commands')
 
@@ -51,6 +53,7 @@ class BaseBot:
         # self.irc.send('CAP REQ :twitch.tv/membership')
 
     async def _connect(self):
+        """connects to twitch, sends auth info, and joins the channels in the config"""
         print(f'logging in as {cfg.nick}')
 
         util.connect(self.irc)
@@ -146,6 +149,8 @@ class BaseBot:
         return perms.has_permission(msg.channel_name, msg.author, cmd.permission)
 
     async def start(self):
+        """starts the bot, connects to twitch, then starts the message event loop / control loop"""
+        await fetch_global_emotes()
         await self._connect()
         await self.on_connected()
 
