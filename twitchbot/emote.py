@@ -1,6 +1,6 @@
 from typing import Dict
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from .util import get_url
 
@@ -9,8 +9,8 @@ from .util import get_url
 class Emote:
     id: int
     code: str
-    set: int = 0
-    desc: str = None
+    set: int = field(default=0, repr=False)
+    desc: str = field(default='', repr=False)
 
 
 GLOBAL_EMOTE_API = 'https://twitchemotes.com/api_cache/v3/global.json'

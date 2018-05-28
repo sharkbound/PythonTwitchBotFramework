@@ -36,3 +36,13 @@ async def cmd_choose(msg: Message, *args):
         return
 
     await msg.reply(f'result: {choice(args)}')
+
+
+@Command('color', permission='color', syntax='<color>')
+async def cmd_color(msg: Message, *args):
+    if not args:
+        await msg.reply(f'invalid args: {cfg.prefix}color <color>')
+        return
+
+    await msg.channel.color(args[0])
+    await msg.reply(f'set color to {args[0]}')

@@ -10,11 +10,17 @@ from ..irc import Irc
 from ..message import Message
 from ..database import get_custom_command
 from ..permission import perms
-from ..emote import fetch_global_emotes, emotes
+from ..emote import fetch_global_emotes
+from ..overrides import overrides
 
 
 class BaseBot:
-    def __init__(self, irc):
+    def __init__(self, irc: Irc):
+        """
+        :param irc: irc connection
+        :param log_whisper: should whispers be printed to the console?
+        :param log_privmsg: should privmsg (channel messages) be printed to the console?
+        """
         self.irc: Irc = irc
         self.loop = get_event_loop()
         self.commands: List[Command] = []
@@ -106,6 +112,7 @@ class BaseBot:
 
     async def on_privmsg_received(self, msg: Message) -> None:
         """triggered when a privmsg is received, is not triggered if the msg is a command"""
+        print(msg)
 
     async def on_whisper_sent(self, msg: str, receiver: str, sender: str):
         """
@@ -117,6 +124,7 @@ class BaseBot:
         """
         triggered when a user sends the bot a whisper
         """
+        print(msg)
 
     async def on_before_command_execute(self, msg: Message, cmd: Command) -> bool:
         """
@@ -129,6 +137,7 @@ class BaseBot:
         """
         triggered after a command has executed
         """
+        print(msg)
 
     async def on_bits_donated(self, msg: Message, bits: int):
         """
@@ -148,8 +157,25 @@ class BaseBot:
 
         return perms.has_permission(msg.channel_name, msg.author, cmd.permission)
 
+    def _load_overrides(self):
+        for k, v in overrides.items():
+            if k.value in self.__class__.__dict__ and k.value.startswith('on'):
+                setattr(self, k.value, v)
+
+    @classmethod
+    def create_and_start(cls):
+        """creates a bot instance and starts it in a non-async context"""
+
+        async def _start():
+            await (await cls.create()).start()
+
+        get_event_loop().run_until_complete(_start())
+
     async def start(self):
-        """starts the bot, connects to twitch, then starts the message event loop / control loop"""
+        """starts the bot, loads event overrides, connects to twitch, then starts the message event loop"""
+
+        self._load_overrides()
+
         await fetch_global_emotes()
         await self._connect()
         await self.on_connected()
@@ -187,6 +213,3 @@ class BaseBot:
 
             if coro is not None:
                 get_event_loop().create_task(coro)
-
-            if msg.is_user_message:
-                print(msg)

@@ -6,6 +6,7 @@ from .regex import RE_PRIVMSG, RE_WHISPER, RE_JOINED_CHANNEL
 from .enums import MessageType
 from .util import split_message
 from .tags import Tags
+from .emote import emotes, Emote
 
 
 class Message:
@@ -19,6 +20,7 @@ class Message:
         self.receiver: str = None
         self.irc: Irc = irc
         self.tags: Tags = None
+        self.emotes: List[Emote] = ()
 
         from twitchbot.bots import BaseBot
         self.bot: BaseBot = bot
@@ -48,6 +50,9 @@ class Message:
 
         elif msg == 'PING :tmi.twitch.tv':
             self.type = MessageType.PING
+
+        if self.parts and any(p in emotes for p in self.parts):
+            self.emotes = [emotes[p] for p in self.parts if p in emotes]
 
     @property
     def is_user_message(self):

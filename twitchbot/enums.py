@@ -27,3 +27,15 @@ class CommandContext(IntFlag):
     CHANNEL = auto()
     WHISPER = auto()
     BOTH = CHANNEL | WHISPER
+
+
+class Event(NamedEnum):
+    on_before_command_execute = auto()
+    on_after_command_execute = auto()
+    on_bits_donated = auto()
+    on_channel_joined = auto()
+    on_connected = auto()
+    on_privmsg_received = auto()
+    on_privmsg_sent = auto()
+    on_whisper_received = auto()
+    on_whisper_sent = auto()
