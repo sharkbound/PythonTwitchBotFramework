@@ -157,6 +157,7 @@ async def cmd_gamble(msg: Message, *args):
         gain = bet + int(bet * (sides / 6))
         bal.balance += gain
         await msg.reply(f'you rolled {n} and won {gain} {cur_name}')
+
     else:
         bal.balance -= bet
         await msg.reply(f'you rolled {n} and lost your bet of {bet} {cur_name}')
@@ -168,7 +169,7 @@ last_mine_time = {}
 mine_gain = 50
 
 
-@Command('mine', help='mines for currency, gives you a predefined amount')
+@Command('mine', help='mines for currency, gives you a predefined amount (default 50)')
 async def cmd_mine(msg: Message, *args):
     key = (msg.author, msg.channel_name)
     diff = (datetime.now() - last_mine_time.get(key, datetime.now())).total_seconds()

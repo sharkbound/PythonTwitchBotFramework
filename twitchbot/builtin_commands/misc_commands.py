@@ -11,8 +11,9 @@ from twitchbot import (
 @Command('list')
 async def cmd_list(msg: Message, *args):
     for c in channels.values():
-        await msg.reply(whisper=True,
-                        msg=f'channel: {c.name}, viewers: {c.chatters.viewer_count}, is_mod: {c.is_mod}, is_live: {c.live}')
+        await msg.reply(
+            whisper=True,
+            msg=f'channel: {c.name}, viewers: {c.chatters.viewer_count}, is_mod: {c.is_mod}, is_live: {c.live}')
 
 
 @Command('commands', context=CommandContext.BOTH, help='lists all commands')
