@@ -5,7 +5,8 @@ from twitchbot import (
     Message,
     CommandContext,
     Command,
-    cfg)
+    cfg
+)
 
 
 @Command('roll', context=CommandContext.BOTH, syntax='(sides)', help='rolls a X sided die')

@@ -82,6 +82,9 @@ class Message:
         if not msg:
             raise ValueError('msg is empty, msg must be a non-empty string')
 
+        if not isinstance(msg, str):
+            msg = str(msg)
+
         if self.type is MessageType.PRIVMSG and not whisper:
             await self.channel.send_message(msg)
 

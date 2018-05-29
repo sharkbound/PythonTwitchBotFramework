@@ -1,7 +1,7 @@
 from asyncio import get_event_loop
 from typing import List, Optional
 
-from .. import util
+from .. import util, create_irc
 from ..channel import Channel, channels
 from ..command import Command, commands, CustomCommandAction
 from ..config import cfg
@@ -10,41 +10,13 @@ from ..irc import Irc
 from ..message import Message
 from ..database import get_custom_command
 from ..permission import perms
-from ..emote import fetch_global_emotes
+from ..emote import update_global_emotes
 from ..overrides import overrides
 
 
 class BaseBot:
-    def __init__(self, irc: Irc):
-        """
-        :param irc: irc connection
-        :param log_whisper: should whispers be printed to the console?
-        :param log_privmsg: should privmsg (channel messages) be printed to the console?
-        """
-        self.irc: Irc = irc
-        self.loop = get_event_loop()
-
-    @classmethod
-    async def create(cls):
-        """
-        this is basically a async __init__
-
-        it creates the async reader/writer (using asyncio.open_connection())
-
-        then returns the calls __init__ on the class and passes in the async reader/writer
-
-        returns the created bot instance after
-        """
-        reader, writer = await util.get_connection()
-        irc = Irc(reader, writer)
-        bot = BaseBot(irc)
-        irc.bot = bot
-
-        for name in cfg.channels:
-            chan = Channel(name, irc, bot)
-            chan.start_update_loop()
-
-        return bot
+    def __init__(self):
+        self.irc: Irc = None
 
     # region events
     @staticmethod
@@ -110,6 +82,18 @@ class BaseBot:
 
     # endregion
 
+    def _create_channels(self):
+        for name in cfg.channels:
+            chan = Channel(name, irc=self.irc, bot=self)
+            chan.start_update_loop()
+
+    async def _create_irc(self):
+        """
+        creates the async reader/writer (using asyncio.open_connection() if not already exist),
+        """
+        self.irc = await create_irc()
+        self.irc.bot = self
+
     def _request_permissions(self):
         """requests permissions from twitch to be able to gets message tags, receive whispers, ect"""
         # enable receiving/sending whispers
@@ -149,7 +133,7 @@ class BaseBot:
 
         return None
 
-    async def run_command(self, msg: Message, cmd: Command):
+    async def _run_command(self, msg: Message, cmd: Command):
         if not self._check_permission(msg, cmd):
             await msg.reply(
                 whisper=True,
@@ -173,21 +157,19 @@ class BaseBot:
             if k.value in self.__class__.__dict__ and k.value.startswith('on'):
                 setattr(self, k.value, v)
 
-    @classmethod
-    def create_and_start(cls):
-        """creates a bot instance and starts it in a non-async context"""
+    def run(self):
+        """runs/starts the bot, this is a blocking function that starts the mainloop"""
+        get_event_loop().run_until_complete(self._mainloop())
 
-        async def _start():
-            await (await cls.create()).start()
-
-        get_event_loop().run_until_complete(_start())
-
-    async def start(self):
+    async def _mainloop(self):
         """starts the bot, loads event overrides, connects to twitch, then starts the message event loop"""
-
         self._load_overrides()
 
-        await fetch_global_emotes()
+        await update_global_emotes()
+
+        await self._create_irc()
+        self._create_channels()
+
         await self._connect()
         await self.on_connected()
 
@@ -205,7 +187,7 @@ class BaseBot:
 
             if cmd and ((msg.is_whisper and cmd.context & CommandContext.WHISPER)
                         or (msg.is_privmsg and cmd.context & CommandContext.CHANNEL)):
-                coro = self.run_command(msg, cmd)
+                coro = self._run_command(msg, cmd)
 
             elif msg.type is MessageType.WHISPER:
                 coro = self.on_whisper_received(msg)

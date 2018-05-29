@@ -17,7 +17,7 @@ GLOBAL_EMOTE_API = 'https://twitchemotes.com/api_cache/v3/global.json'
 emotes: Dict[str, Emote] = {}
 
 
-async def fetch_global_emotes():
+async def update_global_emotes():
     data = await get_url(GLOBAL_EMOTE_API)
     emotes.clear()
 
