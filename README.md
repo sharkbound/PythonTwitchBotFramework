@@ -124,6 +124,23 @@ async def cmd_function(msg, *args):
     await msg.reply('i was called!')
 ```
 
+* you can also specify a help/syntax for the command for the help chat command to give into on it:
+```python
+from twitchbot import Command, Message
+
+@Command('COMMAND_NAME', help='this command does a very important thing!', syntax='<name>')
+async def cmd_function(msg: Message, *args):
+    await msg.reply('i was called!')
+```
+so when you do `!help COMMAND_NAME`
+
+it will this in chat:
+```
+help for "!command_name", 
+syntax: "<name>", 
+help: "this command does a very important thing!"
+```
+
 # config
 
 the default config values are:
