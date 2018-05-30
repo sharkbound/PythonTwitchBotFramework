@@ -18,4 +18,4 @@ from .overrides import *
 
 import os
 
-load_commands_from_folder(os.path.join(__path__[0], 'builtin_commands'))
+load_commands_from_directory(os.path.join(__path__[0], 'builtin_commands'))

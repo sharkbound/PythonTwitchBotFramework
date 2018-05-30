@@ -17,18 +17,71 @@ This is a fully async twitch bot framework complete with:
 
 the minimum code to get the bot running is this:
 ```python
-import asyncio
 from twitchbot.bots import BaseBot
 
-async def main():
-    bot = await BaseBot.create()
-    await bot.start()
-
-asyncio.get_event_loop().run_until_complete(main())
+if __name__ == '__main__':
+    BaseBot().run()
 
 ```
 
 this will start the bot. 
+
+if you have a folder with your own custom commands you can load
+the .py files in it with:
+```python
+from twitchbot import BaseBot, load_commands_from_directory
+
+if __name__ == '__main__':
+    load_commands_from_directory('PATH/TO/DIRECTORY')
+    BaseBot().run()
+
+```
+
+* overriding events
+
+the bots events are overridable via the following 2 ways:
+
+1) using decorators:
+
+```python
+from twitchbot import override_event, Event, Message
+
+@override_event(Event.on_privmsg_received)
+async def on_privmsg_received(msg: Message):
+    print(f'{msg.author} sent message {msg.content} to channel {msg.channel_name}')
+
+```
+
+2) subclassing BaseBot
+```python
+from twitchbot import BaseBot, Message
+class MyCustomTwitchBot(BaseBot):
+    @staticmethod
+    async def on_privmsg_received(msg: Message):
+        print(f'{msg.author} sent message {msg.content} to channel {msg.channel_name}')
+
+
+```
+then you would use MyCustomTwitchBot instead of BaseBot:
+```python
+MyCustomTwitchBot().run()
+```
+
+* all overridable events are:
+```python
+from twitchbot import Event
+
+Event.on_after_command_execute : (msg: Message, cmd: Command)
+Event.on_before_command_execute : (msg: Message, cmd: Command)
+Event.on_bits_donated : (msg: Message, bits: int)
+Event.on_channel_joined : (channel: Channel)
+Event.on_connected : ()
+Event.on_privmsg_received : (msg: Message)
+Event.on_privmsg_sent : (msg: str, channel: str, sender: str)
+Event.on_whisper_received : (msg: Message)
+Event.on_privmsg_sent : (msg: str, receiver: str, sender: str)
+```
+
 
 if this is the first time running the bot it will generate a folder
 named `configs`. 
@@ -71,21 +124,6 @@ async def cmd_function(msg, *args):
     await msg.reply('i was called!')
 ```
 
-* commands can also be loaded from other directories using:
-```python
-from twitchbot import load_commands_from_folder
-
-load_commands_from_folder('PATH/TO/THE/DIRECTORY')
-``` 
-
-* so say i have this a folder called `my_commands`,
-so i would do this:
-
-```python
-from twitchbot import load_commands_from_folder
-
-load_commands_from_folder('my_commands')
-``` 
 # config
 
 the default config values are:
