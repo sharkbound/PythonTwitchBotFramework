@@ -189,7 +189,10 @@ async def cmd_mine(msg: Message, *args):
 async def cmd_top(msg: Message, *args):
     limit = 10
 
-    results = session.query(Balance).filter_by(channel=msg.channel_name).order_by(Balance.balance.desc()).limit(limit)
+    results = session.query(Balance) \
+        .filter(Balance.channel == msg.channel_name, Balance.user != msg.channel_name, Balance.user != cfg.nick) \
+        .order_by(Balance.balance.desc()) \
+        .limit(limit)
 
     b: Balance
     message = ', '.join(f'{i+1}: {b.user} => {b.balance}' for i, b in enumerate(results))
