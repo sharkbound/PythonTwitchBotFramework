@@ -38,10 +38,10 @@ class Irc:
     async def send_privmsg(self, channel: str, msg: str):
         """sends a message to a channel"""
         # import it locally to avoid circular import
-        from .channel import channels
+        from .channel import channels, DummyChannel
 
         for line in self._wrap_message(msg):
-            await privmsg_ratelimit(channels[channel])
+            await privmsg_ratelimit(channels.get(channel, DummyChannel(channel)))
 
             self.send(f'PRIVMSG #{channel} :{line}')
 
