@@ -1,10 +1,5 @@
-import asyncio
-from typing import Tuple, Optional
-
 from aiohttp import ClientSession
 from async_timeout import timeout
-
-from dataclasses import dataclass
 
 USER_API_URL = 'https://api.twitch.tv/helix/users?login={}'
 STREAM_API_URL = 'https://api.twitch.tv/helix/streams?user_login={}'
@@ -21,7 +16,7 @@ async def get_url(url, headers=None) -> dict:
 async def get_user_data(user, headers=None) -> dict:
     json = await get_url(USER_API_URL.format(user), headers)
 
-    if not json['data']:
+    if not json.get('data'):
         return {}
 
     return json['data'][0]
@@ -39,7 +34,7 @@ async def get_user_id(user, headers=None) -> int:
 async def get_stream_data(user_id, headers=None) -> dict:
     json = await get_url(STREAM_API_URL.format(user_id), headers)
 
-    if not json['data']:
+    if not json.get('data'):
         return {}
 
     return json['data'][0]
