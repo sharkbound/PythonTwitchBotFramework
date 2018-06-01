@@ -263,10 +263,7 @@ async def cmd_arena(msg: Message, *args):
 
 
 def _remove_running_arena_entry(arena: Arena):
-    global running_arenas
-
     try:
         del running_arenas[arena.channel.name]
-        print('success')
-    except:
+    except KeyError:
         pass

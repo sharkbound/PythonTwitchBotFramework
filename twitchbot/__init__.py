@@ -15,6 +15,7 @@ from .database import *
 from .bots import *
 from .api import *
 from .overrides import *
+from .loyalty_ticker import *
 
 import os
 

@@ -9,6 +9,16 @@ class Config:
         self.defaults = defaults
 
         self.load()
+        self._validate()
+
+    def _validate(self):
+        """checks that all default keys are present"""
+
+        for k, v in self.defaults.items():
+            if k not in self.data:
+                self.data[k] = v
+
+        self.save()
 
     @property
     def exist(self):
@@ -71,5 +81,7 @@ cfg = Config(oauth='oauth:',
              nick='nick',
              prefix='!',
              default_balance=200,
+             loyalty_interval=60,
+             loyalty_amount=2,
              owner='BOT_OWNER_NAME',
              channels=['channel'])

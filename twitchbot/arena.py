@@ -8,6 +8,11 @@ from .config import cfg
 ARENA_WAIT_TIME = 30
 ARENA_DEFAULT_ENTRY_FEE = 30
 
+VICTORY_MESSAGES = [
+    '{winner} fought long and hard, and won {winnings} {currency}',
+    '{winner} has won the FFA, and walked away with {winnings} {currency}!',
+]
+
 
 class Arena:
     def __init__(self, channel, entry_fee=ARENA_DEFAULT_ENTRY_FEE, min_users=2, on_arena_ended_func=None):
@@ -38,16 +43,14 @@ class Arena:
             for user in self.users:
                 add_balance(self.channel.name, user, self.entry_fee)
 
-
         else:
-            curname = get_currency_name(self.channel.name).name
+            currency = get_currency_name(self.channel.name).name
             winner = choice(tuple(self.users))
             winnings = self.entry_fee * len(self.users)
 
             add_balance(self.channel.name, winner, winnings)
-
-            print('sne')
-            await self.channel.send_message(f'{winner} has won the FFA, and walked away with {winnings} {curname}!')
+            await self.channel.send_message(
+                choice(VICTORY_MESSAGES).format(winner=winner, winnings=winnings, currency=currency))
 
             self.users.clear()
 
