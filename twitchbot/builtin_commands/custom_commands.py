@@ -7,8 +7,8 @@ from twitchbot import (
     CustomCommand,
     session,
     cfg,
-    Command
-)
+    Command,
+    InvalidArgumentsException)
 
 PERMISSION = 'manange_commands'
 
@@ -30,8 +30,7 @@ async def _verify_resp_text(msg: Message, resp: str):
               '%channel : the channels name')
 async def cmd_add_custom_command(msg: Message, *args):
     if len(args) < 2:
-        await msg.reply(f'invalid args: {PREFIX}addcmd <name> <response>')
-        return
+        raise InvalidArgumentsException()
 
     name, resp = args[0], ' '.join(args[1:])
     name = name.lower()
@@ -53,8 +52,7 @@ async def cmd_add_custom_command(msg: Message, *args):
          help="updates a custom command's response message")
 async def cmd_update_custom_command(msg: Message, *args):
     if len(args) < 2:
-        await msg.reply(f'invalid args: {PREFIX}updatecmd <name> <response>')
-        return
+        raise InvalidArgumentsException()
 
     name, resp = args[0], ' '.join(args[1:])
     name = name.lower()
@@ -77,8 +75,7 @@ async def cmd_update_custom_command(msg: Message, *args):
 @Command('delcmd', permission=PERMISSION, syntax='<name>', help='deletes a custom commands')
 async def cmd_add_custom_command(msg: Message, *args):
     if not args:
-        await msg.reply(f'invalid args: {PREFIX}delcmd <name>')
-        return
+        raise InvalidArgumentsException()
 
     cmd = get_custom_command(msg.channel_name, args[0].lower())
     if cmd is None:
@@ -94,8 +91,7 @@ async def cmd_add_custom_command(msg: Message, *args):
 @Command('cmd', syntax='<name>', help='gets a custom commmands response')
 async def cmd_get_custom_command(msg: Message, *args):
     if not args:
-        await msg.reply(f'invalid args: {PREFIX}getcmd <name>')
-        return
+        raise InvalidArgumentsException()
 
     cmd = get_custom_command(msg.channel_name, args[0].lower())
     if cmd is None:

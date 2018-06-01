@@ -12,6 +12,7 @@ from ..database import get_custom_command
 from ..permission import perms
 from ..emote import update_global_emotes
 from ..overrides import overrides
+from ..exceptions import InvalidArgumentsException
 
 
 class BaseBot:
@@ -143,8 +144,13 @@ class BaseBot:
         if not await self.on_before_command_execute(msg, cmd):
             return
 
-        await cmd.func(msg, *msg.parts[1:])
-        await self.on_after_command_execute(msg, cmd)
+        try:
+            await cmd.func(msg, *msg.parts[1:])
+        except InvalidArgumentsException:
+            await msg.reply(
+                f'invalid args: "{cmd.fullname} {cmd.syntax}", do "{cfg.prefix}help {cmd.fullname}" for more details')
+        else:
+            await self.on_after_command_execute(msg, cmd)
 
     def _check_permission(self, msg: Message, cmd: Command):
         if not cmd.permission:

@@ -8,8 +8,8 @@ from twitchbot import (
     get_quote_by_alias,
     get_quote,
     Quote,
-    cfg
-)
+    cfg,
+    InvalidArgumentsException)
 
 PREFIX = cfg.prefix
 
@@ -17,8 +17,7 @@ PREFIX = cfg.prefix
 @Command('addquote', syntax='"<quote text>" user=(user) alias=(alias)', help='adds a quote to the database')
 async def cmd_quote_add(msg: Message, *args):
     if not args:
-        await msg.reply(f'invalid args: {PREFIX}addquote "<quote text>" user=(user) alias=(alias)')
-        return
+        raise InvalidArgumentsException()
 
     optionals = ' '.join(args[1:])
 
@@ -53,7 +52,7 @@ async def cmd_quote_add(msg: Message, *args):
 @Command('quote', syntax='<ID or ALIAS>', help='gets a quote by ID or ALIAS')
 async def cmd_get_quote(msg: Message, *args):
     if not args:
-        await msg.reply(f'invalid args: {PREFIX}getquote <ID or ALIAS>')
+        raise InvalidArgumentsException()
 
     quote = get_quote(msg.channel_name, args[0])
     if quote is None:
@@ -66,7 +65,7 @@ async def cmd_get_quote(msg: Message, *args):
 @Command('delquote', permission='delete_quote', syntax='<ID or ALIAS>', help='deletes the quote from the database')
 async def cmd_del_quote(msg: Message, *args):
     if not args:
-        await msg.reply(f'invalid args: {PREFIX}delquote <ID or ALIAS>')
+        raise InvalidArgumentsException()
 
     quote = get_quote(msg.channel_name, args[0])
     if quote is None:

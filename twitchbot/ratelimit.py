@@ -1,10 +1,4 @@
-from asyncio import sleep, ensure_future, get_event_loop
-from collections import deque
-from functools import wraps
-from collections import namedtuple
-
-# DelayedCall = namedtuple('DelayedCall', 'func args kwargs')
-from .config import cfg
+from asyncio import sleep, get_event_loop
 
 PRIVMSG_MAX_MOD = 100
 PRIVMSG_MAX_NORMAL = 20
@@ -15,36 +9,23 @@ privmsg_sent = 0
 whisper_sent = 0
 
 
-# privmsg_queue = deque()
-# whisper_queue = deque()
+async def privmsg_ratelimit(channel):
+    global privmsg_sent
+    limit = PRIVMSG_MAX_MOD if channel.is_mod else PRIVMSG_MAX_NORMAL
+
+    while privmsg_sent >= limit:
+        await sleep(1)
+
+    privmsg_sent += 1
 
 
-def privmsg_ratelimit_async(func):
-    @wraps(func)
-    async def _wrapper(*args, **kwargs):
-        global privmsg_sent
+async def whisper_ratelimit():
+    global whisper_sent
 
-        while privmsg_sent >= PRIVMSG_MAX_MOD:
-            await sleep(1)
+    while whisper_sent >= WHISPER_MAX:
+        await sleep(1)
 
-        privmsg_sent += 1
-        await func(*args, **kwargs)
-
-    return _wrapper
-
-
-def whisper_ratelimit_async(func):
-    @wraps(func)
-    async def _wrapper(*args, **kwargs):
-        global whisper_sent
-
-        while whisper_sent >= WHISPER_MAX:
-            await sleep(1)
-
-        whisper_sent += 1
-        await func(*args, **kwargs)
-
-    return _wrapper
+    whisper_sent += 1
 
 
 async def privmsg_sent_reset_loop():

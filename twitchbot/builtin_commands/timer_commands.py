@@ -9,7 +9,7 @@ from twitchbot import (
     Message,
     Command,
 
-)
+    InvalidArgumentsException)
 
 PREFIX = cfg.prefix
 MIN_MESSAGE_TIMER_INTERVAL = 10
@@ -29,8 +29,7 @@ async def _parse_interval(msg, value):
 @Command('addtimer', syntax='<name> <interval> <message>', help='adds a message timer')
 async def cmd_add_timer(msg: Message, *args):
     if len(args) < 3:
-        await msg.reply(f'invalid args: {PREFIX}addtimer <name> <interval> <message>')
-        return
+        raise InvalidArgumentsException()
 
     valid, interval = await _parse_interval(msg, args[1])
     if not valid:
@@ -51,8 +50,7 @@ async def cmd_add_timer(msg: Message, *args):
 @Command('starttimer', syntax='<name>', help='starts a message timer')
 async def cmd_start_timer(msg: Message, *args):
     if not args:
-        await msg.reply(f'invalid args: {PREFIX}starttimer <name>')
-        return
+        raise InvalidArgumentsException()
 
     name = args[0]
     timer = get_message_timer(msg.channel_name, name)
@@ -74,8 +72,7 @@ async def cmd_start_timer(msg: Message, *args):
 @Command('stoptimer', syntax='<name>', help='stops a message timer')
 async def cmd_start_timer(msg: Message, *args):
     if not args:
-        await msg.reply(f'invalid args: {PREFIX}stoptimer <name>')
-        return
+        raise InvalidArgumentsException()
 
     name = args[0]
     timer = get_message_timer(msg.channel_name, name)
@@ -97,8 +94,7 @@ async def cmd_start_timer(msg: Message, *args):
 @Command('deltimer', syntax='<name>', help='deletes a message timer')
 async def cmd_del_timer(msg: Message, *args):
     if not args:
-        await msg.reply(f'invalid args: {PREFIX}deltimer <name>')
-        return
+        raise InvalidArgumentsException()
 
     name = args[0]
     timer = get_message_timer(msg.channel_name, name)

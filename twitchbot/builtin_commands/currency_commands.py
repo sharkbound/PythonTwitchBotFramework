@@ -15,8 +15,9 @@ from twitchbot import (
     session,
     get_balance_from_msg,
     add_balance,
-    cfg
-
+    cfg,
+    InvalidArgumentsException,
+    Balance
 )
 
 PREFIX = cfg.prefix
@@ -26,7 +27,7 @@ PERMISSION = 'manage_currency'
 @Command('setcurrencyname', permission=PERMISSION, syntax='<new_name>', help='sets the channels currency name')
 async def cmd_set_currency_name(msg: Message, *args):
     if len(args) != 1:
-        await msg.reply(f'missing/invalid args: {PREFIX}setcurrencyname <new_name>')
+        raise InvalidArgumentsException()
 
     set_currency_name(msg.channel_name, args[0])
 
@@ -60,8 +61,8 @@ async def cmd_get_bal(msg: Message, *args):
 @Command('setbal', permission=PERMISSION, syntax='<new_balance> (target)', help='sets the callers or targets balance')
 async def cmd_set_bal(msg: Message, *args):
     if not len(args):
-        await msg.reply(f'invalid args: {PREFIX}setbal <new_balance> (user)')
-        return
+        raise InvalidArgumentsException()
+
     elif len(args) == 2:
         target = args[1]
 
@@ -86,8 +87,7 @@ async def cmd_set_bal(msg: Message, *args):
          help='gives the target the specified amount from the callers currency balance')
 async def cmd_give(msg: Message, *args):
     if len(args) != 2:
-        await msg.reply(f'invalid args: {PREFIX}give <target> <amount>')
-        return
+        raise InvalidArgumentsException()
 
     if args[0] not in msg.channel.chatters:
         await msg.reply(msg=f'no viewer found by the name "{args[0]}"')
@@ -124,10 +124,7 @@ async def cmd_give(msg: Message, *args):
               'but it is also a lower chance to roll a 1.')
 async def cmd_gamble(msg: Message, *args):
     if len(args) != 2:
-        await msg.reply(
-            f'USAGE: {PREFIX}gamble <dice_sides> <bet>, '
-            f'do "{cfg.prefix}help {cfg.prefix}gamble" to get more details  ')
-        return
+        raise InvalidArgumentsException()
 
     try:
         sides = int(args[0])
@@ -188,6 +185,18 @@ async def cmd_mine(msg: Message, *args):
         await msg.reply(f'you cannot mine again for {int(abs(diff))} seconds', whisper=True)
 
 
+@Command('top', help="lists the top 10 balance holders")
+async def cmd_top(msg: Message, *args):
+    limit = 10
+
+    results = session.query(Balance).filter_by(channel=msg.channel_name).order_by(Balance.balance.desc()).limit(limit)
+
+    b: Balance
+    message = ', '.join(f'{i+1}: {b.user} => {b.balance}' for i, b in enumerate(results))
+
+    await msg.reply(message or 'no balances were found')
+
+
 running_arenas: Dict[str, Arena] = {}
 
 
@@ -205,10 +214,9 @@ async def cmd_arena(msg: Message, *args):
     # arena is already running for this channel
     if arena:
         if msg.author in arena.users:
-            await msg.reply(
+            return await msg.reply(
                 whisper=True,
                 msg='you are already entered the in the arena')
-            return
 
         elif not _can_pay_entry_fee(arena.entry_fee):
             await msg.reply(

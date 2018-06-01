@@ -1,6 +1,6 @@
 from asyncio import StreamWriter, StreamReader
 from .config import cfg
-from .ratelimit import privmsg_ratelimit_async, whisper_ratelimit_async
+from .ratelimit import privmsg_ratelimit, whisper_ratelimit
 from textwrap import wrap
 
 MAX_LINE_LENGTH = 450
@@ -35,19 +35,23 @@ class Irc:
         for msg in msgs:
             self.send(msg)
 
-    @privmsg_ratelimit_async
     async def send_privmsg(self, channel: str, msg: str):
         """sends a message to a channel"""
+        # import it locally to avoid circular import
+        from .channel import channels
+
         for line in self._wrap_message(msg):
+            await privmsg_ratelimit(channels[channel])
+
             self.send(f'PRIVMSG #{channel} :{line}')
 
         # exclude calls from send_whisper being sent to the bots on_privmsg_received event
         if self.bot and not msg.startswith('/w'):
             await self.bot.on_privmsg_sent(msg, channel, cfg.nick)
 
-    @whisper_ratelimit_async
     async def send_whisper(self, user: str, msg: str):
         """sends a whisper to a user"""
+        await whisper_ratelimit()
         await self.send_privmsg(user, f'/w {user} {msg}')
 
         if self.bot:
