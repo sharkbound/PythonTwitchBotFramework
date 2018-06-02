@@ -16,6 +16,7 @@ from .bots import *
 from .api import *
 from .overrides import *
 from .loyalty_ticker import *
+from .disabled_commands import *
 
 import os
 

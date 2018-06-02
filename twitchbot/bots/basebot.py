@@ -13,6 +13,7 @@ from ..permission import perms
 from ..emote import update_global_emotes
 from ..overrides import overrides
 from ..exceptions import InvalidArgumentsException
+from ..disabled_commands import is_command_disabled
 
 
 class BaseBot:
@@ -125,21 +126,23 @@ class BaseBot:
         else: returns None
         """
         cmd = commands.get(msg.parts[0].lower())
-        if cmd is not None:
+        if cmd:
             return cmd
 
         cmd = get_custom_command(msg.channel_name, msg.parts[0].lower())
-        if cmd is not None:
+        if cmd:
             return CustomCommandAction(cmd)
 
         return None
 
     async def _run_command(self, msg: Message, cmd: Command):
         if not self._check_permission(msg, cmd):
-            await msg.reply(
+            return await msg.reply(
                 whisper=True,
                 msg=f'you do not have permission to execute {cmd.fullname} in #{msg.channel_name}')
-            return
+
+        elif type(cmd) is not CustomCommandAction and is_command_disabled(msg.channel_name, cmd.fullname):
+            return await msg.reply(f'{cmd.fullname} is disabled for this channel')
 
         if not await self.on_before_command_execute(msg, cmd):
             return

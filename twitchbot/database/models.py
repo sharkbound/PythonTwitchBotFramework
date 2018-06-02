@@ -37,6 +37,10 @@ class CustomCommand(Base):
     def create(cls, channel: str, name: str, response: str):
         return CustomCommand(channel=channel.lower(), name=name.lower(), response=response)
 
+    @property
+    def fullname(self):
+        return self.name
+
     def __str__(self):
         return f'<CustomCommand channel={self.channel!r} name={self.name!r} response={self.response!r}>'
 

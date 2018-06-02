@@ -1,6 +1,6 @@
 import os
 import sys
-from typing import Dict, Callable
+from typing import Dict, Callable, Optional
 from .config import cfg
 from importlib import import_module
 from glob import glob
@@ -76,14 +76,35 @@ def load_commands_from_directory(path):
     if not os.path.exists(path):
         return
 
-    with temp_syspath_append(path):
+    with temp_syspath(path):
         for file in glob(os.path.join(path, '*.py')):
             fname = os.path.basename(file).split('.')[0]
             mod = import_module(fname)
 
 
 @contextmanager
-def temp_syspath_append(fullpath):
-    sys.path.append(fullpath)
-    yield
-    sys.path.remove(fullpath)
+def temp_syspath(fullpath):
+    if fullpath not in sys.path:
+        sys.path.append(fullpath)
+        yield
+        sys.path.remove(fullpath)
+    else:
+        yield
+
+
+def command_exist(name: str) -> bool:
+    """
+    returns a bool indicating if a command exists,
+    tries added a configs prefix to the name if not found initally,
+    does not check for custom commands
+    """
+    return name in commands or (cfg.prefix + name) in commands
+
+
+def get_command(name: str) -> Optional[Command]:
+    """
+    gets a commands,
+    tries added a configs prefix to the name if not found initally,
+    returns None if not exist, does not get custom commands
+    """
+    return commands.get(name) or commands.get(cfg.prefix + name)

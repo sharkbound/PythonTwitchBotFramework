@@ -67,10 +67,14 @@ class Config:
 
     def __getattr__(self, item):
         """allows for getting config values by accessing a attribute"""
-        if item in self.__dict__:
-            return self.__dict__[item]
+        return self.__dict__[item] if item in self.__dict__ else self.data.get(item)
 
-        return self.data.get(item)
+    def __getitem__(self, item):
+        return self.__getattr__(item)
+
+    def __setitem__(self, key, value):
+        self.data[key] = value
+        self.save()
 
     def __iter__(self):
         yield from self.data.items()

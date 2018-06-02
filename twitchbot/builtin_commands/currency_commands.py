@@ -136,6 +136,7 @@ async def cmd_gamble(msg: Message, *args):
     if bet < 10:
         await msg.reply('bet cannot be less then 10')
         return
+
     elif sides < 2:
         await msg.reply('sides cannot be less than 2')
         return
