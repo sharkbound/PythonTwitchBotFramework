@@ -1,6 +1,9 @@
 from twitchbot import (
     set_message_timer_active,
     set_message_timer,
+    set_message_timer_interval,
+    set_message_timer_message,
+    restart_message_timer,
     message_timer_exist,
     delete_message_timer,
     get_all_channel_timers,
@@ -8,8 +11,8 @@ from twitchbot import (
     cfg,
     Message,
     Command,
-
-    InvalidArgumentsException)
+    InvalidArgumentsException
+)
 
 PREFIX = cfg.prefix
 MIN_MESSAGE_TIMER_INTERVAL = 10
@@ -123,3 +126,39 @@ async def cmd_list_timers(msg: Message, *args):
 
     if inactive_timers:
         await msg.reply(f'inactive timers: {inactive_timers}')
+
+
+@Command('edittimer', syntax='<name> <msg or interval> <new value>', help="edits a timer's message or interval")
+async def cmd_edit_timer(msg: Message, *args):
+    if len(args) < 3:
+        raise InvalidArgumentsException()
+
+    name = args[0].lower()
+    timer = get_message_timer(msg.channel_name, name)
+
+    if not timer:
+        return await msg.reply(f'no timer was found by "{name}"')
+
+    mode = args[1].lower()
+
+    if mode not in ('msg', 'interval'):
+        raise InvalidArgumentsException()
+
+    if mode == 'interval':
+        try:
+            interval = int(args[2])
+        except ValueError:
+            raise InvalidArgumentsException()
+
+        set_message_timer_interval(msg.channel_name, name, interval)
+        restart_message_timer(msg.channel_name, name)
+
+        return await msg.reply(f'updated timer interval for "{name}"')
+
+    elif mode == 'msg':
+        value = ' '.join(args[2:])
+
+        set_message_timer_message(msg.channel_name, name, value)
+        restart_message_timer(msg.channel_name, name)
+
+        return await msg.reply(f'updated timer message for "{name}"')

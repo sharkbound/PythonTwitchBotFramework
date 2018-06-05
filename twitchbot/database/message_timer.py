@@ -3,11 +3,11 @@ from typing import Optional, Dict, List
 
 from .models import MessageTimer
 from .session import session
-from twitchbot.channel import channels
+from ..channel import channels
 
 __all__ = ('get_message_timer', 'set_message_timer', 'message_timer_exist', 'set_message_timer_interval',
            'set_message_timer_message', 'delete_all_message_timers', 'delete_message_timer', 'set_message_timer_active',
-           'active_message_timers', 'get_all_channel_timers')
+           'active_message_timers', 'get_all_channel_timers', 'restart_message_timer')
 
 active_message_timers: Dict[str, MessageTimer] = {}
 
@@ -51,14 +51,14 @@ def set_message_timer_interval(channel: str, name: str, interval: float) -> bool
     return True
 
 
-def set_message_timer_message(channel: str, name: str, interval: float) -> bool:
+def set_message_timer_message(channel: str, name: str, message: str) -> bool:
     """updates a MessageTimers message, returns a bool if it was successful"""
     timer = get_message_timer(channel, name)
 
     if not timer:
         return False
 
-    timer.interval = interval
+    timer.message = message
     session.commit()
     return True
 
@@ -108,6 +108,14 @@ def delete_message_timer(channel: str, name: str) -> bool:
     session.delete(timer)
     session.commit()
     return True
+
+
+# todo: bug with restarting a active message timer?
+def restart_message_timer(channel: str, name: str):
+    if _key(channel, name) in active_message_timers:
+        set_message_timer_active(channel, name, False)
+
+    set_message_timer_active(channel, name, True)
 
 
 def _start_message_timer(channel: str, name: str) -> bool:
