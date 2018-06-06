@@ -1,6 +1,16 @@
-from twitchbot import Message, Command, CommandContext
+from twitchbot import Message, Command, CommandContext, SubCommand
 
 
 @Command('debug', permission='debug')
 async def cmd_debug(msg: Message, *args):
-    await msg.reply(msg.raw_msg, whisper=True)
+    await msg.reply('working')
+
+
+@SubCommand(cmd_debug, 'echo')
+async def cmd_debug_echo(msg: Message, *args):
+    await msg.reply(' '.join(args) or 'message was empty')
+
+
+@SubCommand(cmd_debug_echo, 'name')
+async def cmd_debug_echo_name(msg: Message, *args):
+    await msg.reply(f'hello {msg.author}!')

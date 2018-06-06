@@ -148,7 +148,7 @@ class BaseBot:
             return
 
         try:
-            await cmd.func(msg, *msg.parts[1:])
+            await cmd.execute(msg)
         except InvalidArgumentsException:
             await msg.reply(
                 f'invalid args: "{cmd.fullname} {cmd.syntax}", do "{cfg.prefix}help {cmd.fullname}" for more details')

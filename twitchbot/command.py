@@ -1,6 +1,6 @@
 import os
 import sys
-from typing import Dict, Callable, Optional
+from typing import Dict, Callable, Optional, List, Tuple
 from .config import cfg
 from importlib import import_module
 from glob import glob
@@ -13,8 +13,9 @@ from datetime import datetime
 
 
 class Command:
-    def __init__(self, name, prefix=None, func=None, global_command=True, context=CommandContext.CHANNEL,
-                 permission=None, syntax=None, help=None):
+    def __init__(self, name: str, prefix: str = None, func: Callable = None, global_command: bool = True,
+                 context: CommandContext = CommandContext.CHANNEL, permission: str = None, syntax: str = None,
+                 help: str = None):
         """
         :param name: name of the command (without the prefix)
         :param prefix: prefix require before the command name (defaults the the configs prefix if None)
@@ -22,22 +23,47 @@ class Command:
         :param global_command: should the command be registered globally?
         :param context: the context through which calling the command is allowed
         """
-        self.help = help
-        self.syntax = syntax
-        self.permission = permission
+        self.help: str = help
+        self.syntax: str = syntax
+        self.permission: str = permission
         self.context: CommandContext = context
         self.prefix: str = (prefix if prefix is not None else cfg.prefix).lower()
         self.func: Callable = func
         self.name: str = name.lower()
         self.fullname: str = self.prefix + self.name
+        self.sub_cmds: Dict[str, Command] = {}
+        self.parent: Command = None
 
         if global_command:
             commands[self.fullname] = self
+
+    def _get_cmd_func(self, args) -> Tuple['Callable', List[str]]:
+        if not self.sub_cmds or not args or args[0].lower() not in self.sub_cmds:
+            return self.func, args
+
+        return self.sub_cmds[args[0].lower()]._get_cmd_func(args[1:])
+
+    async def execute(self, msg: Message):
+        func, args = self._get_cmd_func(msg.parts[1:])
+        await func(msg, *args)
 
     # decorator support
     def __call__(self, func) -> 'Command':
         self.func = func
         return self
+
+    def __str__(self):
+        return f'<Command fullname={repr(self.fullname)} parent={repr(self.parent)}>'
+
+
+class SubCommand(Command):
+    def __init__(self, parent: Command, name: str, func: Callable = None, permission: str = None, syntax: str = None,
+                 help: str = None):
+        super().__init__(name=name, prefix='', func=func, permission=permission, syntax=syntax, help=help,
+                         global_command=False)
+
+        self.parent: Command = parent
+        self.parent.sub_cmds[self.name] = self
 
 
 PLACEHOLDERS = (
@@ -55,8 +81,8 @@ class CustomCommandAction(Command):
         super().__init__(cmd.name, prefix='', func=self.execute, global_command=False)
         self.cmd: CustomCommand = cmd
 
-    async def execute(self, msg: Message, *args):
-        resp = str(self.cmd.response)
+    async def execute(self, msg: Message):
+        resp = self.cmd.response
 
         for placeholder, func in PLACEHOLDERS:
             if placeholder in resp:
