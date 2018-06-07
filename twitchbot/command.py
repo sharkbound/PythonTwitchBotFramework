@@ -10,6 +10,7 @@ from twitchbot.database import CustomCommand
 from .enums import CommandContext
 from twitchbot.message import Message
 from datetime import datetime
+from .util import get_py_files, get_file_name
 
 
 class Command:
@@ -136,8 +137,8 @@ def load_commands_from_directory(path):
         return
 
     with temp_syspath(path):
-        for file in glob(os.path.join(path, '*.py')):
-            fname = os.path.basename(file).split('.')[0]
+        for file in get_py_files(path):
+            fname = get_file_name(file)
             mod = import_module(fname)
 
 
