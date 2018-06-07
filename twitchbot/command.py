@@ -62,7 +62,10 @@ class Command:
         return self
 
     def __str__(self):
-        return f'<{self.__class__.__name__} fullname={repr(self.fullname)} parent={repr(self.parent)}>'
+        return f'<{self.__class__.__name__} fullname={repr(self.fullname)} parent={self.parent}>'
+
+    def __getitem__(self, item):
+        return self.sub_cmds.get(item.lower()) or self.sub_cmds.get(item.lower()[1:])
 
 
 class SubCommand(Command):
@@ -73,6 +76,27 @@ class SubCommand(Command):
 
         self.parent: Command = parent
         self.parent.sub_cmds[self.name] = self
+
+
+class DummyCommand(Command):
+    def __init__(self, name: str, prefix: str = None, global_command: bool = True,
+                 context: CommandContext = CommandContext.CHANNEL, permission: str = None, syntax: str = None,
+                 help: str = None):
+        super().__init__(name=name, prefix=prefix, func=self.exec, global_command=global_command,
+                         context=context, permission=permission, syntax=syntax, help=help)
+
+    async def exec(self, msg: Message, *args):
+        """the function called when the dummy command is executed"""
+        if self.sub_cmds:
+            await msg.reply(f'command options: {", ".join(self.sub_cmds)}')
+        else:
+            await msg.reply('no sub-commands were found for this command')
+
+    def add_sub_cmd(self, name: str) -> 'DummyCommand':
+        """adds a new DummyCommand to the current DummyCommand as a sub-command, then returns the new DummyCommand"""
+        cmd = DummyCommand(name, prefix='', global_command=False)
+        self.sub_cmds[cmd.fullname] = cmd
+        return cmd
 
 
 PLACEHOLDERS = (
