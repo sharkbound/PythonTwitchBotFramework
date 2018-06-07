@@ -38,10 +38,19 @@ class Command:
             commands[self.fullname] = self
 
     def _get_cmd_func(self, args) -> Tuple['Callable', List[str]]:
+        """returns a tuple of the final commands command function and the remaining argument"""
         if not self.sub_cmds or not args or args[0].lower() not in self.sub_cmds:
             return self.func, args
 
         return self.sub_cmds[args[0].lower()]._get_cmd_func(args[1:])
+
+        # while verison:
+        # cmd = self
+        # while cmd.sub_cmds and args and args[0].lower() in cmd.sub_cmds:
+        #     cmd = cmd.sub_cmds[args[0].lower()]
+        #     args = args[1:]
+        #
+        # return cmd.func, args
 
     async def execute(self, msg: Message):
         func, args = self._get_cmd_func(msg.parts[1:])
@@ -53,7 +62,7 @@ class Command:
         return self
 
     def __str__(self):
-        return f'<Command fullname={repr(self.fullname)} parent={repr(self.parent)}>'
+        return f'<{self.__class__.__name__} fullname={repr(self.fullname)} parent={repr(self.parent)}>'
 
 
 class SubCommand(Command):
