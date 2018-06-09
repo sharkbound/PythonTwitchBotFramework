@@ -1,3 +1,7 @@
+import os
+
+FFMPEG_PATH = os.path.join(__path__[0], 'bin', 'ffmpeg.exe')
+
 from .arena import *
 from .channel import *
 from .chatters import *
@@ -17,7 +21,6 @@ from .api import *
 from .overrides import *
 from .loyalty_ticker import *
 from .disabled_commands import *
-
-import os
+from .songrequest import *
 
 load_commands_from_directory(os.path.join(__path__[0], 'builtin_commands'))
