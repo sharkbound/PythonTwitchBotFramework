@@ -1,7 +1,3 @@
-import os
-
-FFMPEG_PATH = os.path.join(__path__[0], 'bin', 'ffmpeg.exe')
-
 from .arena import *
 from .channel import *
 from .chatters import *
