@@ -7,10 +7,9 @@ CHANNEL_CHATTERS_URL = 'https://tmi.twitch.tv/group/user/{}/chatters'
 
 
 async def get_url(url, headers=None) -> dict:
-    async with ClientSession(headers=headers) as session:
-        async with timeout(10):
-            async with session.get(url) as resp:
-                return await resp.json()
+    async with ClientSession(headers=headers) as session, timeout(10):
+        async with session.get(url) as resp:
+            return await resp.json()
 
 
 async def get_user_data(user, headers=None) -> dict:
