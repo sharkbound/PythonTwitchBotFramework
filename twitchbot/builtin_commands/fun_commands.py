@@ -5,7 +5,6 @@ from twitchbot import (
     Message,
     CommandContext,
     Command,
-    cfg,
     InvalidArgumentsException)
 
 
@@ -38,11 +37,23 @@ async def cmd_choose(msg: Message, *args):
     await msg.reply(f'result: {choice(args)}')
 
 
-@Command('color', permission='color', syntax='<color>')
+@Command('color', permission='color', syntax='<color>', help='sets the bots chat color')
 async def cmd_color(msg: Message, *args):
     if not args:
         raise InvalidArgumentsException()
 
-
     await msg.channel.color(args[0])
     await msg.reply(f'set color to {args[0]}')
+
+
+magic_8_ball_messages = [
+    'yes',
+    'no',
+    'maybe',
+    'not a chance'
+]
+
+
+@Command('8ball', syntax='<question>', help='prints a random answer to the question')
+async def cmd_8ball(msg: Message, *args):
+    await msg.reply(f'{msg.mention} {choice(magic_8_ball_messages)}')
