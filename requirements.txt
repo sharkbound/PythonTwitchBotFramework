@@ -2,3 +2,4 @@ aiohttp
 dataclasses
 sqlalchemy
 websockets
+youtube-dl

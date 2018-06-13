@@ -26,6 +26,16 @@ def start_socket_server():
 song_request_clients: List[WebSocketServerProtocol] = []
 
 
+def active_clients():
+    yield from (c for c in song_request_clients if c.open)
+
+
+def has_song_request_clients():
+    return bool(song_request_clients)
+
+
 async def send_song_request_command(command: SongRequestCommand, *args):
-    for client in song_request_clients:
-        await client.send(f'{command.value} {" ".join(args)}')
+    extra = '' if not args else (' ' + ' '.join(args))
+
+    for client in active_clients():
+        await client.send(command.value + extra)
