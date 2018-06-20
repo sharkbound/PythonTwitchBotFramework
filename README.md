@@ -1,3 +1,5 @@
+if you would like to send a few dollars my way you can do so here: [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=9ZVUE7CR24738)
+
 # PythonTwitchBotFramework
 working twitchbot framework made in python 3.6+
 
