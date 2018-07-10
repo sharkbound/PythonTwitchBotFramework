@@ -141,6 +141,105 @@ syntax: "<name>",
 help: "this command does a very important thing!"
 ```
 
+# SubCommand Class
+
+the SubCommand class makes it easier to implement different actions based on a parameters passed to a command.
+
+its the same as normal command except thats its not a global command
+
+example: `!say` could be its own command, then it could have the sub-commands `!say myname` or `!say motd`.
+
+you can implements this using something like this:
+
+```python
+from twitchbot import Command
+
+@Command('say')
+async def cmd_say(msg, *args):
+    # args is empty
+    if not args:
+        await msg.reply("you didn't give me any arguments :(")
+        return 
+    
+    arg = args[0].lower()
+    if arg == 'myname':
+        await msg.reply(f'hello {msg.mention}!')
+    
+    elif arg == 'motd':
+        await msg.reply('the message of the day is: python is awesome')
+    
+    else:    
+        await msg.reply(' '.join(args))
+    
+
+```
+ 
+that works, but i would be done in a nicer way using the `SubCommand` class:
+
+```python
+from twitchbot import Command, SubCommand
+
+@Command('say')
+async def cmd_say(msg, *args):
+    await msg.reply(' '.join(args))
+
+# we pass the parent command as the first parameter   
+@SubCommand(cmd_say, 'myname')
+async def cmd_say_myname(msg, *args):
+    await msg.reply(f'hello {msg.mention}!')
+
+
+@SubCommand(cmd_say, 'motd')
+async def cmd_say_motd(msg, *args):
+    await msg.reply('the message of the day is: python is awesome')
+```
+
+both ways do the same thing, what you proffer to use is up to you, but it does make it easier to manage for larger commands to use SubCommand class
+
+# DummyCommand class
+this class is basically a command that does nothing when executed, its mainly use is to be used as base command for sub-command-only commands
+
+it has all the same options as a regular Command
+
+when a dummy command is executed it looks for sub-commands with a matching name as the first argument passed to it
+
+if no command is found then it will say in chat the available sub-commands
+
+but if a command is found it executes that command
+
+
+say you want a command to greet someone, but you always want to pass the language, you can do this:
+
+```python
+from twitchbot import DummyCommand, SubCommand
+
+# cmd_greet does nothing itself when called
+cmd_greet = DummyCommand('greet')
+
+@SubCommand(cmd_greet, 'english')
+async def cmd_greet_english(msg, *args):
+    await msg.reply(f'hello {msg.mention}!')
+    
+@SubCommand(cmd_greet, 'spanish')
+async def cmd_greet_spanish(msg, *args):
+    await msg.reply(f'hola {msg.mention}!')
+```
+
+doing just `!greet` when make the bot say: 
+```text
+command options: {english, spanish}
+```
+
+doing `!greet english` will make the bot say this:
+```text
+hello @johndoe!
+```
+
+doing `!greet spanish` will make the bot say this:
+```text
+hola @johndoe!
+```
+
 # config
 
 the default config values are:
