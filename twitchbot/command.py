@@ -100,13 +100,26 @@ class DummyCommand(Command):
         return cmd
 
 
-PLACEHOLDERS = (
-    ('%user', lambda msg: f'@{msg.author}'),
-    ('%uptime',
-     lambda
-         msg: f'{(msg.channel.stats.started_at - datetime.now()).total_seconds() / 3600:.1f}' if msg.channel.live else '[NOT LIVE]'
-     ),
-    ('%channel', lambda msg: msg.channel_name),
+def _calc_channel_live_time(msg) -> str:
+    if msg.channel.live:
+        return format((msg.channel.stats.started_at - datetime.now()).total_seconds() / 3600, '.1f')
+
+    return '[NOT LIVE]'
+
+
+CUSTOM_COMMAND_PLACEHOLDERS = (
+    (
+        '%user',
+        lambda msg: f'@{msg.author}'
+    ),
+    (
+        '%uptime',
+        _calc_channel_live_time
+    ),
+    (
+        '%channel',
+        lambda msg: msg.channel_name
+    ),
 )
 
 
@@ -118,7 +131,7 @@ class CustomCommandAction(Command):
     async def execute(self, msg: Message):
         resp = self.cmd.response
 
-        for placeholder, func in PLACEHOLDERS:
+        for placeholder, func in CUSTOM_COMMAND_PLACEHOLDERS:
             if placeholder in resp:
                 resp = resp.replace(placeholder, func(msg))
 

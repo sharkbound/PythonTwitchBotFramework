@@ -47,10 +47,12 @@ async def cmd_color(msg: Message, *args):
 
 
 magic_8_ball_messages = [
+    'it is certain',
     'yes',
+    'not happening',
     'no',
     'maybe',
-    'not a chance'
+    "it's possible"
 ]
 
 

@@ -53,7 +53,8 @@ class Channel:
 
     async def timeout(self, user: str, duration: int = 600):
         """
-        purges a user's messages then timeout out (makes them unable to chat) for the specified duration (default 600 seconds)
+        purges a user's messages then timeout out (makes them unable to chat)
+        for the specified duration (default 600 seconds)
         """
         await self.send_command(f'timeout {user} {duration}')
 
