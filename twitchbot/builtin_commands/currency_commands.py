@@ -16,7 +16,7 @@ from twitchbot import (
     get_balance_from_msg,
     add_balance,
     cfg,
-    InvalidArgumentsException,
+    InvalidArgumentsError,
     Balance
 )
 
@@ -27,7 +27,7 @@ PERMISSION = 'manage_currency'
 @Command('setcurrencyname', permission=PERMISSION, syntax='<new_name>', help='sets the channels currency name')
 async def cmd_set_currency_name(msg: Message, *args):
     if len(args) != 1:
-        raise InvalidArgumentsException()
+        raise InvalidArgumentsError()
 
     set_currency_name(msg.channel_name, args[0])
 
@@ -61,7 +61,7 @@ async def cmd_get_bal(msg: Message, *args):
 @Command('setbal', permission=PERMISSION, syntax='<new_balance> (target)', help='sets the callers or targets balance')
 async def cmd_set_bal(msg: Message, *args):
     if not len(args):
-        raise InvalidArgumentsException()
+        raise InvalidArgumentsError()
 
     elif len(args) == 2:
         target = args[1]
@@ -87,7 +87,7 @@ async def cmd_set_bal(msg: Message, *args):
          help='gives the target the specified amount from the callers currency balance')
 async def cmd_give(msg: Message, *args):
     if len(args) != 2:
-        raise InvalidArgumentsException()
+        raise InvalidArgumentsError()
 
     if args[0] not in msg.channel.chatters:
         await msg.reply(msg=f'no viewer found by the name "{args[0]}"')
@@ -124,7 +124,7 @@ async def cmd_give(msg: Message, *args):
               'but it is also a lower chance to roll a 1.')
 async def cmd_gamble(msg: Message, *args):
     if len(args) != 2:
-        raise InvalidArgumentsException()
+        raise InvalidArgumentsError()
 
     try:
         sides = int(args[0])

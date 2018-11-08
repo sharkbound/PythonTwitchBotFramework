@@ -1,2 +1,2 @@
-class InvalidArgumentsException(Exception):
+class InvalidArgumentsError(Exception):
     pass

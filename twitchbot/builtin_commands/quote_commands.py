@@ -9,7 +9,7 @@ from twitchbot import (
     get_quote,
     Quote,
     cfg,
-    InvalidArgumentsException)
+    InvalidArgumentsError)
 
 PREFIX = cfg.prefix
 
@@ -17,7 +17,7 @@ PREFIX = cfg.prefix
 @Command('addquote', syntax='"<quote text>" user=(user) alias=(alias)', help='adds a quote to the database')
 async def cmd_quote_add(msg: Message, *args):
     if not args:
-        raise InvalidArgumentsException()
+        raise InvalidArgumentsError()
 
     optionals = ' '.join(args[1:])
 
@@ -52,7 +52,7 @@ async def cmd_quote_add(msg: Message, *args):
 @Command('quote', syntax='<ID or ALIAS>', help='gets a quote by ID or ALIAS')
 async def cmd_get_quote(msg: Message, *args):
     if not args:
-        raise InvalidArgumentsException()
+        raise InvalidArgumentsError()
 
     quote = get_quote(msg.channel_name, args[0])
     if quote is None:
@@ -65,7 +65,7 @@ async def cmd_get_quote(msg: Message, *args):
 @Command('delquote', permission='delete_quote', syntax='<ID or ALIAS>', help='deletes the quote from the database')
 async def cmd_del_quote(msg: Message, *args):
     if not args:
-        raise InvalidArgumentsException()
+        raise InvalidArgumentsError()
 
     quote = get_quote(msg.channel_name, args[0])
     if quote is None:

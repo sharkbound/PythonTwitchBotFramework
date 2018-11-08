@@ -12,7 +12,7 @@ from ..database import get_custom_command
 from ..permission import perms
 from ..emote import update_global_emotes
 from ..overrides import overrides
-from ..exceptions import InvalidArgumentsException
+from ..exceptions import InvalidArgumentsError
 from ..disabled_commands import is_command_disabled
 
 
@@ -149,7 +149,7 @@ class BaseBot:
 
         try:
             await cmd.execute(msg)
-        except InvalidArgumentsException:
+        except InvalidArgumentsError:
             await msg.reply(
                 f'invalid args: "{cmd.fullname} {cmd.syntax}", do "{cfg.prefix}help {cmd.fullname}" for more details')
         else:
