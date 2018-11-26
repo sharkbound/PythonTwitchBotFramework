@@ -4,7 +4,7 @@ from typing import Dict
 from .irc import Irc
 from .config import cfg
 from .permission import perms
-from .chatters import Chatters
+from twitchbot.api.chatters import Chatters
 from .api import StreamInfoApi
 
 

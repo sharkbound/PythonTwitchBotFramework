@@ -19,7 +19,7 @@ COMMAND_MANAGE_PERMISSION = 'manage_commands'
          help='disables a command for the current channel')
 async def cmd_disable_cmd(msg: Message, *args):
     if not args:
-        raise InvalidArgumentsError()
+        raise InvalidArgumentsError
 
     name = args[0].lower()
 
@@ -40,7 +40,7 @@ async def cmd_disable_cmd(msg: Message, *args):
          help='enables a command for the current channel')
 async def cmd_enable_cmd(msg: Message, *args):
     if not args:
-        raise InvalidArgumentsError()
+        raise InvalidArgumentsError
 
     name = args[0].lower()
 

@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from random import randint
 from typing import Dict
 from secrets import randbelow
 
@@ -17,8 +16,12 @@ from twitchbot import (
     add_balance,
     cfg,
     InvalidArgumentsError,
-    Balance
-)
+    Balance,
+    duel_expired,
+    add_duel,
+    duel_exists,
+    accept_duel,
+    subtract_balance)
 
 PREFIX = cfg.prefix
 PERMISSION = 'manage_currency'
@@ -27,7 +30,7 @@ PERMISSION = 'manage_currency'
 @Command('setcurrencyname', permission=PERMISSION, syntax='<new_name>', help='sets the channels currency name')
 async def cmd_set_currency_name(msg: Message, *args):
     if len(args) != 1:
-        raise InvalidArgumentsError()
+        raise InvalidArgumentsError
 
     set_currency_name(msg.channel_name, args[0])
 
@@ -55,13 +58,13 @@ async def cmd_get_bal(msg: Message, *args):
     await msg.reply(
         whisper=True,
         msg=f'@{target} has {get_balance(msg.channel_name, target).balance} '
-            f'{get_currency_name(msg.channel_name).name}')
+        f'{get_currency_name(msg.channel_name).name}')
 
 
 @Command('setbal', permission=PERMISSION, syntax='<new_balance> (target)', help='sets the callers or targets balance')
 async def cmd_set_bal(msg: Message, *args):
     if not len(args):
-        raise InvalidArgumentsError()
+        raise InvalidArgumentsError
 
     elif len(args) == 2:
         target = args[1]
@@ -87,7 +90,7 @@ async def cmd_set_bal(msg: Message, *args):
          help='gives the target the specified amount from the callers currency balance')
 async def cmd_give(msg: Message, *args):
     if len(args) != 2:
-        raise InvalidArgumentsError()
+        raise InvalidArgumentsError
 
     if args[0] not in msg.channel.chatters:
         await msg.reply(msg=f'no viewer found by the name "{args[0]}"')
@@ -124,7 +127,7 @@ async def cmd_give(msg: Message, *args):
               'but it is also a lower chance to roll a 1.')
 async def cmd_gamble(msg: Message, *args):
     if len(args) != 2:
-        raise InvalidArgumentsError()
+        raise InvalidArgumentsError
 
     try:
         sides = int(args[0])
@@ -196,7 +199,7 @@ async def cmd_top(msg: Message, *args):
         .limit(limit)
 
     b: Balance
-    message = ', '.join(f'{i+1}: {b.user} => {b.balance}' for i, b in enumerate(results))
+    message = ', '.join(f'{i + 1}: {b.user} => {b.balance}' for i, b in enumerate(results))
 
     await msg.reply(message or 'no balances were found')
 
@@ -226,7 +229,7 @@ async def cmd_arena(msg: Message, *args):
             await msg.reply(
                 whisper=True,
                 msg=f'{msg.mention} you do not have enough {curname} '
-                    f'to join the arena, entry_fee is {arena.entry_fee} {curname}')
+                f'to join the arena, entry_fee is {arena.entry_fee} {curname}')
             return
 
         arena.add_user(msg.author)
@@ -271,3 +274,61 @@ def _remove_running_arena_entry(arena: Arena):
         del running_arenas[arena.channel.name]
     except KeyError:
         pass
+
+
+@Command('duel', syntax='<target_user> (amount, default: 10)',
+         help='challenges a user to a duel with the bid as the reward')
+async def cmd_duel(msg: Message, *args):
+    if not args:
+        raise InvalidArgumentsError
+
+    target = args[0].lstrip('@')
+
+    if target == msg.author:
+        await msg.reply(f'{msg.mention} you cannot duel yourself')
+        return
+
+    if target not in msg.channel.chatters:
+        await msg.reply(f'{msg.mention} {target} is not in this chatroom')
+        return
+
+    if duel_exists(msg.author, target):
+        await msg.reply(f'{msg.mention} you already have a pending duel with {target}')
+        return
+
+    try:
+        bet = int(args[1])
+
+    except ValueError:
+        await msg.reply(f'invalid bet: {args[1]}, bet must be a number with no decimals, ex: 12')
+        return
+
+    except IndexError:
+        bet = 10
+
+    add_duel(msg.author, target, bet)
+
+    await msg.reply(
+        f'{msg.mention} has challenged @{target} to a duel for {bet} {get_currency_name(msg.channel_name).name}'
+        f', do "{cfg.prefix}accept {msg.mention}" to accept the duel')
+
+
+@Command('accept', syntax='<challenger>', help='accepts a duel issued by the challenger that is passed to this command')
+async def cmd_accept(msg: Message, *args):
+    if len(args) != 1:
+        raise InvalidArgumentsError
+
+    challenger = args[0].lstrip('@')
+    winner, bet = accept_duel(challenger, msg.author)
+
+    if not winner:
+        await msg.reply(f'{msg.mention}, you have not been challenged by {challenger}, or the duel might have expired')
+        return
+
+    loser = msg.author if winner == msg.author else challenger
+
+    add_balance(msg.channel_name, winner, bet)
+    subtract_balance(msg.channel_name, loser, bet)
+
+    await msg.reply(f'@{winner} has won the duel between {winner} and {loser}, '
+                    f'{winner} has won {bet} {get_currency_name(msg.channel_name).name}')

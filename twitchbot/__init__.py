@@ -1,6 +1,6 @@
 from .arena import *
 from .channel import *
-from .chatters import *
+from twitchbot.api.chatters import *
 from .colors import *
 from .command import *
 from .config import *
@@ -17,6 +17,7 @@ from .api import *
 from .overrides import *
 from .loyalty_ticker import *
 from .disabled_commands import *
+from .duel import *
 
 import os
 

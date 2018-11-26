@@ -32,7 +32,7 @@ async def cmd_crash_code(msg: Message, *args):
 @Command('choose', syntax='<option> <option> ect', help='chooses a random option passed to the command')
 async def cmd_choose(msg: Message, *args):
     if len(args) < 2:
-        raise InvalidArgumentsError()
+        raise InvalidArgumentsError
 
     await msg.reply(f'result: {choice(args)}')
 
@@ -40,7 +40,7 @@ async def cmd_choose(msg: Message, *args):
 @Command('color', permission='color', syntax='<color>', help='sets the bots chat color')
 async def cmd_color(msg: Message, *args):
     if not args:
-        raise InvalidArgumentsError()
+        raise InvalidArgumentsError
 
     await msg.channel.color(args[0])
     await msg.reply(f'set color to {args[0]}')
