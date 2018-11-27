@@ -215,6 +215,12 @@ async def cmd_arena(msg: Message, *args):
     def _can_pay_entry_fee(fee):
         return get_balance(msg.channel_name, msg.author).balance >= fee
 
+    def _remove_running_arena_entry(arena: Arena):
+        try:
+            del running_arenas[arena.channel.name]
+        except KeyError:
+            pass
+
     arena = running_arenas.get(msg.channel_name)
     curname = get_currency_name(msg.channel_name).name
 
@@ -264,16 +270,9 @@ async def cmd_arena(msg: Message, *args):
         arena.start()
         arena.add_user(msg.author)
 
-        add_balance(msg.channel_name, msg.author, -arena.entry_fee)
+        subtract_balance(msg.channel_name, msg.author, arena.entry_fee)
 
         running_arenas[msg.channel_name] = arena
-
-
-def _remove_running_arena_entry(arena: Arena):
-    try:
-        del running_arenas[arena.channel.name]
-    except KeyError:
-        pass
 
 
 @Command('duel', syntax='<target_user> (amount, default: 10)',
@@ -292,7 +291,7 @@ async def cmd_duel(msg: Message, *args):
         await msg.reply(f'{msg.mention} {target} is not in this chatroom')
         return
 
-    if duel_exists(msg.author, target):
+    if duel_exists(msg.channel_name, msg.author, target):
         await msg.reply(f'{msg.mention} you already have a pending duel with {target}')
         return
 
@@ -306,7 +305,7 @@ async def cmd_duel(msg: Message, *args):
     except IndexError:
         bet = 10
 
-    add_duel(msg.author, target, bet)
+    add_duel(msg.channel_name, msg.author, target, bet)
 
     await msg.reply(
         f'{msg.mention} has challenged @{target} to a duel for {bet} {get_currency_name(msg.channel_name).name}'
@@ -319,7 +318,7 @@ async def cmd_accept(msg: Message, *args):
         raise InvalidArgumentsError
 
     challenger = args[0].lstrip('@')
-    winner, bet = accept_duel(challenger, msg.author)
+    winner, bet = accept_duel(msg.channel_name, challenger, msg.author)
 
     if not winner:
         await msg.reply(f'{msg.mention}, you have not been challenged by {challenger}, or the duel might have expired')
