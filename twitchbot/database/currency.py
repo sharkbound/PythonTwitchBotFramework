@@ -8,27 +8,28 @@ currency_name_cache: Dict[str, CurrencyName] = {}
 
 def set_balance(channel: str, user: str, value: int):
     """sets a users balance"""
-    get_balance(channel, user).balance = value
+    get_balance(channel, user.lower()).balance = max(0, value)
     session.commit()
 
 
 def add_balance(channel: str, user: str, value: int):
     """adds balance to a user in the specified channel"""
 
-    get_balance(channel, user).balance += value
+    get_balance(channel, user.lower()).balance += value
     session.commit()
 
 
 def subtract_balance(channel: str, user: str, value: int):
     """subtracts balance to a user in the specified channel"""
 
-    get_balance(channel, user).balance -= value
+    get_balance(channel, user.lower()).balance -= value
     session.commit()
 
 
 def get_balance(channel: str, user: str) -> Balance:
     """gets the balance of the user for the specified channel"""
 
+    user = user.lower()
     bal = session.query(Balance).filter(Balance.channel == channel, Balance.user == user).one_or_none()
 
     if bal is None:
@@ -42,7 +43,7 @@ def get_balance(channel: str, user: str) -> Balance:
 def get_balance_from_msg(msg) -> Balance:
     """gets the balance for the user from the channel the msg came from"""
 
-    return get_balance(msg.channel_name, msg.author)
+    return get_balance(msg.channel_name, msg.author.lower())
 
 
 def get_currency_name(channel: str) -> CurrencyName:

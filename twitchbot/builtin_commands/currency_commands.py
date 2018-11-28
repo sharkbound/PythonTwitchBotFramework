@@ -21,7 +21,7 @@ from twitchbot import (
     add_duel,
     duel_exists,
     accept_duel,
-    subtract_balance)
+    subtract_balance, get_duel)
 
 PREFIX = cfg.prefix
 PERMISSION = 'manage_currency'
@@ -39,7 +39,7 @@ async def cmd_set_currency_name(msg: Message, *args):
 
 
 @Command('getcurrencyname', help='get the channels current currency name')
-async def cmd_get_currency_name(msg: Message, *args):
+async def cmd_get_currency_name(msg: Message, *ignored):
     await msg.reply(
         f"this channel's current currency name is \"{get_currency_name(msg.channel_name).name}\"")
 
@@ -47,7 +47,7 @@ async def cmd_get_currency_name(msg: Message, *args):
 @Command('bal', syntax='(target)', help='gets the caller\'s (or target\'s if specified) balance')
 async def cmd_get_bal(msg: Message, *args):
     if args:
-        target = args[0]
+        target = args[0].lstrip('@')
 
         if target not in msg.channel.chatters:
             await msg.reply(msg=f'no viewer found by the name of "{target}"')
@@ -67,7 +67,7 @@ async def cmd_set_bal(msg: Message, *args):
         raise InvalidArgumentsError
 
     elif len(args) == 2:
-        target = args[1]
+        target = args[1].lstrip('@')
 
         if target not in msg.channel.chatters:
             await msg.reply(msg=f'no viewer found by the name of "{args[1]}"')
@@ -76,7 +76,13 @@ async def cmd_set_bal(msg: Message, *args):
         target = msg.author
 
     try:
-        set_balance(msg.channel_name, target, int(args[0]))
+        new_balance = int(args[0])
+
+        if new_balance < 0:
+            await msg.reply('new balance cannot be negative')
+            return
+
+        set_balance(msg.channel_name, target, new_balance)
     except ValueError:
         await msg.reply(f'invalid target balance: {args[0]}')
         return
@@ -103,6 +109,10 @@ async def cmd_give(msg: Message, *args):
         give = int(args[1])
     except ValueError:
         await msg.reply('invalid give amount')
+        return
+
+    if give <= 0:
+        await msg.reply('give amount must be 1 or higher')
         return
 
     cur_name = get_currency_name(msg.channel_name).name
@@ -291,7 +301,9 @@ async def cmd_duel(msg: Message, *args):
         await msg.reply(f'{msg.mention} {target} is not in this chatroom')
         return
 
-    if duel_exists(msg.channel_name, msg.author, target):
+    duel = get_duel(msg.channel_name, msg.author, target)
+
+    if duel and not duel_expired(duel):
         await msg.reply(f'{msg.mention} you already have a pending duel with {target}')
         return
 
@@ -329,5 +341,5 @@ async def cmd_accept(msg: Message, *args):
     add_balance(msg.channel_name, winner, bet)
     subtract_balance(msg.channel_name, loser, bet)
 
-    await msg.reply(f'@{winner} has won the duel between {winner} and {loser}, '
-                    f'{winner} has won {bet} {get_currency_name(msg.channel_name).name}')
+    await msg.reply(f'@{winner} has won the duel, '
+                    f'{bet} {get_currency_name(msg.channel_name).name} went to the winner')

@@ -14,17 +14,16 @@ __all__ = (
     'get_duel'
 )
 
-
-def _key(channel: str, challenger: str, target: str):
-    return channel, challenger, target
-
-
 Duel = namedtuple('Duel', 'challenger target bet time')
 DUEL_DURATION = timedelta(seconds=30)
 
 # keys are: (channel, challenger, target)
 # keeps track of all pending duels
 pending_duels: Dict[Tuple[str, str, str], Duel] = {}
+
+
+def _key(channel: str, challenger: str, target: str):
+    return channel, challenger.lower(), target.lower()
 
 
 def duel_expired(duel: Duel) -> bool:
@@ -53,7 +52,7 @@ def add_duel(channel: str, challenger: str, target: str, bet: int):
     :param bet: the bet that the winner takes, and the loser loses
     """
     key = _key(channel, challenger, target)
-    pending_duels[key] = Duel(challenger, target, bet, datetime.now())
+    pending_duels[key] = Duel(challenger.lower(), target.lower(), bet, datetime.now())
 
 
 def remove_duel(channel: str, challenger: str, target: str):
