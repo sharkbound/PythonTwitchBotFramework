@@ -16,67 +16,59 @@ from ..exceptions import InvalidArgumentsError
 from ..disabled_commands import is_command_disabled
 
 
+# noinspection PyMethodMayBeStatic
 class BaseBot:
     def __init__(self):
         self.irc: Irc = None
 
     # region events
-    @staticmethod
-    async def on_connected():
+    async def on_connected(self):
         """
         triggered when the bot connects to all the channels specified in the config file
         """
 
-    @staticmethod
-    async def on_privmsg_sent(msg: str, channel: str, sender: str) -> None:
+    async def on_privmsg_sent(self, msg: str, channel: str, sender: str) -> None:
         """
         triggered when the bot sends a privmsg
         """
         print(f'{sender}({channel}): {msg}')
 
-    @staticmethod
-    async def on_privmsg_received(msg: Message) -> None:
+    async def on_privmsg_received(self, msg: Message) -> None:
         """triggered when a privmsg is received, is not triggered if the msg is a command"""
         print(msg)
 
-    @staticmethod
-    async def on_whisper_sent(msg: str, receiver: str, sender: str):
+    async def on_whisper_sent(self, msg: str, receiver: str, sender: str):
         """
         triggered when the bot sends a whisper to someone
         """
-        print(f'{cfg.nick} -> {receiver}: {msg}')
+        print(f'{sender} -> {receiver}: {msg}')
 
-    @staticmethod
-    async def on_whisper_received(msg: Message):
+    async def on_whisper_received(self, msg: Message):
         """
         triggered when a user sends the bot a whisper
         """
         print(msg)
 
-    @staticmethod
-    async def on_before_command_execute(msg: Message, cmd: Command) -> bool:
+    async def on_before_command_execute(self, msg: Message, cmd: Command) -> bool:
         """
         triggered before a command is executed
         :return bool, if return value is False, then the command will not be executed
         """
         return True
 
-    @staticmethod
-    async def on_after_command_execute(msg: Message, cmd: Command) -> None:
+    async def on_after_command_execute(self, msg: Message, cmd: Command) -> None:
         """
         triggered after a command has executed
         """
         print(msg)
 
-    @staticmethod
-    async def on_bits_donated(msg: Message, bits: int):
+    async def on_bits_donated(self, msg: Message, bits: int):
         """
         triggered when a bit donation is posted in chat
         """
         pass
 
-    @staticmethod
-    async def on_channel_joined(channel: Channel):
+    async def on_channel_joined(self, channel: Channel):
         """
         triggered when the bot joins a channel
         """

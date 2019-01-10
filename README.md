@@ -58,8 +58,7 @@ async def on_privmsg_received(msg: Message):
 ```python
 from twitchbot import BaseBot, Message
 class MyCustomTwitchBot(BaseBot):
-    @staticmethod
-    async def on_privmsg_received(msg: Message):
+    async def on_privmsg_received(self, msg: Message):
         print(f'{msg.author} sent message {msg.content} to channel {msg.channel_name}')
 
 
