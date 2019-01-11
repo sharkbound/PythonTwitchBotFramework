@@ -14,7 +14,7 @@ async def create_connection():
     return await asyncio.open_connection('irc.chat.twitch.tv', SSL_PORT, ssl=ssl_context)
 
 
-def connect(irc: Irc):
+def send_auth(irc: Irc):
     irc.send_all(
         f'PASS {cfg.oauth}',
         f'NICK {cfg.nick}')

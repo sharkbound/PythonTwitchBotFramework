@@ -103,7 +103,7 @@ class BaseBot:
         """connects to twitch, sends auth info, and joins the channels in the config"""
         print(f'logging in as {cfg.nick}')
 
-        util.connect(self.irc)
+        util.send_auth(self.irc)
         self._request_permissions()
 
         for chan in channels.values():
