@@ -133,7 +133,7 @@ class BaseBot:
                 whisper=True,
                 msg=f'you do not have permission to execute {cmd.fullname} in #{msg.channel_name}')
 
-        elif type(cmd) is not CustomCommandAction and is_command_disabled(msg.channel_name, cmd.fullname):
+        elif not isinstance(cmd, CustomCommandAction) and is_command_disabled(msg.channel_name, cmd.fullname):
             return await msg.reply(f'{cmd.fullname} is disabled for this channel')
 
         if not await self.on_before_command_execute(msg, cmd):
