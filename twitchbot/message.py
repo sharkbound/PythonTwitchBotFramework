@@ -1,5 +1,6 @@
-from typing import List
+from typing import List, Tuple
 
+from .util import get_message_mentions
 from twitchbot.channel import Channel, channels
 from .irc import Irc
 from .regex import RE_PRIVMSG, RE_WHISPER, RE_JOINED_CHANNEL
@@ -21,6 +22,7 @@ class Message:
         self.irc: Irc = irc
         self.tags: Tags = None
         self.emotes: List[Emote] = ()
+        self.mentions: Tuple[str] = ()
 
         from twitchbot.bots import BaseBot
         self.bot: BaseBot = bot
@@ -33,6 +35,7 @@ class Message:
             self.type = MessageType.PRIVMSG
             self.parts = split_message(self.content)
             self.tags = Tags(m['tags'])
+            self.mentions = get_message_mentions(self)
 
         m = RE_WHISPER.search(msg)
         if m:
@@ -52,7 +55,7 @@ class Message:
             self.type = MessageType.PING
 
         if self.parts and any(p in emotes for p in self.parts):
-            self.emotes = [emotes[p] for p in self.parts if p in emotes]
+            self.emotes = tuple(emotes[p] for p in self.parts if p in emotes)
 
     @property
     def is_user_message(self):

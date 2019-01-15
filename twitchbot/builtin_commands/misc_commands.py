@@ -33,13 +33,15 @@ async def cmd_help(msg: Message, *args):
         await msg.reply(whisper=False, msg=f'syntax for {cfg.prefix}help: <command>')
         return
 
-    cmd = commands.get(args[0])
-    if not cmd:
-        # try to added the prefix to the entered command in case they forgot the prefix
-        cmd = commands.get(cfg.prefix + args[0])
-
+    cmd = commands.get(args[0]) or commands.get(cfg.prefix + args[0])
     if not cmd:
         await msg.reply(f'command not found, did you forget the prefix?')
         return
 
-    await msg.reply(whisper=False, msg=f'help for "{cmd.fullname}", syntax: "{cmd.syntax}", help: "{cmd.help}"')
+    await msg.reply(whisper=False, msg=f'help for {cmd.fullname}, syntax: {cmd.syntax}, help: {cmd.help}')
+
+
+# testing command, uncomment @Command to enable
+# @Command('mention')
+async def cmd_mention(msg: Message, *args):
+    await msg.reply(f'found mentions: {msg.mentions}')

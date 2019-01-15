@@ -16,3 +16,9 @@ RE_WHISPER = re.compile(
 RE_JOINED_CHANNEL = re.compile(
     r':(?P<user>[\w\d]+)!(?P=user)@(?P=user)\.tmi\.twitch\.tv JOIN #(?P<channel>\w+)'
 )
+
+# finds mentions in twitch messages
+# example: hello @bob!
+RE_AT_MENTION = re.compile(
+    r'@([\w\d]+)'
+)
