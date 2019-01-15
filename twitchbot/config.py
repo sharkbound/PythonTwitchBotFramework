@@ -88,4 +88,8 @@ cfg = Config(oauth='oauth:',
              loyalty_interval=60,
              loyalty_amount=2,
              owner='BOT_OWNER_NAME',
-             channels=['channel'])
+             channels=['channel'],
+             command_server_enabled=True,
+             command_server_port=1337,
+             command_server_host='localhost',
+             )
