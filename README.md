@@ -3,6 +3,17 @@ if you would like to send a few dollars my way you can do so here: [![Donate](ht
 # PythonTwitchBotFramework
 working twitchbot framework made in python 3.6+
 
+# Quick Links
+* [Quick Start](#quick-start)
+* [Overriding Events](#overriding-events)
+* [Adding Commands](#adding-commands)
+* [SubCommands](#subcommands)
+* [DummyCommands](#dummycommands)
+* [Permissions](#permissions)
+  * [Using Chat Commands](#managing-permissions-using-chat-commands)
+  * [Editing The Config](#managing-permission-by-editing-the-configs)
+* [Reloading Permissions](#reloading-permissions)
+
 # basic info
 This is a fully async twitch bot framework complete with:
 
@@ -15,7 +26,7 @@ This is a fully async twitch bot framework complete with:
 * builtin economy 
 
 
-# quick start
+# Quick Start
 
 the minimum code to get the bot running is this:
 ```python
@@ -39,7 +50,7 @@ if __name__ == '__main__':
 
 ```
 
-* overriding events
+# Overriding Events
 
 the bots events are overridable via the following 2 ways:
 
@@ -72,15 +83,15 @@ MyCustomTwitchBot().run()
 ```python
 from twitchbot import Event
 
-Event.on_after_command_execute : (msg: Message, cmd: Command)
-Event.on_before_command_execute : (msg: Message, cmd: Command)
-Event.on_bits_donated : (msg: Message, bits: int)
-Event.on_channel_joined : (channel: Channel)
-Event.on_connected : ()
-Event.on_privmsg_received : (msg: Message)
-Event.on_privmsg_sent : (msg: str, channel: str, sender: str)
-Event.on_whisper_received : (msg: Message)
-Event.on_privmsg_sent : (msg: str, receiver: str, sender: str)
+Event.on_after_command_execute : (self, msg: Message, cmd: Command)
+Event.on_before_command_execute : (self, msg: Message, cmd: Command)
+Event.on_bits_donated : (self, msg: Message, bits: int)
+Event.on_channel_joined : (self, channel: Channel)
+Event.on_connected : (self)
+Event.on_privmsg_received : (self, msg: Message)
+Event.on_privmsg_sent : (self, msg: str, channel: str, sender: str)
+Event.on_whisper_received : (self, msg: Message)
+Event.on_privmsg_sent : (self, msg: str, receiver: str, sender: str)
 ```
 
 
@@ -92,7 +103,7 @@ inside is `config.json` which you put the authentication into
 as the bot is used it will also generate channel permission files 
 in the `configs` folder
 
-# adding your own commands
+# Adding Commands
 
 to register your own commands use the Command decorator:
 
@@ -142,7 +153,7 @@ syntax: "<name>",
 help: "this command does a very important thing!"
 ```
 
-# SubCommand Class
+# SubCommands
 
 the SubCommand class makes it easier to implement different actions based on a parameters passed to a command.
 
@@ -197,7 +208,7 @@ async def cmd_say_motd(msg, *args):
 
 both ways do the same thing, what you proffer to use is up to you, but it does make it easier to manage for larger commands to use SubCommand class
 
-# DummyCommand class
+# DummyCommands
 this class is basically a command that does nothing when executed, its mainly use is to be used as base command for sub-command-only commands
 
 it has all the same options as a regular Command
@@ -241,7 +252,7 @@ doing `!greet spanish` will make the bot say this:
 hola @johndoe!
 ```
 
-# config
+# Config
 
 the default config values are:
 ```json
@@ -275,7 +286,7 @@ already have a economy balance
 
 `channels` in the twitch channels the bot will join
 
-# permissions
+# Permissions
 
 the bot comes default with permission support
 
@@ -369,6 +380,8 @@ so after copy/pasting the default group it will look like this
   }
 }
 ```
+
+# Reloading Permissions
 
 if the bot is running be sure to do `!reloadperms` to load
 the changes to the permission file
