@@ -13,6 +13,8 @@ working twitchbot framework made in python 3.6+
   * [Using Chat Commands](#managing-permissions-using-chat-commands)
   * [Editing The Config](#managing-permission-by-editing-the-configs)
 * [Reloading Permissions](#reloading-permissions)
+* [Command Server](#command-server)
+* [Command Console](#command-console)
 
 # basic info
 This is a fully async twitch bot framework complete with:
@@ -265,7 +267,12 @@ the default config values are:
   "owner": "BOT_OWNER_NAME",
   "channels": [
     "channel"
-  ]
+  ],
+  "loyalty_interval": 60,
+  "loyalty_amount": 2,
+  "command_server_enabled": true,
+  "command_server_port": 1337,
+  "command_server_host": "localhost"
 }
 
 ```
@@ -285,6 +292,16 @@ already have a economy balance
 `owner` is the bot's owner
 
 `channels` in the twitch channels the bot will join
+
+`loyalty_interval` the interval for which the viewers will given currency for watching the stream, gives amount specified by `loyalty_amount`
+
+`loyalty_amount` the amount of currency to give viewers every `loyalty_interval`
+
+`command_server_enabled` specifies if the command server should be enabled (see [Command Server](#command-server) for more info)
+
+`command_server_port` the port for the command server
+
+`command_server_host` the host name (address) for the command server
 
 # Permissions
 
@@ -385,3 +402,21 @@ so after copy/pasting the default group it will look like this
 
 if the bot is running be sure to do `!reloadperms` to load
 the changes to the permission file
+
+# Command Server
+The command server is a small Socket Server the bot host that lets the Command Console be able to make the bot send messages given to it through a console. (see [Command Console](#command-console))
+
+The server can be enabled or disabled through the config (see [Config](#config)), the server's port and host are specified by the config file
+
+
+# Command Console
+If the [Command Server](#command-server) is disabled in the [config](#config) the Command Console cannot be used
+
+The Command Console is used to make the bot send chat messages and commands
+
+To launch the Command Console make sure the bot is running, and the [Command Server](#command-server) is enabled in the [Config](#config), 
+
+after verifying these are done, simply do `python command_console.py` to open the console, upon opening it you will be prompted to select a twitch channel that the bot is currently connected to.
+
+after choose the channel the prompt changes to `(CHANNEL_HERE):` and you are now able to send chat messages / commands to the choosen channel by typing your message and pressing enter
+
