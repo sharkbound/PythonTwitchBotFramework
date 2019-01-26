@@ -1,7 +1,10 @@
 from socket import socket
 
+HOST = input('enter command server host (leave blank for "localhost"): ').strip() or 'localhost'
+PORT = int(input('enter command server port (leave blank for 1337): ').strip() or 1337)
+
 s = socket()
-s.connect(('localhost', 1337))
+s.connect((HOST, PORT))
 SIZE = 300
 
 
