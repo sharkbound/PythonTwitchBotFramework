@@ -4,8 +4,8 @@ __all__ = ('Event', 'CommandContext', 'MessageType', 'UserType')
 
 
 class NamedEnum(Enum):
-    def _generate_next_value_(name, start, count, last_values):
-        return name
+    def _generate_next_value_(self, start, count, last_values):
+        return self
 
 
 class UserType(NamedEnum):
