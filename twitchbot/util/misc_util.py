@@ -1,7 +1,7 @@
 import os
 import sys
 from contextlib import contextmanager
-from glob import glob
+from glob import iglob
 from typing import List
 
 __all__ = ('get_py_files', 'get_file_name', 'temp_syspath')
@@ -9,7 +9,7 @@ __all__ = ('get_py_files', 'get_file_name', 'temp_syspath')
 
 def get_py_files(path: str) -> List[str]:
     """gets all python (.py) files in a folder"""
-    yield from glob(os.path.join(path, '*.py'))
+    yield from iglob(os.path.join(path, '*.py'))
 
 
 def get_file_name(path: str):

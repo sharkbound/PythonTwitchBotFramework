@@ -1,6 +1,8 @@
 import os
 import json
 
+__all__ = ('cfg', 'Config')
+
 
 class Config:
     def __init__(self, file_path='configs/config.json', **defaults):
@@ -89,6 +91,7 @@ cfg = Config(oauth='oauth:',
              loyalty_amount=2,
              owner='BOT_OWNER_NAME',
              channels=['channel'],
+             mods_folder='mods',
              command_server_enabled=True,
              command_server_port=1337,
              command_server_host='localhost',

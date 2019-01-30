@@ -19,8 +19,11 @@ from .loyalty_ticker import *
 from .disabled_commands import *
 from .duel import *
 from .command_server import start_command_server
+from .modloader import *
 
 import os
 
 load_commands_from_directory(os.path.join(__path__[0], 'builtin_commands'))
+load_mods_from_directory(os.path.abspath(cfg.mods_folder))
+ensure_mods_folder_exists()
 start_command_server()

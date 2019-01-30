@@ -1,15 +1,12 @@
 import os
-import sys
-from typing import Dict, Callable, Optional, List, Tuple
-from .config import cfg
-from importlib import import_module
-from glob import glob
-from contextlib import contextmanager
-
-from twitchbot.database import CustomCommand
-from .enums import CommandContext
-from twitchbot.message import Message
 from datetime import datetime
+from importlib import import_module
+from typing import Dict, Callable, Optional, List, Tuple
+from .util import temp_syspath
+from twitchbot.database import CustomCommand
+from twitchbot.message import Message
+from .config import cfg
+from .enums import CommandContext
 from .util import get_py_files, get_file_name
 
 
@@ -153,16 +150,6 @@ def load_commands_from_directory(path):
         for file in get_py_files(path):
             fname = get_file_name(file)
             mod = import_module(fname)
-
-
-@contextmanager
-def temp_syspath(fullpath):
-    if fullpath not in sys.path:
-        sys.path.append(fullpath)
-        yield
-        sys.path.remove(fullpath)
-    else:
-        yield
 
 
 def command_exist(name: str) -> bool:
