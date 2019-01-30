@@ -14,6 +14,8 @@ from ..emote import update_global_emotes
 from ..overrides import overrides
 from ..exceptions import InvalidArgumentsError
 from ..disabled_commands import is_command_disabled
+from ..modloader import trigger_mod_event
+from ..enums import Event
 
 
 # noinspection PyMethodMayBeStatic
@@ -181,7 +183,8 @@ class BaseBot:
                 continue
 
             msg = Message(raw_msg, irc=self.irc, bot=self)
-            coro = None
+            coro = mod_coro = None
+
             cmd: Command = (await self.get_command_from_msg(msg)
                             if msg.is_user_message and msg.author != cfg.nick
                             else None)
@@ -192,18 +195,25 @@ class BaseBot:
 
             elif msg.type is MessageType.WHISPER:
                 coro = self.on_whisper_received(msg)
+                mod_coro = trigger_mod_event(Event.on_whisper_received, msg)
 
             elif msg.type is MessageType.PRIVMSG:
                 coro = self.on_privmsg_received(msg)
+                mod_coro = trigger_mod_event(Event.on_privmsg_received, msg)
 
             elif msg.type is MessageType.JOINED_CHANNEL:
                 coro = self.on_channel_joined(msg.channel)
+                mod_coro = trigger_mod_event(Event.on_channel_joined, msg.channel)
 
             elif msg.type is MessageType.PING:
                 self.irc.send_pong()
 
             if msg.is_privmsg and msg.tags and msg.tags.bits:
                 get_event_loop().create_task(self.on_bits_donated(msg, msg.tags.bits))
+                get_event_loop().create_task(trigger_mod_event(Event.on_bits_donated, msg, msg.tags.bits))
 
             if coro is not None:
                 get_event_loop().create_task(coro)
+
+            if mod_coro is not None:
+                get_event_loop().create_task(mod_coro)

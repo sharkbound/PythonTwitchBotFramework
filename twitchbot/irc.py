@@ -1,6 +1,7 @@
-from asyncio import StreamWriter, StreamReader
+from asyncio import StreamWriter, StreamReader, get_event_loop
 from .config import cfg
 from .ratelimit import privmsg_ratelimit, whisper_ratelimit
+from .enums import Event
 from textwrap import wrap
 
 MAX_LINE_LENGTH = 450
@@ -39,8 +40,9 @@ class Irc:
         """sends a message to a channel"""
         # import it locally to avoid circular import
         from .channel import channels, DummyChannel
+        from .modloader import trigger_mod_event
 
-        for line in self._wrap_message(msg):
+        for line in _wrap_message(msg):
             await privmsg_ratelimit(channels.get(channel, DummyChannel(channel)))
 
             self.send(f'PRIVMSG #{channel} :{line}')
@@ -48,26 +50,31 @@ class Irc:
         # exclude calls from send_whisper being sent to the bots on_privmsg_received event
         if self.bot and not msg.startswith('/w'):
             await self.bot.on_privmsg_sent(msg, channel, cfg.nick)
+            await trigger_mod_event(Event.on_privmsg_sent, msg, channel, cfg.nick)
 
     async def send_whisper(self, user: str, msg: str):
         """sends a whisper to a user"""
+        from .modloader import trigger_mod_event
+
         await whisper_ratelimit()
         await self.send_privmsg(user, f'/w {user} {msg}')
 
         if self.bot:
             await self.bot.on_whisper_sent(msg, user, cfg.nick)
+            await trigger_mod_event(Event.on_whisper_sent, msg, user, cfg.nick)
 
     async def get_next_message(self):
         return (await self.reader.readline()).decode().strip()
 
-    def _wrap_message(self, msg):
-        prefix = '/w' if msg.startswith('/w') else None
-
-        for line in wrap(msg, width=MAX_LINE_LENGTH):
-            if prefix and not line.startswith(prefix):
-                line = prefix + line
-
-            yield line
-
     def send_pong(self):
         self.send('PONG :tmi.twitch.tv')
+
+
+def _wrap_message(msg):
+    prefix = '/w' if msg.startswith('/w') else None
+
+    for line in wrap(msg, width=MAX_LINE_LENGTH):
+        if prefix and not line.startswith(prefix):
+            line = prefix + line
+
+        yield line

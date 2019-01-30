@@ -156,6 +156,7 @@ def load_mods_from_directory(fullpath):
 
     with temp_syspath(fullpath):
         for file in get_py_files(fullpath):
+            # we need to import the module to get its attributes
             module = import_module(get_file_name(file))
             for obj in module.__dict__.values():
                 # verify the obj is a class, is a subclass of Mod, and is not Mod class itself

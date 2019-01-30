@@ -23,6 +23,7 @@ def get_message_mentions(message: Union['Message', str]):
     from ..message import Message
 
     # try getting the attribute "content", if it fails, text is set to the passed message itself
+    # which should be a string
     text = getattr(message, 'content', message)
     mentions = tuple(RE_AT_MENTION.findall(text))
 
