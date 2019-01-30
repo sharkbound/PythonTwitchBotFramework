@@ -1,4 +1,6 @@
 import os
+import typing
+
 from datetime import datetime
 from importlib import import_module
 from typing import Dict, Callable, Optional, List, Tuple
@@ -8,6 +10,13 @@ from twitchbot.message import Message
 from .config import cfg
 from .enums import CommandContext
 from .util import get_py_files, get_file_name
+
+if typing.TYPE_CHECKING:
+    from .modloader import Mod
+
+__all__ = (
+    'Command', 'commands', 'command_exist', 'load_commands_from_directory', 'DummyCommand', 'CustomCommandAction',
+    'ModCommand', 'SubCommand', 'get_command', 'CUSTOM_COMMAND_PLACEHOLDERS')
 
 
 class Command:
@@ -133,6 +142,28 @@ class CustomCommandAction(Command):
                 resp = resp.replace(placeholder, func(msg))
 
         await msg.channel.send_message(resp)
+
+
+class ModCommand(Command):
+    def __init__(self, mod_name: str, name: str, prefix: str = None, func: Callable = None, global_command: bool = True,
+                 context: CommandContext = CommandContext.CHANNEL, permission: str = None, syntax: str = None,
+                 help: str = None):
+        super().__init__(name, prefix, func, global_command, context, permission, syntax, help)
+        self.mod_name = mod_name
+        self.mod: 'Mod' = None
+
+    async def execute(self, msg: Message):
+        # circular dependency hack
+        from .modloader import mods
+
+        if self.mod is None:
+            self.mod = mods[self.mod_name]
+
+        func, args = self._get_cmd_func(msg.parts[1:])
+        if 'self' in func.__code__.co_varnames:
+            await func(self.mod, msg, *args)
+        else:
+            await func(msg, *args)
 
 
 commands: Dict[str, Command] = {}
