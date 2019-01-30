@@ -1,8 +1,10 @@
 import shlex
 import typing
-from typing import Union
 
+from typing import Union
 from ..regex import RE_AT_MENTION
+
+__all__ = ('split_message', 'get_message_mentions')
 
 # little "hack" to get around circular imports for type hinting
 if typing.TYPE_CHECKING:

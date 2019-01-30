@@ -1,7 +1,10 @@
-from glob import glob
-from pathlib import Path
-from typing import List
 import os
+import sys
+from contextlib import contextmanager
+from glob import glob
+from typing import List
+
+__all__ = ('get_py_files', 'get_file_name', 'temp_syspath')
 
 
 def get_py_files(path: str) -> List[str]:
@@ -12,3 +15,20 @@ def get_py_files(path: str) -> List[str]:
 def get_file_name(path: str):
     """gets the files name without the extension"""
     return os.path.basename(path).split('.')[0]
+
+
+@contextmanager
+def temp_syspath(fullpath):
+    """
+    temporarily appends the fullpath to sys.path, yields, then removes it from sys.path
+    if the fullpath is already in sys.path the append/remove is skipped
+    """
+    if not os.path.isabs(fullpath):
+        fullpath = os.path.abspath(fullpath)
+
+    if fullpath not in sys.path:
+        sys.path.insert(0, fullpath)
+        yield
+        sys.path.remove(fullpath)
+    else:
+        yield
