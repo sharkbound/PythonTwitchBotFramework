@@ -1,12 +1,13 @@
 import os
 import json
+from pathlib import Path
 
 __all__ = ('cfg', 'Config')
 
 
 class Config:
-    def __init__(self, file_path='configs/config.json', **defaults):
-        self.file_path = file_path.replace('\\', '/')
+    def __init__(self, file_path: Path, **defaults):
+        self.file_path = file_path
         self.data = {}
         self.defaults = defaults
 
@@ -15,7 +16,6 @@ class Config:
 
     def _validate(self):
         """checks that all default keys are present"""
-
         for k, v in self.defaults.items():
             if k not in self.data:
                 self.data[k] = v
@@ -25,7 +25,7 @@ class Config:
     @property
     def exist(self):
         """returns if the config file exist"""
-        return os.path.exists(self.file_path)
+        return self.file_path.exists()
 
     @property
     def in_folder(self):
@@ -82,17 +82,19 @@ class Config:
         yield from self.data.items()
 
 
-cfg = Config(oauth='oauth:',
-             client_id='CLIENT_ID',
-             nick='nick',
-             prefix='!',
-             default_balance=200,
-             loyalty_interval=60,
-             loyalty_amount=2,
-             owner='BOT_OWNER_NAME',
-             channels=['channel'],
-             mods_folder='mods',
-             command_server_enabled=True,
-             command_server_port=1337,
-             command_server_host='localhost',
-             )
+cfg = Config(
+    file_path=Path('configs', 'config.json'),
+    oauth='oauth:',
+    client_id='CLIENT_ID',
+    nick='nick',
+    prefix='!',
+    default_balance=200,
+    loyalty_interval=60,
+    loyalty_amount=2,
+    owner='BOT_OWNER_NAME',
+    channels=['channel'],
+    mods_folder='mods',
+    command_server_enabled=True,
+    command_server_port=1337,
+    command_server_host='localhost',
+)

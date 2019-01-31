@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from .config import Config
 from .command import get_command, command_exist
 
@@ -8,7 +10,6 @@ def is_command_disabled(channel: str, cmd: str):
             cmd = get_command(cmd).fullname
 
         return cmd in cfg_disabled_commands[channel]
-
     return False
 
 
@@ -39,4 +40,4 @@ def enable_command(channel: str, cmd: str):
         cfg_disabled_commands.save()
 
 
-cfg_disabled_commands = Config('configs/disabled_commands.json')
+cfg_disabled_commands = Config(Path('configs', 'disabled_commands.json'))

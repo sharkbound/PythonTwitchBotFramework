@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Dict, Iterable, Tuple, Optional
 
 from .config import Config, cfg
@@ -23,7 +24,10 @@ class Permissions:
         if channel in self and not force_update:
             return
 
-        config = Config(file_path=f'configs/{channel}_perms.json', **permission_defaults)
+        config = Config(
+            file_path=Path(f'configs', f'{channel}_perms.json'),
+            **permission_defaults)
+
         self.channels[channel] = config
 
         if channel not in config.data['admin']['members']:
