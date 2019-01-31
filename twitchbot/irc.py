@@ -50,7 +50,7 @@ class Irc:
         # exclude calls from send_whisper being sent to the bots on_privmsg_received event
         if self.bot and not msg.startswith('/w'):
             await self.bot.on_privmsg_sent(msg, channel, cfg.nick)
-            await trigger_mod_event(Event.on_privmsg_sent, msg, channel, cfg.nick)
+            await trigger_mod_event(Event.on_privmsg_sent, msg, channel, cfg.nick, channel=channel)
 
     async def send_whisper(self, user: str, msg: str):
         """sends a whisper to a user"""

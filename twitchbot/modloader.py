@@ -13,26 +13,25 @@ from .disabled_mods import is_mod_disabled
 from importlib import import_module
 
 __all__ = ('ensure_mods_folder_exists', 'Mod', 'register_mod', 'trigger_mod_event', 'mods',
-           'load_mods_from_directory')
+           'load_mods_from_directory', 'mod_exists')
 
 
 # noinspection PyMethodMayBeStatic
 class Mod:
     name = 'DEFAULT'
 
-    def on_enable(self, channel: str):
+    # region events
+    async def on_enable(self, channel: str):
         """
         triggered when the mod is enabled
         :param channel: the channel the mod is enabled in
         """
 
-    def on_disable(self, channel: str):
+    async def on_disable(self, channel: str):
         """
         triggered when the mod is disabled
         :param channel: the channel the mod is disabled in
         """
-
-    # region events
 
     async def on_connected(self):
         """
@@ -108,7 +107,17 @@ def register_mod(mod: Mod) -> bool:
     return True
 
 
-async def trigger_mod_event(event: Event, *args, channel: str = None):
+async def trigger_mod_event(event: Event, *args, channel: str = None) -> list:
+    """
+    triggers a event on all mods
+    if the channel is passed, the it is checked if the mod is enabled for that channel,
+    if not, the event for that mod is skipped
+    :param event: the event to raise on all the mods
+    :param args: the args to pass to the event
+    :param channel: the channel the event is being raised from
+    :return: the result of all the mod event calls in a list
+    """
+
     async def _missing_function(*ignored):
         pass
 
@@ -131,11 +140,19 @@ async def trigger_mod_event(event: Event, *args, channel: str = None):
 
 
 def ensure_mods_folder_exists():
+    """
+    creates the mod folder if it does not exists
+    """
     if not os.path.exists(cfg.mods_folder):
         os.mkdir(cfg.mods_folder)
 
 
 def load_mods_from_directory(fullpath):
+    """
+    loads all mods from the given directory, only .py files are loaded
+    :param fullpath: the path to search for mods to load
+    """
+
     print('loading mods from:', fullpath)
 
     with temp_syspath(fullpath):
@@ -150,5 +167,10 @@ def load_mods_from_directory(fullpath):
                 register_mod(obj())
 
 
-def mod_exists(mod: str):
+def mod_exists(mod: str) -> bool:
+    """
+    returns of a mod exists
+    :param mod: the mod to check for
+    :return: bool indicating if the mod exists
+    """
     return mod in mods

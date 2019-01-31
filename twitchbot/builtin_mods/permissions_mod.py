@@ -2,7 +2,7 @@ from twitchbot import Mod, perms, Message, Command
 
 
 class PermissionsMod(Mod):
-    name = 'permissions_mod'
+    name = 'permissions'
 
     async def on_permission_check(self, msg: Message, cmd: Command) -> bool:
         if not cmd.permission:

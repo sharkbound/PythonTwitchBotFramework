@@ -141,7 +141,7 @@ class BaseBot:
 
     async def _run_command(self, msg: Message, cmd: Command):
         if not await self.on_permission_check(msg, cmd) or not all(
-                await trigger_mod_event(Event.on_permission_check, msg, cmd)):
+                await trigger_mod_event(Event.on_permission_check, msg, cmd, channel=msg.channel_name)):
             return await msg.reply(
                 whisper=True,
                 msg=f'you do not have permission to execute {cmd.fullname} in #{msg.channel_name}')
@@ -150,7 +150,7 @@ class BaseBot:
             return await msg.reply(f'{cmd.fullname} is disabled for this channel')
 
         if not await self.on_before_command_execute(msg, cmd) or not all(
-                await trigger_mod_event(Event.on_before_command_execute, msg, cmd)):
+                await trigger_mod_event(Event.on_before_command_execute, msg, cmd, channel=msg.channel_name)):
             return
 
         try:
@@ -160,7 +160,7 @@ class BaseBot:
                 f'invalid args: "{cmd.fullname} {cmd.syntax}", do "{cfg.prefix}help {cmd.fullname}" for more details')
         else:
             await self.on_after_command_execute(msg, cmd)
-            await trigger_mod_event(Event.on_after_command_execute, msg, cmd)
+            await trigger_mod_event(Event.on_after_command_execute, msg, cmd, channel=msg.channel_name)
 
     # def _check_permission(self, msg: Message, cmd: Command):
     #     if not cmd.permission:
@@ -211,18 +211,19 @@ class BaseBot:
 
             elif msg.type is MessageType.PRIVMSG:
                 coro = self.on_privmsg_received(msg)
-                mod_coro = trigger_mod_event(Event.on_privmsg_received, msg)
+                mod_coro = trigger_mod_event(Event.on_privmsg_received, msg, channel=msg.channel_name)
 
             elif msg.type is MessageType.JOINED_CHANNEL:
                 coro = self.on_channel_joined(msg.channel)
-                mod_coro = trigger_mod_event(Event.on_channel_joined, msg.channel)
+                mod_coro = trigger_mod_event(Event.on_channel_joined, msg.channel, channel=msg.channel_name)
 
             elif msg.type is MessageType.PING:
                 self.irc.send_pong()
 
             if msg.is_privmsg and msg.tags and msg.tags.bits:
                 get_event_loop().create_task(self.on_bits_donated(msg, msg.tags.bits))
-                get_event_loop().create_task(trigger_mod_event(Event.on_bits_donated, msg, msg.tags.bits))
+                get_event_loop().create_task(
+                    trigger_mod_event(Event.on_bits_donated, msg, msg.tags.bits, channel=msg.channel_name))
 
             if coro is not None:
                 get_event_loop().create_task(coro)
