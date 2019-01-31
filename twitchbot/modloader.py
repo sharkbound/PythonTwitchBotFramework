@@ -9,6 +9,7 @@ from .command import Command
 from .config import cfg
 from .enums import Event
 from .message import Message
+from .disabled_mods import is_mod_disabled
 from importlib import import_module
 
 __all__ = ('ensure_mods_folder_exists', 'Mod', 'register_mod', 'trigger_mod_event', 'mods',
@@ -19,14 +20,16 @@ __all__ = ('ensure_mods_folder_exists', 'Mod', 'register_mod', 'trigger_mod_even
 class Mod:
     name = 'DEFAULT'
 
-    def on_enable(self):
+    def on_enable(self, channel: str):
         """
         triggered when the mod is enabled
+        :param channel: the channel the mod is enabled in
         """
 
-    def on_disable(self):
+    def on_disable(self, channel: str):
         """
         triggered when the mod is disabled
+        :param channel: the channel the mod is disabled in
         """
 
     # region events
@@ -105,12 +108,15 @@ def register_mod(mod: Mod) -> bool:
     return True
 
 
-async def trigger_mod_event(event: Event, *args):
+async def trigger_mod_event(event: Event, *args, channel: str = None):
     async def _missing_function(*ignored):
         pass
 
     output = []
     for mod in mods.values():
+        if channel and is_mod_disabled(channel, mod.name):
+            continue
+
         try:
             output.append(await getattr(mod, event.value, _missing_function)(*args))
         except Exception as e:
@@ -142,3 +148,7 @@ def load_mods_from_directory(fullpath):
                     continue
                 # create a instance of the mod subclass, then register it
                 register_mod(obj())
+
+
+def mod_exists(mod: str):
+    return mod in mods
