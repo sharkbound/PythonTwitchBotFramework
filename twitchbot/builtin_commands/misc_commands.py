@@ -42,7 +42,7 @@ async def cmd_help(msg: Message, *args):
 
 
 # testing command, uncomment @Command to enable
-@Command('mention')
+# @Command('mention')
 async def cmd_mention(msg: Message, *args):
     print(msg.channel.chatters.all_viewers)
     await msg.reply(f'found mentions: {msg.mentions}')
