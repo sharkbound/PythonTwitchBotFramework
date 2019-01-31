@@ -138,7 +138,8 @@ class BaseBot:
         elif not isinstance(cmd, CustomCommandAction) and is_command_disabled(msg.channel_name, cmd.fullname):
             return await msg.reply(f'{cmd.fullname} is disabled for this channel')
 
-        if not await self.on_before_command_execute(msg, cmd):
+        if not await self.on_before_command_execute(msg, cmd) or not all(
+                await trigger_mod_event(Event.on_before_command_execute, msg, cmd)):
             return
 
         try:
@@ -148,6 +149,7 @@ class BaseBot:
                 f'invalid args: "{cmd.fullname} {cmd.syntax}", do "{cfg.prefix}help {cmd.fullname}" for more details')
         else:
             await self.on_after_command_execute(msg, cmd)
+            await trigger_mod_event(Event.on_after_command_execute, msg, cmd)
 
     def _check_permission(self, msg: Message, cmd: Command):
         if not cmd.permission:
@@ -184,7 +186,6 @@ class BaseBot:
 
             msg = Message(raw_msg, irc=self.irc, bot=self)
             coro = mod_coro = None
-
             cmd: Command = (await self.get_command_from_msg(msg)
                             if msg.is_user_message and msg.author != cfg.nick
                             else None)

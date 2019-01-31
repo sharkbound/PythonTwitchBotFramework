@@ -133,17 +133,19 @@ async def trigger_mod_event(event: Event, *args):
     async def _missing_function(*ignored):
         pass
 
+    output = []
     for mod in mods.values():
         try:
-            await getattr(mod, event.value, _missing_function)(*args)
+            output.append(await getattr(mod, event.value, _missing_function)(*args))
         except Exception as e:
             print(f'\nerror has occurred while triggering a event on a mod, details:\n'
                   f'mod: {mod.name}\n'
                   f'event: {event}\n'
                   f'error: {type(e)}\n'
                   f'reason: {e}\n'
-                  f'stack trace:\n')
+                  f'stack trace:')
             traceback.print_exc()
+    return output
 
 
 def ensure_mods_folder_exists():
