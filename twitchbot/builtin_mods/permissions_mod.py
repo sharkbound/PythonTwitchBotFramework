@@ -1,4 +1,4 @@
-from twitchbot import Mod, perms, cfg, Message, Command
+from twitchbot import Mod, perms, Message, Command
 
 
 class PermissionsMod(Mod):
