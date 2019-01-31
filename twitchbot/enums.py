@@ -41,3 +41,4 @@ class Event(NamedEnum):
     on_privmsg_sent = auto()
     on_whisper_received = auto()
     on_whisper_sent = auto()
+    on_permission_check = auto()
