@@ -71,6 +71,15 @@ class Mod:
         triggered when a user sends the bot a whisper
         """
 
+    async def on_permission_check(self, msg: Message, cmd: Command) -> bool:
+        """
+        triggered when a command permission check is requested
+        :param msg: the message the command was found from
+        :param cmd: the command that was found
+        :return: bool indicating if the user has permission to call the command, True = yes, False = no
+        """
+        return True
+
     async def on_before_command_execute(self, msg: Message, cmd: Command) -> bool:
         """
         triggered before a command is executed

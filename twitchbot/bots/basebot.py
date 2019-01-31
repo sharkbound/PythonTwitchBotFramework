@@ -24,6 +24,7 @@ class BaseBot:
         self.irc: Irc = None
 
     # region events
+
     async def on_connected(self):
         """
         triggered when the bot connects to all the channels specified in the config file
@@ -50,6 +51,15 @@ class BaseBot:
         triggered when a user sends the bot a whisper
         """
         print(msg)
+
+    async def on_permission_check(self, msg: Message, cmd: Command) -> bool:
+        """
+        triggered when a command permission check is requested
+        :param msg: the message the command was found from
+        :param cmd: the command that was found
+        :return: bool indicating if the user has permission to call the command, True = yes, False = no
+        """
+        return True
 
     async def on_before_command_execute(self, msg: Message, cmd: Command) -> bool:
         """
@@ -130,7 +140,8 @@ class BaseBot:
         return None
 
     async def _run_command(self, msg: Message, cmd: Command):
-        if not self._check_permission(msg, cmd):
+        if not await self.on_permission_check(msg, cmd) or not all(
+                await trigger_mod_event(Event.on_permission_check, msg, cmd)):
             return await msg.reply(
                 whisper=True,
                 msg=f'you do not have permission to execute {cmd.fullname} in #{msg.channel_name}')
@@ -151,11 +162,11 @@ class BaseBot:
             await self.on_after_command_execute(msg, cmd)
             await trigger_mod_event(Event.on_after_command_execute, msg, cmd)
 
-    def _check_permission(self, msg: Message, cmd: Command):
-        if not cmd.permission:
-            return True
-
-        return perms.has_permission(msg.channel_name, msg.author, cmd.permission)
+    # def _check_permission(self, msg: Message, cmd: Command):
+    #     if not cmd.permission:
+    #         return True
+    #
+    #     return perms.has_permission(msg.channel_name, msg.author, cmd.permission)
 
     def _load_overrides(self):
         for k, v in overrides.items():
