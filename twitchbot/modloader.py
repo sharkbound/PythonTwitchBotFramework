@@ -11,7 +11,7 @@ from .enums import Event
 from .message import Message
 from importlib import import_module
 
-__all__ = ('ensure_mods_folder_exists', 'Mod', 'register_mod', 'unregister_mod', 'trigger_mod_event', 'mods',
+__all__ = ('ensure_mods_folder_exists', 'Mod', 'register_mod', 'trigger_mod_event', 'mods',
            'load_mods_from_directory')
 
 
@@ -19,33 +19,18 @@ __all__ = ('ensure_mods_folder_exists', 'Mod', 'register_mod', 'unregister_mod',
 class Mod:
     name = 'DEFAULT'
 
-    @property
-    def can_register(self):
+    def on_enable(self):
         """
-        can this mod be registered?
-        :return: a bool indicating if the mod can be enabled
-        """
-        return True
-
-    @property
-    def can_unregister(self):
-        """
-        can this mod be unregistered?
-        :return: a bool indicating if the mod can be unregistered
-        """
-        return True
-
-    def register(self):
-        """
-        triggered when the mod is registered
+        triggered when the mod is enabled
         """
 
-    def unregister(self):
+    def on_disable(self):
         """
-        triggered when the mod is unregistered
+        triggered when the mod is disabled
         """
 
     # region events
+
     async def on_connected(self):
         """
         triggered when the bot connects to all the channels specified in the config file
@@ -113,29 +98,11 @@ def register_mod(mod: Mod) -> bool:
     :param mod: the mod to register
     :return: if registration was successful
     """
-    if mod.name in mods or not mod.can_register:
+    if mod.name in mods:
         return False
 
     mods[mod.name] = mod
-    mod.register()
     return True
-
-
-def unregister_mod(mod: Mod) -> bool:
-    """
-    unregisters a mod globally
-    :param mod:
-    :return:
-    """
-    if not mod.can_unregister:
-        return False
-
-    if mod.name in mods:
-        del mods[mod.name]
-        mod.unregister()
-        return True
-
-    return False
 
 
 async def trigger_mod_event(event: Event, *args):
