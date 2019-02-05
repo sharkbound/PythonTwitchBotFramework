@@ -1,5 +1,4 @@
-from typing import List, Tuple
-
+from typing import List, Tuple, TYPE_CHECKING
 from .util import get_message_mentions
 from twitchbot.channel import Channel, channels
 from .irc import Irc
@@ -9,25 +8,29 @@ from .util import split_message
 from .tags import Tags
 from .emote import emotes, Emote
 
+if TYPE_CHECKING:
+    from .bots import BaseBot
+
 
 class Message:
     def __init__(self, msg, irc=None, bot=None):
         self.channel: Channel = None
         self.author: str = None
         self.content: str = None
-        self.parts: List[str] = ()
+        self.parts: List[str] = []
         self.type: MessageType = MessageType.NONE
         self.raw_msg: str = msg
         self.receiver: str = None
         self.irc: Irc = irc
         self.tags: Tags = None
-        self.emotes: List[Emote] = ()
+        self.emotes: List[Emote] = []
         self.mentions: Tuple[str] = ()
-
-        from twitchbot.bots import BaseBot
         self.bot: BaseBot = bot
 
-        m = RE_PRIVMSG.search(msg)
+        self._parse()
+
+    def _parse(self):
+        m = RE_PRIVMSG.search(self.raw_msg)
         if m:
             self.channel = channels[m['channel']]
             self.author = m['user']
@@ -37,7 +40,7 @@ class Message:
             self.tags = Tags(m['tags'])
             self.mentions = get_message_mentions(self)
 
-        m = RE_WHISPER.search(msg)
+        m = RE_WHISPER.search(self.raw_msg)
         if m:
             self.author = m['user']
             self.receiver = m['receiver']
@@ -45,13 +48,13 @@ class Message:
             self.type = MessageType.WHISPER
             self.parts = split_message(self.content)
 
-        m = RE_JOINED_CHANNEL.search(msg)
+        m = RE_JOINED_CHANNEL.search(self.raw_msg)
         if m:
             self.channel = channels[m['channel']]
             self.author = m['user']
             self.type = MessageType.JOINED_CHANNEL
 
-        elif msg == 'PING :tmi.twitch.tv':
+        elif self.raw_msg == 'PING :tmi.twitch.tv':
             self.type = MessageType.PING
 
         if self.parts and any(p in emotes for p in self.parts):
