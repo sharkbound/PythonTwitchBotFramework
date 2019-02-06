@@ -1,4 +1,5 @@
 import asyncio
+import typing
 from datetime import datetime
 from typing import Dict
 from .irc import Irc
@@ -6,6 +7,9 @@ from .config import cfg
 from .permission import perms
 from twitchbot.api.chatters import Chatters
 from .api import StreamInfoApi
+
+if typing.TYPE_CHECKING:
+    from .bots import BaseBot
 
 
 class Channel:
@@ -15,9 +19,7 @@ class Channel:
         self.chatters: Chatters = Chatters(self.name)
         self.is_mod = False
         self.stats = StreamInfoApi(cfg.client_id, self.name)
-
-        from twitchbot.bots import BaseBot
-        self.bot: BaseBot = bot
+        self.bot: 'BaseBot' = bot
 
         if register_globally:
             channels[self.name.lower()] = self

@@ -1,8 +1,12 @@
+import typing
 from asyncio import StreamWriter, StreamReader, get_event_loop
 from .config import cfg
 from .ratelimit import privmsg_ratelimit, whisper_ratelimit
 from .enums import Event
 from textwrap import wrap
+
+if typing.TYPE_CHECKING:
+    from .bots import BaseBot
 
 MAX_LINE_LENGTH = 450
 
@@ -11,9 +15,7 @@ class Irc:
     def __init__(self, reader, writer, bot=None):
         self.reader: StreamReader = reader
         self.writer: StreamWriter = writer
-
-        from twitchbot.bots import BaseBot
-        self.bot: BaseBot = bot
+        self.bot: 'BaseBot' = bot
 
     def send(self, msg):
         """

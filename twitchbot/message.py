@@ -25,7 +25,7 @@ class Message:
         self.tags: Tags = None
         self.emotes: List[Emote] = []
         self.mentions: Tuple[str] = ()
-        self.bot: BaseBot = bot
+        self.bot: 'BaseBot' = bot
 
         self._parse()
 
