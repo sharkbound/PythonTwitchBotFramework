@@ -1,6 +1,7 @@
 import os
 import json
 from pathlib import Path
+from .gui import show_auth_gui
 
 __all__ = ('cfg', 'Config')
 
@@ -67,6 +68,9 @@ class Config:
         with open(self.file_path, 'w') as file:
             json.dump(self.defaults, file, indent=2)
 
+    def prompt_edit_oauth(self):
+        pass
+
     def __getattr__(self, item):
         """allows for getting config values by accessing a attribute"""
         return self.__dict__[item] if item in self.__dict__ else self.data.get(item)
@@ -82,11 +86,13 @@ class Config:
         yield from self.data.items()
 
 
+DEFAULT_OAUTH = 'oauth:'
+DEFAULT_NICK = 'nick'
 cfg = Config(
     file_path=Path('configs', 'config.json'),
-    oauth='oauth:',
+    nick=DEFAULT_NICK,
+    oauth=DEFAULT_OAUTH,
     client_id='CLIENT_ID',
-    nick='nick',
     prefix='!',
     default_balance=200,
     loyalty_interval=60,
@@ -98,3 +104,9 @@ cfg = Config(
     command_server_port=1337,
     command_server_host='localhost',
 )
+
+if cfg.nick == DEFAULT_NICK or cfg.oauth == DEFAULT_OAUTH:
+    print('please enter your twitch auth info the the GUI that will pop-up shortly')
+    auth = show_auth_gui()
+    cfg['nick'] = auth.username
+    cfg['oauth'] = auth.oauth
