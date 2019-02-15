@@ -10,7 +10,7 @@ class Emote:
     id: int
     code: str
     set: int = field(default=0, repr=False)
-    desc: str = field(default='', repr=False)
+    # desc: str = field(default='', repr=False)
 
 
 GLOBAL_EMOTE_API = 'https://twitchemotes.com/api_cache/v3/global.json'
@@ -22,4 +22,5 @@ async def update_global_emotes():
     emotes.clear()
 
     for k, v in data.items():
-        emotes[k] = Emote(int(v['id']), v['code'], v['emoticon_set'], v['description'])
+        breakpoint()
+        emotes[k] = Emote(int(v['id']), v['code'], v['emoticon_set'])
