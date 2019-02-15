@@ -154,15 +154,15 @@ class BaseBot:
 
         try:
             await cmd.execute(msg)
-        except InvalidArgumentsError:
-            await self._send_cmd_help(msg, cmd)
+        except InvalidArgumentsError as e:
+            await self._send_cmd_help(msg, cmd, e)
         else:
             await self.on_after_command_execute(msg, cmd)
             await trigger_mod_event(Event.on_after_command_execute, msg, cmd, channel=msg.channel_name)
 
-    async def _send_cmd_help(self, msg: Message, cmd: Command):
+    async def _send_cmd_help(self, msg: Message, cmd: Command, exc: InvalidArgumentsError):
         await msg.reply(
-            f'invalid arguments - "{cmd.fullname} {cmd.syntax}" - do "{cfg.prefix}help {cmd.fullname}" for more details')
+            f'{exc.reason} - "{cmd.fullname} {cmd.syntax}" - do "{cfg.prefix}help {cmd.fullname}" for more details')
 
     def _load_overrides(self):
         for k, v in overrides.items():
