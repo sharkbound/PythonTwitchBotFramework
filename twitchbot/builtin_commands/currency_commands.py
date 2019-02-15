@@ -55,16 +55,15 @@ async def cmd_get_bal(msg: Message, *args):
     else:
         target = msg.author
 
-    await msg.reply(
-        whisper=True,
-        msg=f'@{target} has {get_balance(msg.channel_name, target).balance} '
-        f'{get_currency_name(msg.channel_name).name}')
+    currency_name = get_currency_name(msg.channel_name).name
+    balance = get_balance(msg.channel_name, target).balance
+    await msg.reply(whisper=True, msg=f'@{target} has {balance} {currency_name}')
 
 
 @Command('setbal', permission=PERMISSION, syntax='<new_balance> (target)', help='sets the callers or targets balance')
 async def cmd_set_bal(msg: Message, *args):
     if not len(args):
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_set_bal)
 
     elif len(args) == 2:
         target = args[1].lstrip('@')
