@@ -18,13 +18,13 @@ async def cmd_list(msg: Message, *args):
 
 @Command('commands', context=CommandContext.BOTH, help='lists all commands')
 async def cmd_commands(msg: Message, *args):
-    custom_commands_str = ', '.join(cmd.name for cmd in get_all_custom_commands(msg.channel_name))
-    global_commands_str = ', '.join(cmd.fullname for cmd in commands.values())
+    custom_commands = ', '.join(cmd.name for cmd in get_all_custom_commands(msg.channel_name))
+    global_commands = ', '.join(cmd.fullname for cmd in commands.values())
 
-    await msg.reply(whisper=True, msg=f'GLOBAL: {global_commands_str}')
+    await msg.reply(whisper=True, msg=f'GLOBAL: {global_commands}')
 
-    if custom_commands_str:
-        await msg.reply(whisper=True, msg=f'CUSTOM: {custom_commands_str}')
+    if custom_commands:
+        await msg.reply(whisper=True, msg=f'CUSTOM: {custom_commands}')
 
 
 @Command(name='help', syntax='<command>', help='gets the help text for a command')
