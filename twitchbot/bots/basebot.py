@@ -1,21 +1,20 @@
 from asyncio import get_event_loop
-from typing import List, Optional
+from typing import Optional
 
 from .. import util, create_irc
 from ..channel import Channel, channels
 from ..command import Command, commands, CustomCommandAction
 from ..config import cfg
+from ..database import get_custom_command
+from ..disabled_commands import is_command_disabled
+from ..emote import update_global_emotes
+from ..enums import Event
 from ..enums import MessageType, CommandContext
+from ..exceptions import InvalidArgumentsError
 from ..irc import Irc
 from ..message import Message
-from ..database import get_custom_command
-from ..permission import perms
-from ..emote import update_global_emotes
-from ..overrides import overrides
-from ..exceptions import InvalidArgumentsError
-from ..disabled_commands import is_command_disabled
 from ..modloader import trigger_mod_event
-from ..enums import Event
+from ..overrides import overrides
 
 
 # noinspection PyMethodMayBeStatic
