@@ -22,5 +22,4 @@ async def update_global_emotes():
     emotes.clear()
 
     for k, v in data.items():
-        breakpoint()
         emotes[k] = Emote(int(v['id']), v['code'], v['emoticon_set'])
