@@ -41,7 +41,7 @@ async def cmd_set_currency_name(msg: Message, *args):
 @Command('getcurrencyname', help='get the channels current currency name')
 async def cmd_get_currency_name(msg: Message, *ignored):
     await msg.reply(
-        f"this channel's current currency name is \"{get_currency_name(msg.channel_name).name}\"")
+        f'this channel\'s current currency name is "{get_currency_name(msg.channel_name).name}"')
 
 
 @Command('bal', syntax='(target)', help='gets the caller\'s (or target\'s if specified) balance')

@@ -156,17 +156,14 @@ class BaseBot:
         try:
             await cmd.execute(msg)
         except InvalidArgumentsError:
-            await msg.reply(
-                f'invalid args: "{cmd.fullname} {cmd.syntax}", do "{cfg.prefix}help {cmd.fullname}" for more details')
+            await self._send_cmd_help(msg, cmd)
         else:
             await self.on_after_command_execute(msg, cmd)
             await trigger_mod_event(Event.on_after_command_execute, msg, cmd, channel=msg.channel_name)
 
-    # def _check_permission(self, msg: Message, cmd: Command):
-    #     if not cmd.permission:
-    #         return True
-    #
-    #     return perms.has_permission(msg.channel_name, msg.author, cmd.permission)
+    async def _send_cmd_help(self, msg: Message, cmd: Command):
+        await msg.reply(
+            f'invalid arguments - "{cmd.fullname} {cmd.syntax}" - do "{cfg.prefix}help {cmd.fullname}" for more details')
 
     def _load_overrides(self):
         for k, v in overrides.items():

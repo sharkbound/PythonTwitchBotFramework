@@ -38,7 +38,7 @@ async def cmd_help(msg: Message, *args):
         await msg.reply(f'command not found, did you forget the prefix?')
         return
 
-    await msg.reply(whisper=False, msg=f'help for {cmd.fullname}, syntax: {cmd.syntax}, help: {cmd.help}')
+    await msg.reply(whisper=False, msg=f'help for {cmd.fullname} - syntax: {cmd.syntax} - help: {cmd.help}')
 
 
 # testing command, uncomment @Command to enable
