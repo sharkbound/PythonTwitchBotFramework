@@ -78,13 +78,11 @@ async def cmd_set_bal(msg: Message, *args):
         new_balance = int(args[0])
 
         if new_balance < 0:
-            await msg.reply('new balance cannot be negative')
-            return
+            raise InvalidArgumentsError(reason='new balance cannot be negative', cmd=cmd_set_bal)
 
         set_balance(msg.channel_name, target, new_balance)
     except ValueError:
-        await msg.reply(f'invalid target balance: {args[0]}')
-        return
+        raise InvalidArgumentsError(reason=f'target balance must be a integer. example: 100')
 
     await msg.reply(
         f'@{target} now has {args[0]} '
@@ -95,24 +93,21 @@ async def cmd_set_bal(msg: Message, *args):
          help='gives the target the specified amount from the callers currency balance')
 async def cmd_give(msg: Message, *args):
     if len(args) != 2:
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_give)
 
-    if args[0] not in msg.channel.chatters:
-        await msg.reply(msg=f'no viewer found by the name "{args[0]}"')
-        return
+    if not msg.mentions or msg.mentions[0] not in msg.channel.chatters:
+        raise InvalidArgumentsError(reason=f'no viewer found by the name "{(msg.mentions or args)[0]}"')
 
     caller = get_balance_from_msg(msg)
-    target = get_balance(msg.channel_name, args[0])
+    target = get_balance(msg.channel_name, msg.mentions[0])
 
     try:
         give = int(args[1])
     except ValueError:
-        await msg.reply('invalid give amount')
-        return
+        raise InvalidArgumentsError(reason='give amount must be a int', cmd=cmd_give)
 
     if give <= 0:
-        await msg.reply('give amount must be 1 or higher')
-        return
+        raise InvalidArgumentsError(reason='give amount must be 1 or higher', cmd=cmd_give)
 
     cur_name = get_currency_name(msg.channel_name).name
 
