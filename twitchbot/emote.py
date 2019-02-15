@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from .util import get_url
 
 
-@dataclass
+@dataclass(frozen=True)
 class Emote:
     id: int
     code: str
