@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
-from typing import Dict
 from secrets import randbelow
+from typing import Dict
 
 from twitchbot import (
     Arena,
@@ -19,21 +19,20 @@ from twitchbot import (
     Balance,
     duel_expired,
     add_duel,
-    duel_exists,
     accept_duel,
     subtract_balance, get_duel)
 
 PREFIX = cfg.prefix
-PERMISSION = 'manage_currency'
+MANAGE_CURRENCY_PERMISSION = 'manage_currency'
 
 
-@Command('setcurrencyname', permission=PERMISSION, syntax='<new_name>', help='sets the channels currency name')
+@Command('setcurrencyname', permission=MANAGE_CURRENCY_PERMISSION, syntax='<new_name>',
+         help='sets the channels currency name')
 async def cmd_set_currency_name(msg: Message, *args):
     if len(args) != 1:
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_set_currency_name)
 
     set_currency_name(msg.channel_name, args[0])
-
     await msg.reply(
         f"this channel's currency name is now \"{get_currency_name(msg.channel_name).name}\"")
 
@@ -50,8 +49,7 @@ async def cmd_get_bal(msg: Message, *args):
         target = args[0].lstrip('@')
 
         if target not in msg.channel.chatters:
-            await msg.reply(msg=f'no viewer found by the name of "{target}"')
-            return
+            raise InvalidArgumentsError(reason=f'no viewer found by the name of "{target}"', cmd=cmd_get_bal)
     else:
         target = msg.author
 
@@ -60,7 +58,8 @@ async def cmd_get_bal(msg: Message, *args):
     await msg.reply(whisper=True, msg=f'@{target} has {balance} {currency_name}')
 
 
-@Command('setbal', permission=PERMISSION, syntax='<new_balance> (target)', help='sets the callers or targets balance')
+@Command('setbal', permission=MANAGE_CURRENCY_PERMISSION, syntax='<new_balance> (target)',
+         help='sets the callers or targets balance')
 async def cmd_set_bal(msg: Message, *args):
     if not len(args):
         raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_set_bal)
@@ -69,8 +68,7 @@ async def cmd_set_bal(msg: Message, *args):
         target = args[1].lstrip('@')
 
         if target not in msg.channel.chatters:
-            await msg.reply(msg=f'no viewer found by the name of "{args[1]}"')
-            return
+            raise InvalidArgumentsError(reason=f'no viewer found by the name of "{args[1]}"', cmd=cmd_set_bal)
     else:
         target = msg.author
 
@@ -104,7 +102,7 @@ async def cmd_give(msg: Message, *args):
     try:
         give = int(args[1])
     except ValueError:
-        raise InvalidArgumentsError(reason='give amount must be a int', cmd=cmd_give)
+        raise InvalidArgumentsError(reason='give amount must be a integer, example: 100', cmd=cmd_give)
 
     if give <= 0:
         raise InvalidArgumentsError(reason='give amount must be 1 or higher', cmd=cmd_give)
@@ -112,9 +110,7 @@ async def cmd_give(msg: Message, *args):
     cur_name = get_currency_name(msg.channel_name).name
 
     if caller.balance < give:
-        await msg.reply(
-            f"@{msg.author} you don't have enough {cur_name}")
-        return
+        raise InvalidArgumentsError(reason=f"{msg.mention} you don't have enough {cur_name}", cmd=cmd_give)
 
     caller.balance -= give
     target.balance += give
@@ -131,30 +127,27 @@ async def cmd_give(msg: Message, *args):
               'but it is also a lower chance to roll a 1.')
 async def cmd_gamble(msg: Message, *args):
     if len(args) != 2:
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_gamble)
 
     try:
         sides = int(args[0])
         bet = int(args[1])
     except ValueError:
-        await msg.reply(f'invalid value for sides or bet')
-        return
+        raise InvalidArgumentsError(reason='invalid value for sides or bet', cmd=cmd_gamble)
 
     if bet < 10:
-        await msg.reply('bet cannot be less then 10')
-        return
+        raise InvalidArgumentsError(reason='bet cannot be less then 10', cmd=cmd_gamble)
 
     elif sides < 2:
-        await msg.reply('sides cannot be less than 2')
-        return
+        raise InvalidArgumentsError(reason='sides cannot be less than 2', cmd=cmd_gamble)
 
     bal = get_balance_from_msg(msg)
+    cur_name = get_currency_name(msg.channel_name).name
+
     if bal.balance < bet:
-        await msg.reply(f"you don't have enough {get_currency_name(msg.channel_name).name}")
-        return
+        raise InvalidArgumentsError(reason=f"{msg.mention} you don't have enough {cur_name}", cmd=cmd_gamble)
 
     n = randbelow(sides) + 1
-    cur_name = get_currency_name(msg.channel_name).name
 
     if n == 1:
         if sides >= 6:
@@ -195,17 +188,16 @@ async def cmd_mine(msg: Message, *args):
 
 @Command('top', help="lists the top 10 balance holders")
 async def cmd_top(msg: Message, *args):
-    limit = 10
-
-    results = session.query(Balance) \
-        .filter(Balance.channel == msg.channel_name, Balance.user != msg.channel_name, Balance.user != cfg.nick) \
-        .order_by(Balance.balance.desc()) \
-        .limit(limit)
+    results = (session.query(Balance)
+               .filter(Balance.channel == msg.channel_name, Balance.user != msg.channel_name,
+                       Balance.user != cfg.nick.lower())
+               .order_by(Balance.balance.desc())
+               .limit(10))
 
     b: Balance
-    message = ', '.join(f'{i + 1}: {b.user} => {b.balance}' for i, b in enumerate(results))
+    message = ' | '.join(f'{i}: {b.user} => {b.balance}' for i, b in enumerate(results, 1))
 
-    await msg.reply(message or 'no balances were found')
+    await msg.reply(message or 'no users found')
 
 
 running_arenas: Dict[str, Arena] = {}
@@ -247,7 +239,8 @@ async def cmd_arena(msg: Message, *args):
 
         await msg.reply(
             whisper=True,
-            msg=f'{msg.mention} you have been added to the arena, you were charged {arena.entry_fee} {curname} upon entry')
+            msg=f'{msg.mention} you have been added to the arena, '
+            f'you were charged {arena.entry_fee} {curname} for entry')
 
     # start a new arena as one is not already running for this channel
     else:
@@ -255,14 +248,13 @@ async def cmd_arena(msg: Message, *args):
             try:
                 entry_fee = int(args[0])
             except ValueError:
-                await msg.reply(msg='invalid value for entry fee')
-                return
+                raise InvalidArgumentsError(reason='invalid value for entry fee, example: 100', cmd=cmd_arena)
         else:
             entry_fee = ARENA_DEFAULT_ENTRY_FEE
 
         if entry_fee and entry_fee < ARENA_DEFAULT_ENTRY_FEE:
-            await msg.reply(msg=f'entry fee cannot be less than {ARENA_DEFAULT_ENTRY_FEE}')
-            return
+            raise InvalidArgumentsError(reason=f'entry fee cannot be less than {ARENA_DEFAULT_ENTRY_FEE}',
+                                        cmd=cmd_arena)
 
         if not _can_pay_entry_fee(entry_fee):
             await msg.reply(
@@ -283,57 +275,54 @@ async def cmd_arena(msg: Message, *args):
          help='challenges a user to a duel with the bid as the reward')
 async def cmd_duel(msg: Message, *args):
     if not args:
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_duel)
 
     target = args[0].lstrip('@')
 
     if target == msg.author:
-        await msg.reply(f'{msg.mention} you cannot duel yourself')
-        return
+        raise InvalidArgumentsError(reason='you cannot duel yourself', cmd=cmd_duel)
 
     if target not in msg.channel.chatters:
-        await msg.reply(f'{msg.mention} {target} is not in this chatroom')
-        return
+        raise InvalidArgumentsError(reason=f'{msg.mention} {target} is not in this channel', cmd=cmd_duel)
 
     duel = get_duel(msg.channel_name, msg.author, target)
 
     if duel and not duel_expired(duel):
-        await msg.reply(f'{msg.mention} you already have a pending duel with {target}')
-        return
+        raise InvalidArgumentsError(reason=f'{msg.mention} you already have a pending duel with {target}', cmd=cmd_duel)
 
     try:
         bet = int(args[1])
-
     except ValueError:
-        await msg.reply(f'invalid bet: {args[1]}, bet must be a number with no decimals, ex: 12')
-        return
-
+        raise InvalidArgumentsError(reason=f'invalid bet: {args[1]}, bet must be a number with no decimals, ex: 12',
+                                    cmd=cmd_duel)
     except IndexError:
         bet = 10
 
     add_duel(msg.channel_name, msg.author, target, bet)
 
+    currency_name = get_currency_name(msg.channel_name).name
     await msg.reply(
-        f'{msg.mention} has challenged @{target} to a duel for {bet} {get_currency_name(msg.channel_name).name}'
+        f'{msg.mention} has challenged @{target} to a duel for {bet} {currency_name}'
         f', do "{cfg.prefix}accept {msg.mention}" to accept the duel')
 
 
 @Command('accept', syntax='<challenger>', help='accepts a duel issued by the challenger that is passed to this command')
 async def cmd_accept(msg: Message, *args):
     if len(args) != 1:
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError('missing required arguments')
 
     challenger = args[0].lstrip('@')
     winner, bet = accept_duel(msg.channel_name, challenger, msg.author)
 
     if not winner:
-        await msg.reply(f'{msg.mention}, you have not been challenged by {challenger}, or the duel might have expired')
-        return
+        raise InvalidArgumentsError(
+            reason=f'{msg.mention}, you have not been challenged by {challenger}, or the duel might have expired',
+            cmd=cmd_accept)
 
     loser = msg.author if winner == msg.author else challenger
 
     add_balance(msg.channel_name, winner, bet)
     subtract_balance(msg.channel_name, loser, bet)
 
-    await msg.reply(f'@{winner} has won the duel, '
-                    f'{bet} {get_currency_name(msg.channel_name).name} went to the winner')
+    currency_name = get_currency_name(msg.channel_name).name
+    await msg.reply(f'@{winner} has won the duel, {bet} {currency_name} went to the winner')
