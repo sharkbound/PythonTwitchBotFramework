@@ -13,14 +13,11 @@ from twitchbot import (
 PERMISSION = 'manange_commands'
 
 PREFIX = cfg.prefix
+BLACKLISTED_PREFIX_CHARACTERS = './'
 
 
-async def _verify_resp_text(msg: Message, resp: str):
-    if resp[0] in './':
-        await msg.reply(msg='responses cannot have . or / as the starting charater')
-        return False
-
-    return True
+def _verify_resp_is_valid(resp: str):
+    return resp[0] not in BLACKLISTED_PREFIX_CHARACTERS
 
 
 @Command('addcmd', permission=PERMISSION, syntax='<name> <response>',
@@ -30,17 +27,18 @@ async def _verify_resp_text(msg: Message, resp: str):
               '%channel : the channels name')
 async def cmd_add_custom_command(msg: Message, *args):
     if len(args) < 2:
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_add_custom_command)
 
     name, resp = args[0], ' '.join(args[1:])
     name = name.lower()
 
-    if not await _verify_resp_text(msg, resp):
-        return
+    if not _verify_resp_is_valid(resp):
+        raise InvalidArgumentsError(reason='response cannot have . or / as the starting character',
+                                    cmd=cmd_add_custom_command)
 
     if custom_command_exist(msg.channel_name, name):
-        await msg.reply('custom command already exist by that name')
-        return
+        raise InvalidArgumentsError(reason='custom command already exist by that name',
+                                    cmd=cmd_add_custom_command)
 
     if add_custom_command(CustomCommand.create(msg.channel_name, name, resp)):
         await msg.reply('successfully added command')
@@ -52,19 +50,18 @@ async def cmd_add_custom_command(msg: Message, *args):
          help="updates a custom command's response message")
 async def cmd_update_custom_command(msg: Message, *args):
     if len(args) < 2:
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_update_custom_command)
 
     name, resp = args[0], ' '.join(args[1:])
     name = name.lower()
 
-    if not await _verify_resp_text(msg, resp):
-        return
+    if not _verify_resp_is_valid(resp):
+        raise InvalidArgumentsError(reason='response cannot have . or / as the starting character',
+                                    cmd=cmd_update_custom_command)
 
     cmd = get_custom_command(msg.channel_name, name)
-
     if cmd is None:
-        await msg.reply(f'custom command {name} does not exist')
-        return
+        raise InvalidArgumentsError(reason=f'custom command "{name}" does not exist', cmd=cmd_update_custom_command)
 
     cmd.response = resp
     session.commit()
@@ -73,14 +70,13 @@ async def cmd_update_custom_command(msg: Message, *args):
 
 
 @Command('delcmd', permission=PERMISSION, syntax='<name>', help='deletes a custom commands')
-async def cmd_add_custom_command(msg: Message, *args):
+async def cmd_del_custom_command(msg: Message, *args):
     if not args:
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_del_custom_command)
 
     cmd = get_custom_command(msg.channel_name, args[0].lower())
     if cmd is None:
-        await msg.reply('no command found')
-        return
+        raise InvalidArgumentsError(reason=f'no command found for "{args[0]}"', cmd=cmd_del_custom_command)
 
     if delete_custom_command(msg.channel_name, cmd.name):
         await msg.reply(f'successfully deleted command {cmd.name}')
@@ -91,11 +87,10 @@ async def cmd_add_custom_command(msg: Message, *args):
 @Command('cmd', syntax='<name>', help='gets a custom commmands response')
 async def cmd_get_custom_command(msg: Message, *args):
     if not args:
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_get_custom_command)
 
     cmd = get_custom_command(msg.channel_name, args[0].lower())
     if cmd is None:
-        await msg.reply('no command found')
-        return
+        raise InvalidArgumentsError(reason=f'no command found for "{args[0]}"', cmd=cmd_get_custom_command)
 
     await msg.reply(f'the response for "{cmd.name}" is "{cmd.response}"')
