@@ -5,8 +5,7 @@ from twitchbot import (
     is_command_disabled,
     Command,
     InvalidArgumentsError,
-    commands,
-    get_command,
+    command_exist,
     cfg_disabled_commands
 )
 
@@ -19,15 +18,16 @@ COMMAND_MANAGE_PERMISSION = 'manage_commands'
          help='disables a command for the current channel')
 async def cmd_disable_cmd(msg: Message, *args):
     if not args:
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_disable_cmd)
 
     name = args[0].lower()
 
-    if not get_command(name):
-        return await msg.reply(f'no command found for "{name}", are you missing the prefix?')
+    if not command_exist(name):
+        raise InvalidArgumentsError(reason=f'no command found for "{name}"', cmd=cmd_disable_cmd)
 
     if is_command_disabled(msg.channel_name, name):
-        return await msg.reply(f'{name} is already disabled')
+        await msg.reply(f'{name} is already disabled')
+        return
 
     disable_command(msg.channel_name, name)
 
@@ -40,18 +40,18 @@ async def cmd_disable_cmd(msg: Message, *args):
          help='enables a command for the current channel')
 async def cmd_enable_cmd(msg: Message, *args):
     if not args:
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_enable_cmd)
 
     name = args[0].lower()
-
-    if not get_command(name):
-        return await msg.reply(f'no command found for "{name}", are you missing the prefix?')
+    if not command_exist(name):
+        raise InvalidArgumentsError(reason=f'no command found for "{name}"',
+                                    cmd=cmd_enable_cmd)
 
     if not is_command_disabled(msg.channel_name, name):
-        return await msg.reply(f'{name} is not disabled')
+        await msg.reply(f'{name} is not disabled')
+        return
 
     enable_command(msg.channel_name, name)
-
     await msg.reply(f'enabled command "{name}"')
 
 
