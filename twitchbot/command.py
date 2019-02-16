@@ -186,10 +186,10 @@ def load_commands_from_directory(path):
 def command_exist(name: str) -> bool:
     """
     returns a bool indicating if a command exists,
-    tries added a configs prefix to the name if not found initally,
+    tries added a configs prefix to the name if not found initially,
     does not check for custom commands
     """
-    return name in commands or (cfg.prefix + name) in commands
+    return any(cmd in commands for cmd in (name, cfg.prefix + name))
 
 
 def get_command(name: str) -> Optional[Command]:
