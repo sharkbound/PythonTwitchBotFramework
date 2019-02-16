@@ -63,10 +63,8 @@ async def cmd_get_bal(msg: Message, *args):
 async def cmd_set_bal(msg: Message, *args):
     if not len(args):
         raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_set_bal)
-
     elif len(args) == 2:
         target = args[1].lstrip('@')
-
         if target not in msg.channel.chatters:
             raise InvalidArgumentsError(reason=f'no viewer found by the name of "{args[1]}"', cmd=cmd_set_bal)
     else:
@@ -74,7 +72,6 @@ async def cmd_set_bal(msg: Message, *args):
 
     try:
         new_balance = int(args[0])
-
         if new_balance < 0:
             raise InvalidArgumentsError(reason='new balance cannot be negative', cmd=cmd_set_bal)
 
