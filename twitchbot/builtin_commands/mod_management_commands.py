@@ -17,12 +17,11 @@ MOD_MANAGE_PERMISSION = 'manage_mods'
          syntax='<mod_name>', help='enables a mod for the current channel')
 async def cmd_enable_mod(msg: Message, *args):
     if len(args) != 1:
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError(reason=f'expected one argument, got {len(args)}', cmd=cmd_enable_mod)
 
     mod = args[0]
     if not mod_exists(mod):
-        await msg.reply(f'mod "{mod}" does not exist')
-        return
+        raise InvalidArgumentsError(reason=f'could not find mod "{mod}"')
 
     if not is_mod_disabled(msg.channel_name, mod):
         await msg.reply(f'mod "{mod}" is already enabled')
@@ -36,12 +35,11 @@ async def cmd_enable_mod(msg: Message, *args):
          syntax='<mod_name>', help='disables a mod for the current channel')
 async def cmd_disable_mod(msg: Message, *args):
     if len(args) != 1:
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError(reason=f'expected one argument, got {len(args)}', cmd=cmd_disable_mod)
 
     mod = args[0]
     if not mod_exists(mod):
-        await msg.reply(f'mod "{mod}" does not exist')
-        return
+        raise InvalidArgumentsError(reason=f'could not find mod "{mod}"', cmd=cmd_disable_mod)
 
     if is_mod_disabled(msg.channel_name, mod):
         await msg.reply(f'mod "{mod}" is already disabled')
