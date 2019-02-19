@@ -14,7 +14,7 @@ PERMISSION = 'manage_permissions'
 @Command('addperm', permission=PERMISSION, syntax='<group> <permission>', help='adds a permission a group')
 async def cmd_add_perm(msg: Message, *args):
     if len(args) != 2:
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_add_perm)
 
     group, perm = args
     if perms.add_permission(msg.channel_name, group, perm):
@@ -26,7 +26,7 @@ async def cmd_add_perm(msg: Message, *args):
 @Command('delperm', permission=PERMISSION, syntax='<group> <permission>', help='removes a permission from a group')
 async def cmd_del_perm(msg: Message, *args):
     if len(args) != 2:
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_del_perm)
 
     group, perm = args
     if perms.delete_permission(msg.channel_name, group, perm):
@@ -38,7 +38,7 @@ async def cmd_del_perm(msg: Message, *args):
 @Command('addgroup', permission=PERMISSION, syntax='<group>', help='adds a permission group')
 async def cmd_add_group(msg: Message, *args):
     if not args:
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError(reason='missing required argument', cmd=cmd_add_group)
 
     group = args[0]
     if perms.add_group(msg.channel_name, group):
@@ -50,7 +50,7 @@ async def cmd_add_group(msg: Message, *args):
 @Command('delgroup', permission=PERMISSION, syntax='<group>', help='removes a permission group')
 async def cmd_del_group(msg: Message, *args):
     if not args:
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError(reason='missing required argument', cmd=cmd_del_group)
 
     group = args[0]
     if perms.delete_group(msg.channel_name, group):
@@ -70,12 +70,10 @@ async def cmd_reload_perms(msg: Message, *args):
 @Command('addmember', permission=PERMISSION, syntax='<group> <member>', help='adds a member to a permission group')
 async def cmd_add_member(msg: Message, *args):
     if len(args) != 2:
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_add_member)
 
     group, member = args
-
-    if member.startswith('@'):
-        member = member[1:]
+    member = member.lstrip('@')
 
     if perms.add_member(msg.channel_name, group, member):
         await msg.reply(whisper=WHISPER, msg=f'added "{member}" to "{group}"')
@@ -86,12 +84,10 @@ async def cmd_add_member(msg: Message, *args):
 @Command('delmember', permission=PERMISSION, syntax='<group> <member>', help='removes a member from a permission group')
 async def cmd_del_member(msg: Message, *args):
     if len(args) != 2:
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_del_member)
 
     group, member = args
-
-    if member.startswith('@'):
-        member = member[1:]
+    member = member.lstrip('@')
 
     if perms.delete_member(msg.channel_name, group, member):
         await msg.reply(whisper=WHISPER, msg=f'removed "{member}" from "{group}"')
