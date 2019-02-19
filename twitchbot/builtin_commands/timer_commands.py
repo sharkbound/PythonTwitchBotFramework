@@ -25,14 +25,14 @@ async def _parse_interval(msg, value):
             raise ValueError()
         return True, value
     except ValueError:
-        await msg.reply('invalid interval, must be a valid float and be above 10')
+        await msg.reply('invalid interval, must be a valid float and be above 10, ex: 10,  11.5, 30')
         return False, 0
 
 
 @Command('addtimer', syntax='<name> <interval> <message>', help='adds a message timer')
 async def cmd_add_timer(msg: Message, *args):
     if len(args) < 3:
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_add_timer)
 
     valid, interval = await _parse_interval(msg, args[1])
     if not valid:
@@ -42,25 +42,22 @@ async def cmd_add_timer(msg: Message, *args):
     timer_name = args[0].lower()
 
     if message_timer_exist(msg.channel_name, timer_name):
-        await msg.reply(f'a timer already exist by the name of "{timer_name}"')
-        return
+        raise InvalidArgumentsError(reason=f'a timer already exist by the name of "{timer_name}"', cmd=cmd_add_timer)
 
     set_message_timer(msg.channel_name, timer_name, timer_msg, interval)
-
     await msg.reply(f'created timer successfully')
 
 
 @Command('starttimer', syntax='<name>', help='starts a message timer')
 async def cmd_start_timer(msg: Message, *args):
     if not args:
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError('missing required argument', cmd=cmd_start_timer)
 
     name = args[0].lower()
     timer = get_message_timer(msg.channel_name, name)
 
     if not timer:
-        await msg.reply(f'no timer was found by "{name}"')
-        return
+        raise InvalidArgumentsError(reason=f'no timer was found by "{name}"', cmd=cmd_start_timer)
 
     if timer.running:
         await msg.reply(f'timer "{name}" is already running')
@@ -73,16 +70,15 @@ async def cmd_start_timer(msg: Message, *args):
 
 
 @Command('stoptimer', syntax='<name>', help='stops a message timer')
-async def cmd_start_timer(msg: Message, *args):
+async def cmd_stop_timer(msg: Message, *args):
     if not args:
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError(reason='missing required argument', cmd=cmd_stop_timer)
 
     name = args[0].lower()
     timer = get_message_timer(msg.channel_name, name)
 
     if not timer:
-        await msg.reply(f'no timer was found by "{name}"')
-        return
+        raise InvalidArgumentsError(reason=f'no timer was found by "{name}"', cmd=cmd_stop_timer)
 
     if not timer.running:
         await msg.reply(f'that timer is not running')
@@ -97,13 +93,13 @@ async def cmd_start_timer(msg: Message, *args):
 @Command('deltimer', syntax='<name>', help='deletes a message timer')
 async def cmd_del_timer(msg: Message, *args):
     if not args:
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError(reason='missing required argument', cmd=cmd_del_timer)
 
     name = args[0].lower()
     timer = get_message_timer(msg.channel_name, name)
 
     if not timer:
-        await msg.reply(f'no timer was found by "{name}"')
+        raise InvalidArgumentsError(reason=f'no timer was found by "{name}"', cmd=cmd_del_timer)
 
     if delete_message_timer(msg.channel_name, name):
         await msg.reply(f'successfully deleted timer "{name}"')
@@ -131,24 +127,23 @@ async def cmd_list_timers(msg: Message, *args):
 @Command('edittimer', syntax='<name> <msg or interval> <new value>', help="edits a timer's message or interval")
 async def cmd_edit_timer(msg: Message, *args):
     if len(args) < 3:
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_edit_timer)
 
     name = args[0].lower()
     timer = get_message_timer(msg.channel_name, name)
 
     if not timer:
-        return await msg.reply(f'no timer was found by "{name}"')
+        raise InvalidArgumentsError(reason=f'no timer was found by "{name}"', cmd=cmd_edit_timer)
 
     mode = args[1].lower()
-
     if mode not in ('msg', 'interval'):
-        raise InvalidArgumentsError
+        raise InvalidArgumentsError(reason='invalid option, must be `msg` or `interval`', cmd=cmd_edit_timer)
 
     if mode == 'interval':
         try:
             interval = int(args[2])
         except ValueError:
-            raise InvalidArgumentsError
+            raise InvalidArgumentsError(reason='interval must be a valid integer, ex: 10', cmd=cmd_edit_timer)
 
         set_message_timer_interval(msg.channel_name, name, interval)
         restart_message_timer(msg.channel_name, name)
