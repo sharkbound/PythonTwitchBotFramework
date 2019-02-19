@@ -31,3 +31,6 @@ class Chatters:
 
     def __contains__(self, item):
         return item.lower() in self.all_viewers
+
+    def __iter__(self):
+        yield from self.all_viewers
