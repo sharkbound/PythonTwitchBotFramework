@@ -1,3 +1,5 @@
+from operator import attrgetter
+
 from twitchbot import (
     channels,
     Command,
@@ -5,6 +7,8 @@ from twitchbot import (
     CommandContext,
     Message, get_all_custom_commands,
     cfg,
+    InvalidArgumentsError,
+    get_command,
 )
 
 
@@ -18,11 +22,10 @@ async def cmd_list(msg: Message, *args):
 
 @Command('commands', context=CommandContext.BOTH, help='lists all commands')
 async def cmd_commands(msg: Message, *args):
-    custom_commands = ', '.join(cmd.name for cmd in get_all_custom_commands(msg.channel_name))
-    global_commands = ', '.join(cmd.fullname for cmd in commands.values())
+    custom_commands = ', '.join(map(attrgetter('name'), get_all_custom_commands(msg.channel_name)))
+    global_commands = ', '.join(map(attrgetter('fullname'), commands.values()))
 
     await msg.reply(whisper=True, msg=f'GLOBAL: {global_commands}')
-
     if custom_commands:
         await msg.reply(whisper=True, msg=f'CUSTOM: {custom_commands}')
 
@@ -30,15 +33,13 @@ async def cmd_commands(msg: Message, *args):
 @Command(name='help', syntax='<command>', help='gets the help text for a command')
 async def cmd_help(msg: Message, *args):
     if not args:
-        await msg.reply(whisper=False, msg=f'syntax for {cfg.prefix}help: <command>')
-        return
+        raise InvalidArgumentsError(reason='missing required argument', cmd=cmd_help)
 
-    cmd = commands.get(args[0]) or commands.get(cfg.prefix + args[0])
+    cmd = get_command(args[0])
     if not cmd:
-        await msg.reply(f'command not found, did you forget the prefix?')
-        return
+        raise InvalidArgumentsError(reason=f'command not found', cmd=cmd_help)
 
-    await msg.reply(whisper=False, msg=f'help for {cmd.fullname} - syntax: {cmd.syntax} - help: {cmd.help}')
+    await msg.reply(msg=f'help for {cmd.fullname} - syntax: {cmd.syntax} - help: {cmd.help}')
 
 
 # testing command, uncomment @Command to enable
