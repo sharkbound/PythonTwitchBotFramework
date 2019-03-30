@@ -11,7 +11,6 @@ setup(
     url='https://github.com/sharkbound/PythonTwitchBotFramework',
     license='MIT',
     author='sharkbound',
-    author_email='',
-    description='asynchronous twitchbot framework made in pure python ',
+    description='asynchronous twitchbot framework made in pure python',
     install_requires=requirements,
 )
