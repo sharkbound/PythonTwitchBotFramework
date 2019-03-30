@@ -33,5 +33,11 @@ while True:
     send(channel)
 
 # channel was selected, now start the command/message send loop
+print('type `exit` to close this window')
+
 while True:
-    send(input(f'({channel}): '))
+    text = input(f'({channel}): ')
+    if text.lower().strip() == 'exit':
+        break
+
+    send(text)
