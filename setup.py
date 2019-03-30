@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open('requirements.txt') as f:
     requirements = f.read().split('\n')
@@ -7,11 +7,11 @@ with open('requirements.txt') as f:
 setup(
     name='PythonTwitchBotFramework',
     version='1.0',
-    packages=['twitchbot', 'twitchbot.api', 'twitchbot.bots', 'twitchbot.util', 'twitchbot.database'],
+    packages=find_packages(),
     url='https://github.com/sharkbound/PythonTwitchBotFramework',
     license='MIT',
     author='sharkbound',
     author_email='',
-    description='async python twitchbot framework',
-    install_requires=requirements
+    description='asynchronous twitchbot framework made in pure python ',
+    install_requires=requirements,
 )

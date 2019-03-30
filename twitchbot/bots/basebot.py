@@ -28,7 +28,6 @@ class BaseBot:
         """
         triggered when the bot connects to all the channels specified in the config file
         """
-        await trigger_mod_event(Event.on_connected)
 
     async def on_privmsg_sent(self, msg: str, channel: str, sender: str) -> None:
         """
@@ -185,6 +184,7 @@ class BaseBot:
 
         await self._connect()
         await self.on_connected()
+        await trigger_mod_event(Event.on_connected)
 
         while True:
             raw_msg = await self.irc.get_next_message()
