@@ -28,6 +28,7 @@ class BaseBot:
         """
         triggered when the bot connects to all the channels specified in the config file
         """
+        await trigger_mod_event(Event.on_connected)
 
     async def on_privmsg_sent(self, msg: str, channel: str, sender: str) -> None:
         """
