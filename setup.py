@@ -2,7 +2,9 @@ from setuptools import setup, find_packages
 
 with open('requirements.txt') as f:
     requirements = f.read().split('\n')
-    print(requirements)
+
+with open('README.md') as f:
+    long_description = f.read()
 
 setup(
     name='PythonTwitchBotFramework',
@@ -11,7 +13,9 @@ setup(
     url='https://github.com/sharkbound/PythonTwitchBotFramework',
     license='MIT',
     author='sharkbound',
-    description='asynchronous twitchbot framework made in pure python',
+    description='asynchronous twitch-bot framework made in pure python',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     install_requires=requirements,
     scripts=[
         'command_console.py',
