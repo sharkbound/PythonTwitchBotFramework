@@ -22,6 +22,7 @@ class MessageType(NamedEnum):
     COMMAND = auto()
     PING = auto()
     JOINED_CHANNEL = auto()
+    SUBSCRIPTION = auto()
     NONE = auto()
 
 
@@ -35,6 +36,7 @@ class Event(NamedEnum):
     on_before_command_execute = auto()
     on_after_command_execute = auto()
     on_bits_donated = auto()
+    on_channel_subscription = auto()
     on_channel_joined = auto()
     on_connected = auto()
     on_privmsg_received = auto()
