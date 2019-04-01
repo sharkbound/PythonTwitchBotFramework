@@ -85,7 +85,7 @@ class BaseBot:
         """
         print(f'joined #{channel.name}')
 
-    async def on_channel_subscription(self, msg: Message):
+    async def on_channel_subscription(self, channel: Channel, msg: Message):
         """
         triggered when a user subscribes
         """
@@ -221,7 +221,7 @@ class BaseBot:
                 mod_coro = trigger_mod_event(Event.on_channel_joined, msg.channel, channel=msg.channel_name)
 
             elif msg.type is MessageType.SUBSCRIPTION:
-                coro = self.on_channel_subscription(msg)
+                coro = self.on_channel_subscription(msg.channel, msg)
                 mod_coro = trigger_mod_event(Event.on_channel_subscription, msg, channel=msg.channel_name)
 
             elif msg.type is MessageType.PING:
