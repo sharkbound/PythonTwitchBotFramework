@@ -17,7 +17,7 @@ class Tags:
         self.user_id: int = _try_parse_int(self.all_tags.get('user-id'))
         self.user_type: int = self.all_tags.get('user-type')
         self.bits: int = _try_parse_int(self.all_tags.get('bits'))
-        self.bits_leader: int = self.all_tags.get('bits-leader')
+        self.bits_leader: str = self.all_tags.get('bits-leader')
         self.broadcaster: int = self.badges.get('broadcaster', 0)
         self.msg_id: str = self.all_tags.get('msg-id')
 
