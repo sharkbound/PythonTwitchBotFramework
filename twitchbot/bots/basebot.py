@@ -222,7 +222,7 @@ class BaseBot:
 
             elif msg.type is MessageType.SUBSCRIPTION:
                 coro = self.on_channel_subscription(msg.channel, msg)
-                mod_coro = trigger_mod_event(Event.on_channel_subscription, msg, channel=msg.channel_name)
+                mod_coro = trigger_mod_event(Event.on_channel_subscription, msg.channel, msg, channel=msg.channel_name)
 
             elif msg.type is MessageType.PING:
                 self.irc.send_pong()
