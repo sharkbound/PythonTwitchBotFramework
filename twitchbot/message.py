@@ -36,7 +36,7 @@ class Message:
             self.channel = channels[m['channel']]
             self.author = self.tags.all_tags.get('login')
             self.content = m['content']
-            if self.tags.msg_id in ['sub', 'resub', 'subgift', 'anonsubgift', 'submysterygift']:
+            if self.tags.msg_id in {'sub', 'resub', 'subgift', 'anonsubgift', 'submysterygift'}:
                 self.type = MessageType.SUBSCRIPTION
 
         m = RE_PRIVMSG.search(self.raw_msg)
