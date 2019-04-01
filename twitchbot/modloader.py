@@ -88,6 +88,12 @@ class Mod:
         """
         triggered when the bot joins a channel
         """
+
+    async def on_channel_subscription(self, msg: Message):
+        """
+        triggered when a user subscribes
+        """
+
     # endregion
 
 
