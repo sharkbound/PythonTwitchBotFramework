@@ -9,7 +9,7 @@ from twitchbot import (
     cfg,
     InvalidArgumentsError,
     get_command,
-)
+    trigger_mod_event, Event)
 
 
 @Command('list')
@@ -47,3 +47,12 @@ async def cmd_help(msg: Message, *args):
 async def cmd_mention(msg: Message, *args):
     print(msg.channel.chatters.all_viewers)
     await msg.reply(f'found mentions: {msg.mentions}')
+
+
+# testing command, uncomment @Command to enable
+# @Command('testsub', syntax='<user>')
+async def cmd_test_sub(msg: Message, *args):
+    if len(msg) < 1:
+        raise InvalidArgumentsError('missing required arguments', cmd=cmd_test_sub)
+
+    await trigger_mod_event(Event.on_channel_subscription, msg.channel, msg)
