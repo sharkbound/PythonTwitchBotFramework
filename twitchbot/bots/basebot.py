@@ -85,6 +85,12 @@ class BaseBot:
         """
         print(f'joined #{channel.name}')
 
+    async def on_channel_subscription(self, msg: Message):
+        """
+        triggered when a user subscribes
+        """
+        print(f'subscribed {msg}')
+
     # endregion
 
     def _create_channels(self):
@@ -213,6 +219,10 @@ class BaseBot:
             elif msg.type is MessageType.JOINED_CHANNEL:
                 coro = self.on_channel_joined(msg.channel)
                 mod_coro = trigger_mod_event(Event.on_channel_joined, msg.channel, channel=msg.channel_name)
+
+            elif msg.type is MessageType.SUBSCRIPTION:
+                coro = self.on_channel_subscription(msg)
+                mod_coro = trigger_mod_event(Event.on_channel_subscription, msg, channel=msg.channel_name)
 
             elif msg.type is MessageType.PING:
                 self.irc.send_pong()

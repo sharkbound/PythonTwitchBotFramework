@@ -2,7 +2,7 @@ from typing import List, Tuple, TYPE_CHECKING
 from .util import get_message_mentions
 from twitchbot.channel import Channel, channels
 from .irc import Irc
-from .regex import RE_PRIVMSG, RE_WHISPER, RE_JOINED_CHANNEL
+from .regex import RE_PRIVMSG, RE_WHISPER, RE_JOINED_CHANNEL, RE_USERNOTICE
 from .enums import MessageType
 from .util import split_message
 from .tags import Tags
@@ -30,6 +30,16 @@ class Message:
         self._parse()
 
     def _parse(self):
+        m = RE_USERNOTICE.search(self.raw_msg)
+        if m:
+            self.tags = Tags(m['tags'])
+            self.channel = channels[m['channel']]
+            self.author = self.tags.all_tags.get('login')
+            self.content = m['content']
+            if self.tags.msg_id in ['sub', 'resub', 'subgift', 'anonsubgift', 'submysterygift']:
+                self.type = MessageType.SUBSCRIPTION
+
+
         m = RE_PRIVMSG.search(self.raw_msg)
         if m:
             self.channel = channels[m['channel']]
@@ -71,6 +81,10 @@ class Message:
     @property
     def is_whisper(self):
         return self.type is MessageType.WHISPER
+
+    @property
+    def is_subscription(self):
+        return self.type is MessageType.SUBSCRIPTION
 
     @property
     def mention(self):

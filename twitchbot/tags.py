@@ -19,6 +19,7 @@ class Tags:
         self.bits: int = _try_parse_int(self.all_tags.get('bits'))
         self.bits_leader: int = self.all_tags.get('bits-leader')
         self.broadcaster: int = self.badges.get('broadcaster', 0)
+        self.msg_id: str = self.all_tags.get('msg-id')
 
         if self.bits_leader:
             self.bits_leader = _try_parse_int(self.bits_leader.partition('/')[-1])

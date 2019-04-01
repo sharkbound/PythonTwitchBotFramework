@@ -22,3 +22,8 @@ RE_JOINED_CHANNEL = re.compile(
 RE_AT_MENTION = re.compile(
     r'@([\w\d]+)'
 )
+
+# user notices / subscriptions
+RE_USERNOTICE = re.compile(
+    r'(?P<tags>.*):tmi\.twitch\.tv USERNOTICE #(?P<channel>[\w\d]+)( :)?(?P<content>.+)?'
+)
