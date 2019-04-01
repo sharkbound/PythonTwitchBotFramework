@@ -89,7 +89,7 @@ class Mod:
         triggered when the bot joins a channel
         """
 
-    async def on_channel_subscription(self, msg: Message):
+    async def on_channel_subscription(self, channel: Channel, msg: Message):
         """
         triggered when a user subscribes
         """
