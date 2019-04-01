@@ -127,3 +127,9 @@ class Message:
             return 'PING'
 
         return self.raw_msg
+
+    def __len__(self):
+        """
+        :return: the len() of self.parts
+        """
+        return len(self.parts)
