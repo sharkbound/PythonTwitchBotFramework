@@ -38,6 +38,13 @@ class Mod:
         triggered when the bot connects to all the channels specified in the config file
         """
 
+    async def on_raw_message(self, msg: Message):
+        """
+        triggered the instant a message is received,
+        this message can be any message received,
+        including twitches messages that do not have any useful information
+        """
+
     async def on_privmsg_sent(self, msg: str, channel: str, sender: str):
         """
         triggered when the bot sends a privmsg

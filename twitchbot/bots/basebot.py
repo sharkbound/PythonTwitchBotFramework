@@ -29,6 +29,13 @@ class BaseBot:
         triggered when the bot connects to all the channels specified in the config file
         """
 
+    async def on_raw_message(self, msg: Message):
+        """
+        triggered the instant a message is received,
+        this message can be any message received,
+        including twitches messages that do not have any useful information
+        """
+
     async def on_privmsg_sent(self, msg: str, channel: str, sender: str) -> None:
         """
         triggered when the bot sends a privmsg
@@ -199,6 +206,10 @@ class BaseBot:
                 continue
 
             msg = Message(raw_msg, irc=self.irc, bot=self)
+            await self.on_raw_message(msg)
+            get_event_loop().create_task(
+                trigger_mod_event(Event.on_raw_message, msg, channel=msg.channel_name))
+
             coro = mod_coro = None
             cmd: Command = (await self.get_command_from_msg(msg)
                             if msg.is_user_message and msg.author != cfg.nick
