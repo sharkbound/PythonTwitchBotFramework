@@ -4,7 +4,7 @@ import re
 class Tags:
     def __init__(self, tags: str):
         self.all_tags = {name: value for name, value in _split_tags(tags)}
-        self.badges: dict = _parse_badges(self.all_tags.get('@badges'))
+        self.badges: dict = _parse_badges(self.all_tags.get('badges'))
         self.color: str = self.all_tags.get('color')
         self.display_name: str = self.all_tags.get('display-name')
         self.emotes: str = self.all_tags.get('emotes')
