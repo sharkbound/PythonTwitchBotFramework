@@ -55,4 +55,4 @@ async def cmd_test_sub(msg: Message, *args):
     if len(msg) < 1:
         raise InvalidArgumentsError('missing required arguments', cmd=cmd_test_sub)
 
-    await trigger_mod_event(Event.on_channel_subscription, msg.channel, msg)
+    await trigger_mod_event(Event.on_channel_subscription, msg.channel, msg, channel=msg.channel_name)
