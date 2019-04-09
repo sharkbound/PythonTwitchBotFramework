@@ -21,6 +21,7 @@ from ..overrides import overrides
 class BaseBot:
     def __init__(self):
         self.irc: Irc = None
+        self._running = False
 
     # region events
 
@@ -182,8 +183,12 @@ class BaseBot:
             if k.value in self.__class__.__dict__ and k.value.startswith('on'):
                 setattr(self, k.value, v)
 
+    def shutdown(self):
+        self._running = False
+
     def run(self):
         """runs/starts the bot, this is a blocking function that starts the mainloop"""
+        self._running = True
         get_event_loop().run_until_complete(self._mainloop())
 
     async def _mainloop(self):
@@ -199,7 +204,7 @@ class BaseBot:
         await self.on_connected()
         await trigger_mod_event(Event.on_connected)
 
-        while True:
+        while self._running:
             raw_msg = await self.irc.get_next_message()
 
             if not raw_msg:
