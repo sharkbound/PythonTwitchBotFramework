@@ -13,8 +13,14 @@ RE_WHISPER = re.compile(
 
 # example joining channel
 # :nickname!nickname@nickname.tmi.twitch.tv JOIN #bob
-RE_JOINED_CHANNEL = re.compile(
+RE_USER_JOIN = re.compile(
     r':(?P<user>[\w\d]+)!(?P=user)@(?P=user)\.tmi\.twitch\.tv JOIN #(?P<channel>\w+)'
+)
+
+# user leaves the channel
+#  :nickname!nickname@nickname.tmi.twitch.tv PART #bob
+RE_USER_PART = re.compile(
+    r':(?P<user>[\w\d]+)!(?P=user)@(?P=user)\.tmi\.twitch\.tv PART #(?P<channel>\w+)'
 )
 
 # finds mentions in twitch messages

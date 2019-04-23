@@ -21,7 +21,8 @@ class MessageType(NamedEnum):
     WHISPER = auto()
     COMMAND = auto()
     PING = auto()
-    JOINED_CHANNEL = auto()
+    USER_JOIN = auto()
+    USER_PART = auto()
     SUBSCRIPTION = auto()
     NONE = auto()
 
@@ -45,3 +46,5 @@ class Event(NamedEnum):
     on_whisper_sent = auto()
     on_permission_check = auto()
     on_raw_message = auto()
+    on_user_join = auto()
+    on_user_part = auto()

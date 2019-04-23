@@ -2,7 +2,7 @@ from typing import List, Tuple, TYPE_CHECKING, Optional
 from .util import get_message_mentions
 from twitchbot.channel import Channel, channels
 from .irc import Irc
-from .regex import RE_PRIVMSG, RE_WHISPER, RE_JOINED_CHANNEL, RE_USERNOTICE
+from .regex import RE_PRIVMSG, RE_WHISPER, RE_USER_JOIN, RE_USERNOTICE, RE_USER_PART
 from .enums import MessageType
 from .util import split_message
 from .tags import Tags
@@ -57,11 +57,17 @@ class Message:
             self.type = MessageType.WHISPER
             self.parts = split_message(self.content)
 
-        m = RE_JOINED_CHANNEL.search(self.raw_msg)
+        m = RE_USER_JOIN.search(self.raw_msg)
         if m:
             self.channel = channels[m['channel']]
             self.author = m['user']
-            self.type = MessageType.JOINED_CHANNEL
+            self.type = MessageType.USER_JOIN
+
+        m = RE_USER_PART.search(self.raw_msg)
+        if m:
+            self.channel = channels[m['channel']]
+            self.author = m['user']
+            self.type = MessageType.USER_PART
 
         elif self.raw_msg == 'PING :tmi.twitch.tv':
             self.type = MessageType.PING

@@ -93,6 +93,20 @@ class BaseBot:
         """
         print(f'joined #{channel.name}')
 
+    async def on_user_join(self, user: str, channel: Channel):
+        """
+        triggered when a user joins a channel the bot is in
+        :param user: the user who joined
+        :param channel: the channel that the user joined
+        """
+
+    async def on_user_part(self, user: str, channel: Channel):
+        """
+        triggered when a user leaves from a channel the bot is in
+        :param user: the user who left
+        :param channel: the channel that the user left
+        """
+
     async def on_channel_subscription(self, channel: Channel, msg: Message):
         """
         triggered when a user subscribes
@@ -121,8 +135,8 @@ class BaseBot:
         # enable seeing bit donations and such
         self.irc.send('CAP REQ :twitch.tv/tags')
 
-        # what does this even do
-        # self.irc.send('CAP REQ :twitch.tv/membership')
+        # enable seeing user joins
+        self.irc.send('CAP REQ :twitch.tv/membership')
 
     async def _connect(self):
         """connects to twitch, sends auth info, and joins the channels in the config"""
@@ -232,9 +246,19 @@ class BaseBot:
                 coro = self.on_privmsg_received(msg)
                 mod_coro = trigger_mod_event(Event.on_privmsg_received, msg, channel=msg.channel_name)
 
-            elif msg.type is MessageType.JOINED_CHANNEL:
-                coro = self.on_channel_joined(msg.channel)
-                mod_coro = trigger_mod_event(Event.on_channel_joined, msg.channel, channel=msg.channel_name)
+            elif msg.type is MessageType.USER_JOIN:
+                # the bot has joined a channel
+                if msg.author == cfg.nick:
+                    coro = self.on_channel_joined(msg.channel)
+                    mod_coro = trigger_mod_event(Event.on_channel_joined, msg.channel, channel=msg.channel_name)
+                # user joined a channel the bot was in
+                else:
+                    coro = self.on_user_join(msg.author, msg.channel)
+                    mod_coro = trigger_mod_event(Event.on_user_join, msg.author, msg.channel)
+
+            elif msg.type is MessageType.USER_PART:
+                coro = self.on_user_part(msg.author, msg.channel)
+                mod_coro = trigger_mod_event(Event.on_user_part, msg.author, msg.channel)
 
             elif msg.type is MessageType.SUBSCRIPTION:
                 coro = self.on_channel_subscription(msg.channel, msg)

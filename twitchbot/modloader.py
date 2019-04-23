@@ -96,6 +96,20 @@ class Mod:
         triggered when the bot joins a channel
         """
 
+    async def on_user_join(self, user: str, channel: Channel):
+        """
+        triggered when a user joins a channel the bot is in
+        :param user: the user who joined
+        :param channel: the channel that the user joined
+        """
+
+    async def on_user_part(self, user: str, channel: Channel):
+        """
+        triggered when a user leaves from a channel the bot is in
+        :param user: the user who left
+        :param channel: the channel that the user left
+        """
+
     async def on_channel_subscription(self, channel: Channel, msg: Message):
         """
         triggered when a user subscribes
