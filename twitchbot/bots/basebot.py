@@ -254,11 +254,11 @@ class BaseBot:
                 # user joined a channel the bot was in
                 else:
                     coro = self.on_user_join(msg.author, msg.channel)
-                    mod_coro = trigger_mod_event(Event.on_user_join, msg.author, msg.channel)
+                    mod_coro = trigger_mod_event(Event.on_user_join, msg.author, msg.channel, channel=msg.channel_name)
 
             elif msg.type is MessageType.USER_PART:
                 coro = self.on_user_part(msg.author, msg.channel)
-                mod_coro = trigger_mod_event(Event.on_user_part, msg.author, msg.channel)
+                mod_coro = trigger_mod_event(Event.on_user_part, msg.author, msg.channel, channel=msg.channel_name)
 
             elif msg.type is MessageType.SUBSCRIPTION:
                 coro = self.on_channel_subscription(msg.channel, msg)
