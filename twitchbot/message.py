@@ -59,7 +59,12 @@ class Message:
 
         m = RE_USER_JOIN.search(self.raw_msg)
         if m:
-            self.channel = channels[m['channel']]
+            # ensure the channel exists, if it does not, create it and put it in the cache
+            channel_name = m['channel']
+            if channel_name not in channels:
+                Channel(channel_name, irc=self.irc, bot=self.bot, register_globally=True).start_update_loop()
+
+            self.channel = channels[channel_name]
             self.author = m['user']
             self.type = MessageType.USER_JOIN
 
