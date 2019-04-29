@@ -17,8 +17,8 @@ class Channel:
         self.irc: Irc = irc
         self.name: str = name
         self.chatters: Chatters = Chatters(self.name)
-        self.is_mod = False
-        self.stats = StreamInfoApi(cfg.client_id, self.name)
+        self.is_mod: bool = False
+        self.stats: StreamInfoApi = StreamInfoApi(cfg.client_id, self.name)
         self.bot: 'BaseBot' = bot
 
         if register_globally:
