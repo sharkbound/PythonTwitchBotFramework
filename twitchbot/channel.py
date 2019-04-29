@@ -60,6 +60,13 @@ class Channel:
         """
         await self.send_command(f'timeout {user} {duration}')
 
+    async def purge(self, user: str):
+        """
+        purges a user in the room (removes their messages via a 0 second timeout)
+        :param user: user to purge
+        """
+        await self.timeout(user, 0)
+
     async def color(self, color: str):
         """sets the bots chat color"""
         await self.send_command(f'color {color}')
