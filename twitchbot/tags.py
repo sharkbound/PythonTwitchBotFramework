@@ -1,6 +1,3 @@
-import re
-
-
 class Tags:
     def __init__(self, tags: str):
         self.all_tags = {name: value for name, value in _split_tags(tags)}

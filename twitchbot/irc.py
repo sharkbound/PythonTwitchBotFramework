@@ -1,5 +1,6 @@
 import typing
-from asyncio import StreamWriter, StreamReader, get_event_loop
+import re
+from asyncio import StreamWriter, StreamReader
 from .config import cfg
 from .ratelimit import privmsg_ratelimit, whisper_ratelimit
 from .enums import Event
@@ -8,7 +9,8 @@ from textwrap import wrap
 if typing.TYPE_CHECKING:
     from .bots import BaseBot
 
-MAX_LINE_LENGTH = 450
+PRIVMSG_MAX_LINE_LENGTH = 450
+WHISPER_MAX_LINE_LENGTH = 438
 
 
 class Irc:
@@ -46,7 +48,6 @@ class Irc:
 
         for line in _wrap_message(msg):
             await privmsg_ratelimit(channels.get(channel, DummyChannel(channel)))
-
             self.send(f'PRIVMSG #{channel} :{line}')
 
         # exclude calls from send_whisper being sent to the bots on_privmsg_received event
@@ -73,10 +74,14 @@ class Irc:
 
 
 def _wrap_message(msg):
-    prefix = '/w' if msg.startswith('/w') else None
+    m = re.match(r'/w (?P<user>[\w\d_]+)', msg)
+    if m:
+        whisper_target = m['user']
+    else:
+        whisper_target = None
+    whisper_prefix = f'/w {whisper_target}'
 
-    for line in wrap(msg, width=MAX_LINE_LENGTH):
-        if prefix and not line.startswith(prefix):
-            line = prefix + line
-
+    for line in wrap(msg, width=PRIVMSG_MAX_LINE_LENGTH if not msg.startswith('/w') else WHISPER_MAX_LINE_LENGTH):
+        if whisper_target and not line.startswith(whisper_prefix):
+            line = f'{whisper_prefix} {line}'
         yield line
