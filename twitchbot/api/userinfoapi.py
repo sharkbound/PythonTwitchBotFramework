@@ -29,6 +29,9 @@ class UserInfoApi(Api):
             self.offline_image_url = data['offline_image_url']
             self.view_count = data['view_count']
 
+            await self.on_successful_update()
         except KeyError:
             if log:
                 print(f'[USER INFO API] failed to update data for {self.user}')
+
+            await self.on_failed_update()

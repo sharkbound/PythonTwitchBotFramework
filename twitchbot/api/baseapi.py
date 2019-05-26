@@ -18,6 +18,18 @@ class Api:
             await self.update()
             await asyncio.sleep(delay)
 
+    async def on_successful_update(self):
+        """
+        called when the API updates without any errors
+        """
+        pass
+
+    async def on_failed_update(self):
+        """
+        called when the API encounters a error trying to update
+        """
+        pass
+
     def __eq__(self, other):
         if not isinstance(other, Api):
             return False
