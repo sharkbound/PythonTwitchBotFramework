@@ -1,8 +1,7 @@
-import asyncio
-from .. import util
-
 from datetime import datetime
+
 from .baseapi import Api
+from .. import util
 
 
 class StreamInfoApi(Api):
