@@ -2,7 +2,7 @@
 
 if you would like to send a few dollars my way you can do so here: [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=9ZVUE7CR24738)
 
-this bot us also on PYPI: https://pypi.org/project/PythonTwitchBotFramework/
+this bot is also on PYPI: https://pypi.org/project/PythonTwitchBotFramework/
 
 install from pip: `pip install PythonTwitchBotFramework`
 # PythonTwitchBotFramework
