@@ -5,6 +5,7 @@ if you would like to send a few dollars my way you can do so here: [![Donate](ht
 this bot is also on PYPI: https://pypi.org/project/PythonTwitchBotFramework/
 
 install from pip: `pip install PythonTwitchBotFramework`
+
 # PythonTwitchBotFramework
 working twitchbot framework made in python 3.6+
 
