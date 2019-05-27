@@ -15,7 +15,7 @@ emotes: Dict[str, Emote] = {}
 
 
 async def update_global_emotes():
-    data = await get_url(GLOBAL_EMOTE_API)
+    _, data = await get_url(GLOBAL_EMOTE_API)
     emotes.clear()
 
     for k, v in data.items():
