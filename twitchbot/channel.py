@@ -7,6 +7,8 @@ from .config import cfg
 from .permission import perms
 from twitchbot.api.chatters import Chatters
 from .api import StreamInfoApi
+from .util import get_user_followers, get_headers
+from .data import UserFollowers
 
 if typing.TYPE_CHECKING:
     from .bots import BaseBot
@@ -24,6 +26,9 @@ class Channel:
         if register_globally:
             channels[self.name.lower()] = self
             perms.load_permissions(name)
+
+    async def followers(self) -> UserFollowers:
+        return await get_user_followers(self.name, get_headers())
 
     @property
     def live(self):

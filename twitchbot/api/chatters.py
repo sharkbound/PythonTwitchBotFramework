@@ -1,5 +1,6 @@
 import asyncio
 from typing import Tuple
+from ..config import cfg
 
 from dataclasses import dataclass
 
@@ -27,7 +28,7 @@ class Chatters:
         self.global_mods = frozenset(chatters['global_mods'])
         self.viewers = frozenset(chatters['viewers'])
         self.viewer_count = json['chatter_count']
-        self.all_viewers = self.mods | self.staff | self.admins | self.global_mods | self.viewers
+        self.all_viewers = self.mods | self.staff | self.admins | self.global_mods | self.viewers | {self.channel}
 
     def __contains__(self, item):
         return item.lower() in self.all_viewers
