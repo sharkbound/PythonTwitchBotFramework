@@ -1,5 +1,7 @@
 from typing import NamedTuple
 
+__all__ = ['UserInfo']
+
 
 class UserInfo(NamedTuple):
     id: int

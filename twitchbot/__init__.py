@@ -21,6 +21,7 @@ from .duel import *
 from .command_server import start_command_server
 from .modloader import *
 from .disabled_mods import *
+from .data import *
 
 import os
 

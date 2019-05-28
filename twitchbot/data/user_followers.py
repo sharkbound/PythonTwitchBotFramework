@@ -1,6 +1,8 @@
 from typing import List
 from .follower import Follower
 
+__all__ = ['UserFollowers']
+
 
 class UserFollowers:
     __slots__ = ['followers', 'id', 'name', 'follower_count']
