@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Dict, Tuple
 
 from aiohttp import ClientSession, ClientResponse
@@ -8,12 +9,13 @@ from ..data import UserFollowers, UserInfo
 
 __all__ = ('CHANNEL_CHATTERS_URL', 'get_channel_chatters', 'get_stream_data', 'get_url', 'get_user_data', 'get_user_id',
            'STREAM_API_URL', 'USER_API_URL', 'get_user_followers', 'USER_FOLLOWERS_API_URL', 'get_headers',
-           'get_user_info')
+           'get_user_info', 'get_user_creation_date', 'USER_ACCOUNT_AGE_API')
 
 USER_API_URL = 'https://api.twitch.tv/helix/users?login={}'
 STREAM_API_URL = 'https://api.twitch.tv/helix/streams?user_login={}'
 CHANNEL_CHATTERS_URL = 'https://tmi.twitch.tv/group/user/{}/chatters'
 USER_FOLLOWERS_API_URL = 'https://api.twitch.tv/helix/users/follows?to_id={}'
+USER_ACCOUNT_AGE_API = 'https://api.twitch.tv/kraken/users/{}'
 
 user_id_cache: Dict[str, int] = {}
 
@@ -44,6 +46,15 @@ async def get_user_info(user: str) -> UserInfo:
         offline_image_url=data['offline_image_url'],
         view_count=data['view_count']
     )
+
+
+async def get_user_creation_date(user: str) -> datetime:
+    _, json = await get_url(USER_ACCOUNT_AGE_API.format(user), get_headers())
+
+    if 'created_at' not in json:
+        return datetime.min()
+    #                                            2012-09-03T01:30:56Z
+    return datetime.strptime(json['created_at'], '%Y-%m-%dT%H:%M:%SZ')
 
 
 async def get_user_followers(user: str, headers: dict = None) -> UserFollowers:

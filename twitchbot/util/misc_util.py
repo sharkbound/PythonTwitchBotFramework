@@ -1,15 +1,20 @@
 import os
 import sys
 from contextlib import contextmanager
+from datetime import datetime
 from glob import iglob
 from typing import List
 
-__all__ = ('get_py_files', 'get_file_name', 'temp_syspath')
+__all__ = ('get_py_files', 'get_file_name', 'temp_syspath', 'format_datetime')
 
 
 def get_py_files(path: str) -> List[str]:
     """gets all python (.py) files in a folder"""
     yield from iglob(os.path.join(path, '*.py'))
+
+
+def format_datetime(dt: datetime) -> str:
+    return dt.strftime('%d/%m/%Y %H:%M:%S')
 
 
 def get_file_name(path: str):
