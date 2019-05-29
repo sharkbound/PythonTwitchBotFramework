@@ -1,4 +1,5 @@
-from twitchbot import Message, Command, get_user_info, format_datetime, get_user_creation_date, get_user_followers
+from twitchbot import Message, Command, get_user_info, format_datetime, get_user_creation_date, get_user_followers, \
+    get_channel_chatters
 
 #
 # @Command('ping', permission='ping')
@@ -15,3 +16,7 @@ from twitchbot import Message, Command, get_user_info, format_datetime, get_user
 #     await msg.reply(f'go give {args[0]} a follow at {f"https://twitch.tv/{args[0]}"}')
 #     await msg.reply(
 #         f'{args[0]} with {followers.follower_count} followers and {info.view_count} views * created at {date}')
+
+# @Command('test')
+# async def cmd_test(msg: Message, *args):
+#     print(await get_user_followers(args[0]))

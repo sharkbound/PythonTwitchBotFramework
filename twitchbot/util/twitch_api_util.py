@@ -5,7 +5,7 @@ from aiohttp import ClientSession, ClientResponse
 from async_timeout import timeout
 
 from ..config import cfg
-from ..data import UserFollowers, UserInfo
+from ..data import UserFollowers, UserInfo, RateLimit
 
 __all__ = ('CHANNEL_CHATTERS_URL', 'get_channel_chatters', 'get_stream_data', 'get_url', 'get_user_data', 'get_user_id',
            'STREAM_API_URL', 'USER_API_URL', 'get_user_followers', 'USER_FOLLOWERS_API_URL', 'get_headers',
@@ -61,7 +61,8 @@ async def get_user_followers(user: str, headers: dict = None) -> UserFollowers:
     headers = headers or get_headers()
     user_id = await get_user_id(user, headers)
     _, json = await get_url(USER_FOLLOWERS_API_URL.format(user_id), get_headers())
-
+    ratelimit = RateLimit.from_headers(_.headers)
+    
     # covers invalid user id, or some other API error, such as invalid client-id
     if not json or json.get('status', -1) == 400:
         return UserFollowers(-1, '', -1, '', -1, [])
