@@ -1,11 +1,10 @@
 from twitchbot import Message, Command, get_user_info, format_datetime, get_user_creation_date, get_user_followers, \
     get_channel_chatters, override_event, Event, Mod, run_command
 
-#
-# @Command('ping', permission='ping')
-# async def cmd_debug(msg: Message, *args):
-#     await msg.reply('Pong!')
 
+@Command('ping')
+async def cmd_debug(msg: Message, *args):
+    await msg.reply('Pong!')
 
 # @Command('shoutout', permission='shoutout')
 # async def cmd_shoutout(msg: Message, *args):
@@ -19,5 +18,5 @@ from twitchbot import Message, Command, get_user_info, format_datetime, get_user
 
 # @Command('test')
 # async def cmd_test(msg: Message, *args):
-#     await run_command('debug', msg, ['17'], blocking=False)
-#     await run_command('debug', msg, ['17'], blocking=False)
+#     await run_command('roll', msg, ['17'], blocking=False)
+#     await run_command('roll', msg, ['17'], blocking=False)
