@@ -120,7 +120,7 @@ class Message:
 
         elif self.type is MessageType.WHISPER or (whisper and self.type is MessageType.PRIVMSG):
             if self.irc is None:
-                raise ValueError('no irc instance set for this message')
+                raise RuntimeError('no irc instance set for this message')
 
             await self.irc.send_whisper(self.author, msg)
 

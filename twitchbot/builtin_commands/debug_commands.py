@@ -1,5 +1,5 @@
 from twitchbot import Message, Command, get_user_info, format_datetime, get_user_creation_date, get_user_followers, \
-    get_channel_chatters, override_event, Event, Mod
+    get_channel_chatters, override_event, Event, Mod, run_command
 
 #
 # @Command('ping', permission='ping')
@@ -19,4 +19,5 @@ from twitchbot import Message, Command, get_user_info, format_datetime, get_user
 
 # @Command('test')
 # async def cmd_test(msg: Message, *args):
-#     print(await get_user_followers(args[0]))
+#     await run_command('roll', msg, ['17'], blocking=False)
+#     await run_command('roll', msg, ['17'], blocking=False)
