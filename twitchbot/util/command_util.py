@@ -24,11 +24,13 @@ async def run_command(name: str, msg: 'Message', args: List[str] = None, blockin
     :param blocking: if True, the caller will wait for newly called command to be done before continuing,
                      else, run it as another task and continue
     """
-    from twitchbot import Message, get_command, get_custom_command, Command
+    from twitchbot import Message, get_command, get_custom_command, Command, CustomCommand, CustomCommandAction
 
     cmd: Command = get_command(name) or get_custom_command(msg.channel_name, name)
     if not cmd:
         raise ValueError(f'[run_command] could not find command or custom command by the name of "{name}"')
+    if isinstance(cmd, CustomCommand):
+        cmd = CustomCommandAction(cmd)
 
     args = [f'"{arg}"' if ' ' in arg else arg for arg in (args or [])]
     raw = msg.raw_msg

@@ -19,5 +19,5 @@ from twitchbot import Message, Command, get_user_info, format_datetime, get_user
 
 # @Command('test')
 # async def cmd_test(msg: Message, *args):
-#     await run_command('roll', msg, ['17'], blocking=False)
-#     await run_command('roll', msg, ['17'], blocking=False)
+#     await run_command('debug', msg, ['17'], blocking=False)
+#     await run_command('debug', msg, ['17'], blocking=False)
