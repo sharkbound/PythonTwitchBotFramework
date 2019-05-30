@@ -177,7 +177,7 @@ commands: Dict[str, Command] = {}
 
 
 def load_commands_from_directory(path):
-    print(f'loading commands from {path}...')
+    print(f'loading commands from {path}')
 
     path = os.path.abspath(path)
 
