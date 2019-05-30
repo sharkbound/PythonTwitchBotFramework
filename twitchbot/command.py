@@ -22,14 +22,16 @@ __all__ = (
 class Command:
     def __init__(self, name: str, prefix: str = None, func: Callable = None, global_command: bool = True,
                  context: CommandContext = CommandContext.CHANNEL, permission: str = None, syntax: str = None,
-                 help: str = None):
+                 help: str = None, aliases: List[str] = None):
         """
         :param name: name of the command (without the prefix)
         :param prefix: prefix require before the command name (defaults the the configs prefix if None)
         :param func: the function that the commands executes
         :param global_command: should the command be registered globally?
         :param context: the context through which calling the command is allowed
+        :param aliases: aliases for this same command, only works if global_command is True
         """
+        self.aliases: List[str] = aliases if aliases is not None else []
         self.help: str = help
         self.syntax: str = syntax
         self.permission: str = permission
@@ -43,6 +45,11 @@ class Command:
 
         if global_command:
             commands[self.fullname] = self
+
+            # register all aliases passed to this functions
+            if aliases is not None:
+                for alias in aliases:
+                    commands[self.prefix + alias] = self
 
     def _get_cmd_func(self, args) -> Tuple['Callable', List[str]]:
         """returns a tuple of the final commands command function and the remaining argument"""

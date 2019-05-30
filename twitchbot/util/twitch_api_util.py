@@ -62,7 +62,7 @@ async def get_user_followers(user: str, headers: dict = None) -> UserFollowers:
     user_id = await get_user_id(user, headers)
     _, json = await get_url(USER_FOLLOWERS_API_URL.format(user_id), get_headers())
     ratelimit = RateLimit.from_headers(_.headers)
-    
+
     # covers invalid user id, or some other API error, such as invalid client-id
     if not json or json.get('status', -1) == 400:
         return UserFollowers(-1, '', -1, '', -1, [])
