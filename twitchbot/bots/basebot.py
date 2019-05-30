@@ -45,7 +45,6 @@ class BaseBot:
 
     async def on_privmsg_received(self, msg: Message) -> None:
         """triggered when a privmsg is received, is not triggered if the msg is a command"""
-        print(msg)
 
     async def on_whisper_sent(self, msg: str, receiver: str, sender: str):
         """
@@ -79,7 +78,6 @@ class BaseBot:
         """
         triggered after a command has executed
         """
-        print(msg)
 
     async def on_bits_donated(self, msg: Message, bits: int):
         """
@@ -236,13 +234,16 @@ class BaseBot:
 
             if cmd and ((msg.is_whisper and cmd.context & CommandContext.WHISPER)
                         or (msg.is_privmsg and cmd.context & CommandContext.CHANNEL)):
+                print(msg)
                 coro = self._run_command(msg, cmd)
 
             elif msg.type is MessageType.WHISPER:
+                print(msg)
                 coro = self.on_whisper_received(msg)
                 mod_coro = trigger_mod_event(Event.on_whisper_received, msg)
 
             elif msg.type is MessageType.PRIVMSG:
+                print(msg)
                 coro = self.on_privmsg_received(msg)
                 mod_coro = trigger_mod_event(Event.on_privmsg_received, msg, channel=msg.channel_name)
 
