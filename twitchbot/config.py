@@ -103,6 +103,7 @@ cfg = Config(
     command_server_enabled=True,
     command_server_port=1337,
     command_server_host='localhost',
+    disable_whispers=False,
 )
 
 if cfg.nick == DEFAULT_NICK or cfg.oauth == DEFAULT_OAUTH:

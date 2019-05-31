@@ -7,6 +7,7 @@ from .enums import MessageType
 from .util import split_message
 from .tags import Tags
 from .emote import emotes, Emote
+from .config import cfg
 
 if TYPE_CHECKING:
     from .bots import BaseBot
@@ -115,7 +116,7 @@ class Message:
         if not isinstance(msg, str):
             msg = str(msg)
 
-        if self.type is MessageType.PRIVMSG and not whisper:
+        if self.type is MessageType.PRIVMSG and (not whisper or cfg.disable_whispers):
             await self.channel.send_message(msg)
 
         elif self.type is MessageType.WHISPER or (whisper and self.type is MessageType.PRIVMSG):
