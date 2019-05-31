@@ -6,7 +6,7 @@ from ..config import cfg
 from ..enums import CommandContext
 from .session import Base, database_init
 
-__all__ = ('Quote', 'CustomCommand')
+__all__ = ('Quote', 'CustomCommand', 'Balance', 'CurrencyName', 'MessageTimer')
 
 
 class Quote(Base):

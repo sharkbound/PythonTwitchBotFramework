@@ -16,11 +16,14 @@ from twitchbot import (
     add_balance,
     cfg,
     InvalidArgumentsError,
-    Balance,
     duel_expired,
     add_duel,
     accept_duel,
-    subtract_balance, get_duel)
+    subtract_balance,
+    get_duel,
+    add_balance_to_all,
+    Balance,
+    subtract_balance_from_all)
 
 PREFIX = cfg.prefix
 MANAGE_CURRENCY_PERMISSION = 'manage_currency'
@@ -82,6 +85,69 @@ async def cmd_set_bal(msg: Message, *args):
     await msg.reply(
         f'@{target} now has {args[0]} '
         f'{get_currency_name(msg.channel_name).name}')
+
+
+@Command('addbal', permission=MANAGE_CURRENCY_PERMISSION, syntax='<user or all> <amount>',
+         help='adds the balance of the target, or all')
+async def cmd_add_bal(msg: Message, *args):
+    if len(args) != 2:
+        raise InvalidArgumentsError('must supply both <user or all> and <amount>', cmd=cmd_add_bal)
+
+    target = args[0].lower()
+    if target != 'all' and target not in msg.channel.chatters:
+        raise InvalidArgumentsError(f'cannot find any viewer named "{target}"', cmd=cmd_add_bal)
+
+    try:
+        amount = int(args[1])
+    except ValueError:
+        raise InvalidArgumentsError(f'cannot parse "{args[1]}" to a int, must be a valid int, ex: 100', cmd=cmd_add_bal)
+
+    if amount <= 0:
+        raise InvalidArgumentsError(f'amount must be positive and not zero, ex: 1, 2, 100', cmd=cmd_add_bal)
+
+    currency = get_currency_name(msg.channel_name).name
+    if target == 'all':
+        add_balance_to_all(msg.channel_name, amount)
+        await msg.reply(f"added {amount} {currency} to everyone's balance")
+    else:
+        add_balance(msg.channel_name, target, amount)
+        await msg.reply(
+            f'gave {target} {amount} {currency}, '
+            f'their total is now {get_balance(msg.channel_name, target).balance} {currency}')
+
+
+@Command('subbal', permission=MANAGE_CURRENCY_PERMISSION, syntax='<user or all> <amount>',
+         help='subtracts the balance of the target, or all')
+async def cmd_sub_bal(msg: Message, *args):
+    if len(args) != 2:
+        raise InvalidArgumentsError('must supply both <user or all> and <amount>', cmd=cmd_sub_bal)
+
+    target = args[0].lower()
+    if target != 'all' and target not in msg.channel.chatters:
+        raise InvalidArgumentsError(f'cannot find any viewer named "{target}"', cmd=cmd_sub_bal)
+
+    try:
+        amount = int(args[1])
+    except ValueError:
+        raise InvalidArgumentsError(f'cannot parse "{args[1]}" to a int, must be a valid int, ex: 100', cmd=cmd_sub_bal)
+
+    if amount <= 0:
+        raise InvalidArgumentsError(f'amount must be positive and not zero, ex: 1, 2, 100', cmd=cmd_sub_bal)
+
+    currency = get_currency_name(msg.channel_name).name
+
+    if get_balance_from_msg(msg).balance < amount:
+        raise InvalidArgumentsError(f'{target} does not have {currency} to subtract {amount} {currency} from',
+                                    cmd=cmd_sub_bal)
+
+    if target == 'all':
+        subtract_balance_from_all(msg.channel_name, amount)
+        await msg.reply(f"subtracted {amount} {currency} from everyone's balance")
+    else:
+        subtract_balance(msg.channel_name, target, amount)
+        await msg.reply(
+            f'subtracted {amount} {currency} from {target}, '
+            f'their total is now {get_balance(msg.channel_name, target).balance} {currency}')
 
 
 @Command('give', syntax='<target> <amount>',
@@ -228,7 +294,7 @@ async def cmd_arena(msg: Message, *args):
             await msg.reply(
                 whisper=True,
                 msg=f'{msg.mention} you do not have enough {curname} '
-                f'to join the arena, entry_fee is {arena.entry_fee} {curname}')
+                    f'to join the arena, entry_fee is {arena.entry_fee} {curname}')
             return
 
         arena.add_user(msg.author)
@@ -237,7 +303,7 @@ async def cmd_arena(msg: Message, *args):
         await msg.reply(
             whisper=True,
             msg=f'{msg.mention} you have been added to the arena, '
-            f'you were charged {arena.entry_fee} {curname} for entry')
+                f'you were charged {arena.entry_fee} {curname} for entry')
 
     # start a new arena as one is not already running for this channel
     else:

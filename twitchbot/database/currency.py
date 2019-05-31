@@ -1,9 +1,34 @@
 from typing import Dict, Tuple
-
 from .models import Balance, CurrencyName
 from .session import session
 
+__all__ = [
+    'get_balance',
+    'set_balance',
+    'get_currency_name',
+    'add_balance',
+    'add_balance_to_all',
+    'get_balance_from_msg',
+    'set_currency_name',
+    'subtract_balance',
+    'subtract_balance_from_all',
+]
+
 currency_name_cache: Dict[str, CurrencyName] = {}
+
+
+def add_balance_to_all(channel: str, value: int):
+    session.query(Balance) \
+        .filter(Balance.channel == channel) \
+        .update({Balance.balance: Balance.balance + value})
+    session.commit()
+
+
+def subtract_balance_from_all(channel: str, value: int):
+    session.query(Balance) \
+        .filter(Balance.channel == channel) \
+        .update({Balance.balance: Balance.balance - value})
+    session.commit()
 
 
 def set_balance(channel: str, user: str, value: int):
