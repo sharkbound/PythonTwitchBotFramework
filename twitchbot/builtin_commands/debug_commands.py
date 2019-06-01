@@ -18,5 +18,4 @@ async def cmd_debug(msg: Message, *args):
 
 # @Command('test')
 # async def cmd_test(msg: Message, *args):
-#     await run_command('roll', msg, ['17'], blocking=False)
-#     await run_command('roll', msg, ['17'], blocking=False)
+#     await msg.reply(f'{format_datetime(await get_user_creation_date(msg.author))}')

@@ -164,6 +164,20 @@ syntax: "<name>",
 help: "this command does a very important thing!"
 ```
 
+* you can add aliases for a command (other command names that refer to the same command):
+```python
+from twitchbot import Command, Message
+
+@Command('COMMAND_NAME', 
+    help='this command does a very important thing!', 
+    syntax='<name>', 
+    aliases=['COMMAND_NAME_2', 'COMMAND_NAME_3'])
+async def cmd_function(msg: Message, *args):
+    await msg.reply('i was called!')
+```
+
+`COMMAND_NAME_2` and `COMMAND_NAME_2` both refer to `COMMAND_NAME` and all three execute the same command
+
 # SubCommands
 
 the SubCommand class makes it easier to implement different actions based on a parameters passed to a command.
