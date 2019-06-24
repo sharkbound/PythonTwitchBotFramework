@@ -1,10 +1,16 @@
+from random import randint
+
 from twitchbot import Message, Command, get_user_info, format_datetime, get_user_creation_date, get_user_followers, \
     get_channel_chatters, override_event, Event, Mod, run_command
 
+pings = 0
 
-@Command('ping')
+
+@Command('ping', cooldown=0)
 async def cmd_debug(msg: Message, *args):
-    await msg.reply('Pong!')
+    global pings
+    pings += 1
+    await msg.reply(f'Pong #{pings}')
 
 # @Command('shoutout', permission='shoutout')
 # async def cmd_shoutout(msg: Message, *args):

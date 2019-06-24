@@ -3,7 +3,8 @@ from typing import Optional
 
 from .. import util, create_irc
 from ..channel import Channel, channels
-from ..command import Command, commands, CustomCommandAction
+from ..command import Command, commands, CustomCommandAction, is_command_on_cooldown, get_time_since_execute, \
+    update_command_last_execute
 from ..config import cfg
 from ..database import get_custom_command
 from ..disabled_commands import is_command_disabled
@@ -15,6 +16,7 @@ from ..irc import Irc
 from ..message import Message
 from ..modloader import trigger_mod_event
 from ..overrides import overrides
+from ..permission import perms
 
 
 # noinspection PyMethodMayBeStatic
@@ -174,12 +176,18 @@ class BaseBot:
         elif not isinstance(cmd, CustomCommandAction) and is_command_disabled(msg.channel_name, cmd.fullname):
             return await msg.reply(f'{cmd.fullname} is disabled for this channel')
 
+        if (not perms.has_permission(msg.channel_name, msg.author, cmd.cooldown_bypass) and
+                is_command_on_cooldown(msg.channel_name, cmd.fullname, cmd.cooldown)):
+            return await msg.reply(
+                f'{cmd.fullname} is on cooldown, seconds left: {cmd.cooldown - get_time_since_execute(msg.channel_name, cmd.fullname)}')
+
         if not await self.on_before_command_execute(msg, cmd) or not all(
                 await trigger_mod_event(Event.on_before_command_execute, msg, cmd, channel=msg.channel_name)):
             return
 
         try:
             await cmd.execute(msg)
+            update_command_last_execute(msg.channel_name, cmd.fullname)
         except InvalidArgumentsError as e:
             await self._send_cmd_help(msg, cmd, e)
         else:

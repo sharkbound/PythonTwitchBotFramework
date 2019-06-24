@@ -1,5 +1,6 @@
 import os
 import typing
+from datetime import datetime
 
 from datetime import datetime
 from importlib import import_module
@@ -16,14 +17,21 @@ if typing.TYPE_CHECKING:
 
 __all__ = (
     'Command', 'commands', 'command_exist', 'load_commands_from_directory', 'DummyCommand', 'CustomCommandAction',
-    'ModCommand', 'SubCommand', 'get_command', 'CUSTOM_COMMAND_PLACEHOLDERS')
+    'ModCommand', 'SubCommand', 'get_command', 'CUSTOM_COMMAND_PLACEHOLDERS', 'command_last_execute',
+    'get_time_since_execute', 'reset_command_last_execute', 'is_command_off_cooldown', 'is_command_on_cooldown',
+    'update_command_last_execute')
 
 
 class Command:
     def __init__(self, name: str, prefix: str = None, func: Callable = None, global_command: bool = True,
                  context: CommandContext = CommandContext.CHANNEL, permission: str = None, syntax: str = None,
-                 help: str = None, aliases: List[str] = None):
+                 help: str = None, aliases: List[str] = None, cooldown: int = 0,
+                 cooldown_bypass: str = 'bypass_cooldown'):
         """
+        :param cooldown: time between when this command when can be run, 0 means the command be run without any delay and is default value
+        :param syntax: help message for how to use the command, <> is required, () is optional
+        :param permission: permission needed to run the command in chat
+        :param help: help message for the command, used with the `help` command
         :param name: name of the command (without the prefix)
         :param prefix: prefix require before the command name (defaults the the configs prefix if None)
         :param func: the function that the commands executes
@@ -31,6 +39,8 @@ class Command:
         :param context: the context through which calling the command is allowed
         :param aliases: aliases for this same command, only works if global_command is True
         """
+        self.cooldown_bypass = cooldown_bypass
+        self.cooldown: int = cooldown
         self.aliases: List[str] = aliases if aliases is not None else []
         self.help: str = help
         self.syntax: str = syntax
@@ -155,7 +165,8 @@ class ModCommand(Command):
     def __init__(self, mod_name: str, name: str, prefix: str = None, func: Callable = None, global_command: bool = True,
                  context: CommandContext = CommandContext.CHANNEL, permission: str = None, syntax: str = None,
                  help: str = None):
-        super().__init__(name, prefix, func, global_command, context, permission, syntax, help)
+        super().__init__(name=name, prefix=prefix, func=func, global_command=global_command, context=context,
+                         permission=permission, syntax=syntax, help=help)
         self.mod_name = mod_name
         self.mod: 'Mod' = None
 
@@ -174,6 +185,32 @@ class ModCommand(Command):
 
 
 commands: Dict[str, Command] = {}
+command_last_execute: Dict[Tuple[str, str], datetime] = {}
+
+
+def _create_cooldown_key(channel: str, cmd: str) -> Tuple[str, str]:
+    return channel.lower(), cmd.lower()
+
+
+def is_command_off_cooldown(channel: str, cmd: str, cooldown: int = None) -> bool:
+    return get_time_since_execute(channel, cmd) >= (cooldown or get_command(cmd).cooldown)
+
+
+def is_command_on_cooldown(channel: str, cmd: str, cooldown: int = None) -> bool:
+    return not is_command_off_cooldown(channel, cmd, cooldown)
+
+
+def get_time_since_execute(channel: str, cmd: str) -> int:
+    last_execute = command_last_execute.get(_create_cooldown_key(channel, cmd), datetime.min)
+    return int(abs((last_execute - datetime.now()).total_seconds()))
+
+
+def update_command_last_execute(channel: str, cmd: str):
+    command_last_execute[_create_cooldown_key(channel, cmd)] = datetime.now()
+
+
+def reset_command_last_execute(channel: str, cmd: str):
+    command_last_execute[_create_cooldown_key(channel, cmd)] = datetime.min
 
 
 def load_commands_from_directory(path):
