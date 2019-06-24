@@ -6,7 +6,7 @@ from twitchbot import Message, Command, get_user_info, format_datetime, get_user
 pings = 0
 
 
-@Command('ping', cooldown=0)
+@Command('ping', cooldown=3)
 async def cmd_debug(msg: Message, *args):
     global pings
     pings += 1
