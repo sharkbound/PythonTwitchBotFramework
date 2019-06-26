@@ -15,6 +15,9 @@ from .util import get_py_files, get_file_name
 if typing.TYPE_CHECKING:
     from .modloader import Mod
 
+DEFAULT_COOLDOWN_BYPASS = 'bypass_cooldown'
+DEFAULT_COOLDOWN = 0
+
 __all__ = (
     'Command', 'commands', 'command_exist', 'load_commands_from_directory', 'DummyCommand', 'CustomCommandAction',
     'ModCommand', 'SubCommand', 'get_command', 'CUSTOM_COMMAND_PLACEHOLDERS', 'command_last_execute',
@@ -25,8 +28,8 @@ __all__ = (
 class Command:
     def __init__(self, name: str, prefix: str = None, func: Callable = None, global_command: bool = True,
                  context: CommandContext = CommandContext.CHANNEL, permission: str = None, syntax: str = None,
-                 help: str = None, aliases: List[str] = None, cooldown: int = 0,
-                 cooldown_bypass: str = 'bypass_cooldown'):
+                 help: str = None, aliases: List[str] = None, cooldown: int = DEFAULT_COOLDOWN,
+                 cooldown_bypass: str = DEFAULT_COOLDOWN_BYPASS):
         """
         :param cooldown: time between when this command when can be run, 0 means the command be run without any delay and is default value
         :param syntax: help message for how to use the command, <> is required, () is optional
@@ -94,9 +97,9 @@ class Command:
 
 class SubCommand(Command):
     def __init__(self, parent: Command, name: str, func: Callable = None, permission: str = None, syntax: str = None,
-                 help: str = None):
+                 help: str = None, cooldown: int = DEFAULT_COOLDOWN, cooldown_bypass: str = DEFAULT_COOLDOWN_BYPASS):
         super().__init__(name=name, prefix='', func=func, permission=permission, syntax=syntax, help=help,
-                         global_command=False)
+                         global_command=False, cooldown=cooldown, cooldown_bypass=cooldown_bypass)
 
         self.parent: Command = parent
         self.parent.sub_cmds[self.name] = self
@@ -164,9 +167,10 @@ class CustomCommandAction(Command):
 class ModCommand(Command):
     def __init__(self, mod_name: str, name: str, prefix: str = None, func: Callable = None, global_command: bool = True,
                  context: CommandContext = CommandContext.CHANNEL, permission: str = None, syntax: str = None,
-                 help: str = None):
+                 help: str = None, cooldown: int = DEFAULT_COOLDOWN, cooldown_bypass: str = DEFAULT_COOLDOWN_BYPASS):
         super().__init__(name=name, prefix=prefix, func=func, global_command=global_command, context=context,
-                         permission=permission, syntax=syntax, help=help)
+                         permission=permission, syntax=syntax, help=help, cooldown=cooldown,
+                         cooldown_bypass=cooldown_bypass)
         self.mod_name = mod_name
         self.mod: 'Mod' = None
 
