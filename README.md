@@ -262,7 +262,7 @@ async def cmd_greet_spanish(msg, *args):
     await msg.reply(f'hola {msg.mention}!')
 ```
 
-doing just `!greet` when make the bot say: 
+doing just `!greet` will make the bot say: 
 ```text
 command options: {english, spanish}
 ```
