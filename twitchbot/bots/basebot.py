@@ -58,7 +58,6 @@ class BaseBot:
         """
         triggered when a user sends the bot a whisper
         """
-        print(msg)
 
     async def on_permission_check(self, msg: Message, cmd: Command) -> bool:
         """
