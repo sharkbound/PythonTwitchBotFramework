@@ -11,6 +11,7 @@ if typing.TYPE_CHECKING:
 
 PRIVMSG_MAX_LINE_LENGTH = 450
 WHISPER_MAX_LINE_LENGTH = 438
+PRIV_MSG_FORMAT = 'PRIVMSG #{channel} :{line}'
 
 
 class Irc:
@@ -48,7 +49,7 @@ class Irc:
 
         for line in _wrap_message(msg):
             await privmsg_ratelimit(channels.get(channel, DummyChannel(channel)))
-            self.send(f'PRIVMSG #{channel} :{line}')
+            self.send(PRIV_MSG_FORMAT.format(channel=channel, line=line))
 
         # exclude calls from send_whisper being sent to the bots on_privmsg_received event
         if self.bot and not msg.startswith('/w'):
@@ -59,8 +60,9 @@ class Irc:
         """sends a whisper to a user"""
         from .modloader import trigger_mod_event
 
-        await whisper_ratelimit()
-        await self.send_privmsg(user, f'/w {user} {msg}')
+        for line in _wrap_message(f'/w {user} {msg}'):
+            await whisper_ratelimit()
+            self.send(PRIV_MSG_FORMAT.format(channel=user, line=line))
 
         if self.bot:
             await self.bot.on_whisper_sent(msg, user, cfg.nick)
