@@ -17,3 +17,8 @@ class InvalidArgumentsError(Exception):
         super().__init__(reason)
         self.cmd: 'Command' = cmd
         self.reason: str = reason
+
+
+class BadTwitchAPIResponse(Exception):
+    def __init__(self, endpoint, message):
+        super().__init__(f'bad response received from endpoint: {endpoint}\nextra details: {message}')
