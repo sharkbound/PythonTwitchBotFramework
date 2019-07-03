@@ -55,7 +55,8 @@ class Chatters:
     def _verify_response_is_dict(self, json):
         if not isinstance(json, dict):
             raise BadTwitchAPIResponse(CHANNEL_CHATTERS_URL,
-                                       f'response was not the expected type, expected: {dict}, actual: {type(json)}')
+                                       f'response was not the expected type, expected: {dict}, actual: {type(json)}'
+                                       f'\nvalue: {json}')
 
     def _verify_keys(self, json, keys):
         for key in keys:
