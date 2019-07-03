@@ -1,3 +1,4 @@
+import asyncio
 import typing
 import re
 from asyncio import StreamWriter, StreamReader
@@ -63,6 +64,10 @@ class Irc:
         for line in _wrap_message(f'/w {user} {msg}'):
             await whisper_ratelimit()
             self.send(PRIV_MSG_FORMAT.format(channel=user, line=line))
+            # this sleep is necessary to make sure all whispers get sent
+            # without it, consecutive whispers get dropped occasionally
+            # if i find a better fix, will do it instead, but until then, this works
+            await asyncio.sleep(.6)
 
         if self.bot:
             await self.bot.on_whisper_sent(msg, user, cfg.nick)

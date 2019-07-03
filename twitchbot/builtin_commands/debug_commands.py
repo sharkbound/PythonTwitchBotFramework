@@ -4,7 +4,7 @@ pings = 0
 
 
 @Command('ping', cooldown=3)
-async def cmd_debug(msg: Message, *args):
+async def cmd_ping(msg: Message, *args):
     global pings
     pings += 1
     await msg.reply(f'Pong #{pings}')
