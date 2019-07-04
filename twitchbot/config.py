@@ -88,6 +88,7 @@ class Config:
 
 DEFAULT_OAUTH = 'oauth:'
 DEFAULT_NICK = 'nick'
+
 cfg = Config(
     file_path=Path('configs', 'config.json'),
     nick=DEFAULT_NICK,
@@ -111,3 +112,20 @@ if cfg.nick == DEFAULT_NICK or cfg.oauth == DEFAULT_OAUTH:
     auth = show_auth_gui()
     cfg['nick'] = auth.username
     cfg['oauth'] = auth.oauth
+
+if 'oauth:' not in cfg['oauth']:
+    print('oauth must start with `oauth:` and be followed by the token itself, ex: oauth:exampletoken12')
+    input('press enter to exit...')
+    exit()
+
+if len(cfg['oauth']) <= 10:
+    print('oauth is too short, must be `oauth:` followed by the token itself, ex: oauth:exampletoken12')
+    input('press enter to exit...')
+    exit()
+
+# this is to fix the edge case where the user entered enters cased names / channel names
+# without this, the twitch API returns weird responses that are not easy to figure out why it is doing it
+cfg['nick'] = cfg['nick'].lower()
+cfg['owner'] = cfg['owner'].lower()
+cfg['channels'] = [chan.lower() for chan in cfg['channels']]
+cfg.save()
