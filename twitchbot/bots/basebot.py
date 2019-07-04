@@ -15,7 +15,7 @@ from ..exceptions import InvalidArgumentsError
 from ..irc import Irc
 from ..message import Message
 from ..modloader import trigger_mod_event
-from ..overrides import overrides
+from ..events import trigger_event
 from ..permission import perms
 
 
@@ -166,8 +166,11 @@ class BaseBot:
         return None
 
     async def _run_command(self, msg: Message, cmd: Command):
-        if not await self.on_permission_check(msg, cmd) or not all(
-                await trigger_mod_event(Event.on_permission_check, msg, cmd, channel=msg.channel_name)):
+        if (
+                not await self.on_permission_check(msg, cmd)
+                or not all(await trigger_mod_event(Event.on_permission_check, msg, cmd, channel=msg.channel_name))
+                or not all(await trigger_event(Event.on_permission_check, msg, cmd))
+        ):
             return await msg.reply(
                 whisper=True,
                 msg=f'you do not have permission to execute {cmd.fullname} in #{msg.channel_name}')
@@ -180,8 +183,11 @@ class BaseBot:
             return await msg.reply(
                 f'{cmd.fullname} is on cooldown, seconds left: {cmd.cooldown - get_time_since_execute(msg.channel_name, cmd.fullname)}')
 
-        if not await self.on_before_command_execute(msg, cmd) or not all(
-                await trigger_mod_event(Event.on_before_command_execute, msg, cmd, channel=msg.channel_name)):
+        if (
+                not await self.on_before_command_execute(msg, cmd)
+                or not all(await trigger_mod_event(Event.on_before_command_execute, msg, cmd, channel=msg.channel_name))
+                or not all(await trigger_event(Event.on_before_command_execute, msg, cmd))
+        ):
             return
 
         try:
@@ -192,15 +198,17 @@ class BaseBot:
         else:
             await self.on_after_command_execute(msg, cmd)
             await trigger_mod_event(Event.on_after_command_execute, msg, cmd, channel=msg.channel_name)
+            await trigger_event(Event.on_after_command_execute, msg, cmd)
 
     async def _send_cmd_help(self, msg: Message, cmd: Command, exc: InvalidArgumentsError):
         await msg.reply(
             f'{exc.reason} - "{cmd.fullname} {cmd.syntax}" - do "{cfg.prefix}help {cmd.fullname}" for more details')
 
-    def _load_overrides(self):
-        for k, v in overrides.items():
-            if k.value in self.__class__.__dict__ and k.value.startswith('on'):
-                setattr(self, k.value, v)
+    # kept if needed later
+    # def _load_overrides(self):
+    #     for k, v in overrides.items():
+    #         if k.value in self.__class__.__dict__ and k.value.startswith('on'):
+    #             setattr(self, k.value, v)
 
     def shutdown(self):
         self._running = False
@@ -211,8 +219,7 @@ class BaseBot:
         get_event_loop().run_until_complete(self._mainloop())
 
     async def _mainloop(self):
-        """starts the bot, loads event overrides, connects to twitch, then starts the message event loop"""
-        self._load_overrides()
+        """starts the bot, connects to twitch, then starts the message event loop"""
 
         await update_global_emotes()
 
@@ -222,6 +229,7 @@ class BaseBot:
         await self._connect()
         await self.on_connected()
         await trigger_mod_event(Event.on_connected)
+        await trigger_event(Event.on_connected)
 
         while self._running:
             raw_msg = await self.irc.get_next_message()
@@ -230,11 +238,12 @@ class BaseBot:
                 continue
 
             msg = Message(raw_msg, irc=self.irc, bot=self)
-            await self.on_raw_message(msg)
-            get_event_loop().create_task(
-                trigger_mod_event(Event.on_raw_message, msg, channel=msg.channel_name))
 
-            coro = mod_coro = None
+            await self.on_raw_message(msg)
+            get_event_loop().create_task(trigger_mod_event(Event.on_raw_message, msg, channel=msg.channel_name))
+            get_event_loop().create_task(trigger_event(Event.on_raw_message, msg))
+
+            coro = mod_coro = event_coro = None
             cmd: Command = (await self.get_command_from_msg(msg)
                             if msg.is_user_message and msg.author != cfg.nick
                             else None)
@@ -248,29 +257,38 @@ class BaseBot:
                 print(msg)
                 coro = self.on_whisper_received(msg)
                 mod_coro = trigger_mod_event(Event.on_whisper_received, msg)
+                event_coro = trigger_event(Event.on_whisper_received, msg)
 
             elif msg.type is MessageType.PRIVMSG:
                 print(msg)
                 coro = self.on_privmsg_received(msg)
                 mod_coro = trigger_mod_event(Event.on_privmsg_received, msg, channel=msg.channel_name)
+                event_coro = trigger_event(Event.on_privmsg_received, msg)
+
 
             elif msg.type is MessageType.USER_JOIN:
                 # the bot has joined a channel
                 if msg.author == cfg.nick:
                     coro = self.on_channel_joined(msg.channel)
                     mod_coro = trigger_mod_event(Event.on_channel_joined, msg.channel, channel=msg.channel_name)
+                    event_coro = trigger_event(Event.on_channel_joined, msg.channel)
                 # user joined a channel the bot was in
                 else:
                     coro = self.on_user_join(msg.author, msg.channel)
                     mod_coro = trigger_mod_event(Event.on_user_join, msg.author, msg.channel, channel=msg.channel_name)
+                    event_coro = trigger_event(Event.on_user_join, msg.author, msg.channel)
+
 
             elif msg.type is MessageType.USER_PART:
                 coro = self.on_user_part(msg.author, msg.channel)
                 mod_coro = trigger_mod_event(Event.on_user_part, msg.author, msg.channel, channel=msg.channel_name)
+                event_coro = trigger_event(Event.on_user_part, msg.author, msg.channel)
+
 
             elif msg.type is MessageType.SUBSCRIPTION:
                 coro = self.on_channel_subscription(msg.channel, msg)
                 mod_coro = trigger_mod_event(Event.on_channel_subscription, msg.channel, msg, channel=msg.channel_name)
+                event_coro = trigger_event(Event.on_channel_subscription, msg.channel, msg)
 
             elif msg.type is MessageType.PING:
                 self.irc.send_pong()
@@ -279,9 +297,13 @@ class BaseBot:
                 get_event_loop().create_task(self.on_bits_donated(msg, msg.tags.bits))
                 get_event_loop().create_task(
                     trigger_mod_event(Event.on_bits_donated, msg, msg.tags.bits, channel=msg.channel_name))
+                get_event_loop().create_task(trigger_event(Event.on_bits_donated, msg.channel, msg))
 
             if coro is not None:
                 get_event_loop().create_task(coro)
 
             if mod_coro is not None:
                 get_event_loop().create_task(mod_coro)
+
+            if event_coro is not None:
+                get_event_loop().create_task(event_coro)

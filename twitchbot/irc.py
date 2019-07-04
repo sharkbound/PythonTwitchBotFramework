@@ -1,11 +1,12 @@
 import asyncio
 import typing
 import re
-from asyncio import StreamWriter, StreamReader
+from asyncio import StreamWriter, StreamReader, get_event_loop
 from .config import cfg
 from .ratelimit import privmsg_ratelimit, whisper_ratelimit
 from .enums import Event
 from textwrap import wrap
+from .events import trigger_event
 
 if typing.TYPE_CHECKING:
     from .bots import BaseBot
@@ -53,9 +54,11 @@ class Irc:
             self.send(PRIV_MSG_FORMAT.format(channel=channel, line=line))
 
         # exclude calls from send_whisper being sent to the bots on_privmsg_received event
-        if self.bot and not msg.startswith('/w'):
-            await self.bot.on_privmsg_sent(msg, channel, cfg.nick)
+        if not msg.startswith('/w'):
+            if self.bot:
+                await self.bot.on_privmsg_sent(msg, channel, cfg.nick)
             await trigger_mod_event(Event.on_privmsg_sent, msg, channel, cfg.nick, channel=channel)
+            await trigger_event(Event.on_privmsg_sent, msg, channel, cfg.nick)
 
     async def send_whisper(self, user: str, msg: str):
         """sends a whisper to a user"""
@@ -71,7 +74,8 @@ class Irc:
 
         if self.bot:
             await self.bot.on_whisper_sent(msg, user, cfg.nick)
-            await trigger_mod_event(Event.on_whisper_sent, msg, user, cfg.nick)
+        await trigger_mod_event(Event.on_whisper_sent, msg, user, cfg.nick)
+        await trigger_event(Event.on_whisper_sent, msg, user, cfg.nick)
 
     async def get_next_message(self):
         return (await self.reader.readline()).decode().strip()

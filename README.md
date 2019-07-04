@@ -65,9 +65,9 @@ the bots events are overridable via the following 2 ways:
 1) using decorators:
 
 ```python
-from twitchbot import override_event, Event, Message
+from twitchbot import event_handler, Event, Message
 
-@override_event(Event.on_privmsg_received)
+@event_handler(Event.on_privmsg_received)
 async def on_privmsg_received(msg: Message):
     print(f'{msg.author} sent message {msg.content} to channel {msg.channel_name}')
 
@@ -92,7 +92,7 @@ MyCustomTwitchBot().run()
 from twitchbot import Event
 
 Event.on_after_command_execute : (self, msg: Message, cmd: Command)
-Event.on_before_command_execute : (self, msg: Message, cmd: Command)
+Event.on_before_command_execute : (self, msg: Message, cmd: Command) -> bool # return False to cancel command
 Event.on_bits_donated : (self, msg: Message, bits: int)
 Event.on_channel_joined : (self, channel: Channel)
 Event.on_connected : (self)
@@ -103,8 +103,9 @@ Event.on_whisper_sent : (self, msg: str, receiver: str, sender: str)
 Event.on_raw_message : (self, msg: Message)
 Event.on_user_join : (self, user: str, channel: Channel)
 Event.on_user_part : (self, user: str, channel: Channel)
+Event.on_permission_check :  (self, msg: Message, cmd: Command) -> bool # return False to deny permission to execute the cmd
 ```
-
+#### when using the decorator event override way, `self` is not included, ex: `(self, msg: Message)` becomes: `(msg: Message)` 
 
 if this is the first time running the bot it will generate a folder
 named `configs`. 
