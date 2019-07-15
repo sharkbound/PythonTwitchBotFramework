@@ -110,7 +110,7 @@ def delete_message_timer(channel: str, name: str) -> bool:
     return True
 
 
-# todo: bug with restarting a active message timer?
+# fixme: bug with restarting a active message timer?
 def restart_message_timer(channel: str, name: str):
     if _key(channel, name) in active_message_timers:
         set_message_timer_active(channel, name, False)
