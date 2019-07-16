@@ -1,19 +1,19 @@
 import os
 import traceback
+from importlib import import_module
 from inspect import isclass
+from typing import Dict, Callable, Any
 
-from typing import Dict
-from .util import temp_syspath, get_py_files, get_file_name
 from .channel import Channel
 from .command import Command
 from .config import cfg
+from .disabled_mods import is_mod_disabled
 from .enums import Event
 from .message import Message
-from .disabled_mods import is_mod_disabled
-from importlib import import_module
+from .util import temp_syspath, get_py_files, get_file_name
 
 __all__ = ('ensure_mods_folder_exists', 'Mod', 'register_mod', 'trigger_mod_event', 'mods',
-           'load_mods_from_directory', 'mod_exists')
+           'load_mods_from_directory', 'mod_exists', 'reload_mod')
 
 
 # noinspection PyMethodMayBeStatic
@@ -174,7 +174,7 @@ def ensure_mods_folder_exists():
         os.mkdir(cfg.mods_folder)
 
 
-def load_mods_from_directory(fullpath):
+def load_mods_from_directory(fullpath, predicate: Callable[[str, Any], bool] = None):
     """
     loads all mods from the given directory, only .py files are loaded
     :param fullpath: the path to search for mods to load
@@ -191,7 +191,8 @@ def load_mods_from_directory(fullpath):
                 if not isclass(obj) or not issubclass(obj, Mod) or obj is Mod:
                     continue
                 # create a instance of the mod subclass, then register it
-                register_mod(obj())
+                if predicate is None or (predicate is not None and predicate(obj.name, obj)):
+                    register_mod(obj())
 
 
 def mod_exists(mod: str) -> bool:

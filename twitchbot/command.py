@@ -1,16 +1,15 @@
 import os
 import typing
 from datetime import datetime
-
-from datetime import datetime
 from importlib import import_module
 from typing import Dict, Callable, Optional, List, Tuple
-from .util import temp_syspath
+
 from twitchbot.database import CustomCommand
 from twitchbot.message import Message
 from .config import cfg
 from .enums import CommandContext
 from .util import get_py_files, get_file_name
+from .util import temp_syspath
 
 if typing.TYPE_CHECKING:
     from .modloader import Mod
@@ -172,15 +171,13 @@ class ModCommand(Command):
                          permission=permission, syntax=syntax, help=help, cooldown=cooldown,
                          cooldown_bypass=cooldown_bypass)
         self.mod_name = mod_name
-        self.mod: 'Mod' = None
+
+    @property
+    def mod(self):
+        from .modloader import mods
+        return mods[self.mod_name]
 
     async def execute(self, msg: Message):
-        # circular dependency hack
-        from .modloader import mods
-
-        if self.mod is None:
-            self.mod = mods[self.mod_name]
-
         func, args = self._get_cmd_func(msg.parts[1:])
         if 'self' in func.__code__.co_varnames:
             await func(self.mod, msg, *args)
