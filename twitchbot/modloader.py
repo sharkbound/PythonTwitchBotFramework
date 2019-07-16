@@ -13,7 +13,7 @@ from .message import Message
 from .util import temp_syspath, get_py_files, get_file_name
 
 __all__ = ('ensure_mods_folder_exists', 'Mod', 'register_mod', 'trigger_mod_event', 'mods',
-           'load_mods_from_directory', 'mod_exists', 'reload_mod')
+           'load_mods_from_directory', 'mod_exists')
 
 
 # noinspection PyMethodMayBeStatic
