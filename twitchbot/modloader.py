@@ -1,7 +1,9 @@
 import os
+import sys
 import traceback
 from importlib import import_module
-from inspect import isclass
+from inspect import isclass, getfile, getmodulename
+from pathlib import Path
 from typing import Dict, Callable, Any
 
 from .channel import Channel
@@ -13,7 +15,7 @@ from .message import Message
 from .util import temp_syspath, get_py_files, get_file_name
 
 __all__ = ('ensure_mods_folder_exists', 'Mod', 'register_mod', 'trigger_mod_event', 'mods',
-           'load_mods_from_directory', 'mod_exists')
+           'load_mods_from_directory', 'mod_exists', 'reload_mod', 'is_mod', 'unregister_mod')
 
 
 # noinspection PyMethodMayBeStatic
@@ -134,6 +136,18 @@ def register_mod(mod: Mod) -> bool:
     return True
 
 
+def unregister_mod(mod: Mod) -> bool:
+    """
+    unregisters a mod from the global cache `mods`
+    :param mod: mod to unregister
+    :return: if it successfully unregistered it
+    """
+    if mod.name not in mods:
+        return False
+
+    del mods[mod.name]
+
+
 async def trigger_mod_event(event: Event, *args, channel: str = None) -> list:
     """
     triggers a event on all mods
@@ -188,11 +202,37 @@ def load_mods_from_directory(fullpath, predicate: Callable[[str, Any], bool] = N
             module = import_module(get_file_name(file))
             for obj in module.__dict__.values():
                 # verify the obj is a class, is a subclass of Mod, and is not Mod class itself
-                if not isclass(obj) or not issubclass(obj, Mod) or obj is Mod:
+                if not is_mod(obj):
                     continue
                 # create a instance of the mod subclass, then register it
                 if predicate is None or (predicate is not None and predicate(obj.name, obj)):
                     register_mod(obj())
+
+
+def reload_mod(mod_name: str):
+    mod = mods.get(mod_name)
+    if mod is None:
+        raise ValueError(f'could not find mod by the name of "{mod_name}"')
+
+    # get the module's file path, this is needed to add it to python's import search paths
+    path = Path(getfile(mod.__class__))
+    with temp_syspath(path.parent):
+        # this is needed to make python import the latest version from disk,
+        # python caches imports in sys.modules
+        # doing this removes it from the cache, so the latest version from the disk is imported
+        del sys.modules[getmodulename(path)]
+        # this dict stores the Mod's / global objects in the Mod's .py file
+        # it lets us iterate over its value to check for the Mod that we want to reload
+        mod_globals = {}
+        __import__(getmodulename(path), locals={}, globals=mod_globals)
+        for item in mod_globals.values():
+            if is_mod(item) and item.name == mod.name:
+                unregister_mod(mod)
+                register_mod(item())
+
+
+def is_mod(obj):
+    return isclass(obj) and issubclass(obj, Mod) and obj is not Mod
 
 
 def mod_exists(mod: str) -> bool:

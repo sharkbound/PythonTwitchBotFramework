@@ -3,7 +3,8 @@ import sys
 from contextlib import contextmanager
 from datetime import datetime
 from glob import iglob
-from typing import List
+from pathlib import Path
+from typing import List, Union
 
 __all__ = ('get_py_files', 'get_file_name', 'temp_syspath', 'format_datetime')
 
@@ -23,11 +24,14 @@ def get_file_name(path: str):
 
 
 @contextmanager
-def temp_syspath(fullpath):
+def temp_syspath(fullpath: Union[str, Path]):
     """
     temporarily appends the fullpath to sys.path, yields, then removes it from sys.path
     if the fullpath is already in sys.path the append/remove is skipped
     """
+    if isinstance(fullpath, Path):
+        fullpath = str(fullpath)
+
     if not os.path.isabs(fullpath):
         fullpath = os.path.abspath(fullpath)
 
