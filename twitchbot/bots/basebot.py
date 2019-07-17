@@ -17,6 +17,8 @@ from ..message import Message
 from ..modloader import trigger_mod_event
 from ..events import trigger_event
 from ..permission import perms
+from ..modloader import Mod
+from ..shared import set_bot
 
 
 # noinspection PyMethodMayBeStatic
@@ -24,8 +26,14 @@ class BaseBot:
     def __init__(self):
         self.irc: Irc = None
         self._running = False
+        set_bot(self)
 
     # region events
+    async def on_mod_reloaded(self, mod: Mod):
+        """
+        triggered when a mod is reloaded using reload_mod() or !reloadmod
+        :param mod: mod being reloaded
+        """
 
     async def on_connected(self):
         """
@@ -173,7 +181,7 @@ class BaseBot:
         ):
             return await msg.reply(
                 whisper=True,
-                msg=f'you do not have permission to execute {cmd.fullname} in #{msg.channel_name}')
+                msg=f'you do not have permission to execute {cmd.fullname} in #{msg.channel_name}, permission required: {cmd.permission}')
 
         elif not isinstance(cmd, CustomCommandAction) and is_command_disabled(msg.channel_name, cmd.fullname):
             return await msg.reply(f'{cmd.fullname} is disabled for this channel')

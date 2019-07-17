@@ -48,3 +48,4 @@ class Event(NamedEnum):
     on_raw_message = auto()
     on_user_join = auto()
     on_user_part = auto()
+    on_mod_reloaded = auto()

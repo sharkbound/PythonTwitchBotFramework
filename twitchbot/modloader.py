@@ -1,11 +1,14 @@
 import os
 import sys
 import traceback
+from asyncio import get_event_loop
 from importlib import import_module
 from inspect import isclass, getfile, getmodulename
 from pathlib import Path
+from traceback import print_exc
 from typing import Dict, Callable, Any
 
+from .shared import get_bot
 from .channel import Channel
 from .command import Command
 from .config import cfg
@@ -13,6 +16,7 @@ from .disabled_mods import is_mod_disabled
 from .enums import Event
 from .message import Message
 from .util import temp_syspath, get_py_files, get_file_name
+from .events import trigger_event
 
 __all__ = ('ensure_mods_folder_exists', 'Mod', 'register_mod', 'trigger_mod_event', 'mods',
            'load_mods_from_directory', 'mod_exists', 'reload_mod', 'is_mod', 'unregister_mod')
@@ -33,6 +37,12 @@ class Mod:
         """
         triggered when the mod is disabled
         :param channel: the channel the mod is disabled in
+        """
+
+    async def on_mod_reloaded(self, mod: 'Mod'):
+        """
+        triggered when a mod is reloaded using reload_mod() or !reloadmod
+        :param mod: mod being reloaded
         """
 
     async def on_connected(self):
@@ -164,7 +174,7 @@ async def trigger_mod_event(event: Event, *args, channel: str = None) -> list:
 
     output = []
     for mod in mods.values():
-        if channel and is_mod_disabled(channel, mod.name):
+        if channel is not None and is_mod_disabled(channel, mod.name):
             continue
 
         try:
@@ -214,21 +224,31 @@ def reload_mod(mod_name: str):
     if mod is None:
         raise ValueError(f'could not find mod by the name of "{mod_name}"')
 
-    # get the module's file path, this is needed to add it to python's import search paths
-    path = Path(getfile(mod.__class__))
-    with temp_syspath(path.parent):
-        # this is needed to make python import the latest version from disk,
-        # python caches imports in sys.modules
-        # doing this removes it from the cache, so the latest version from the disk is imported
-        del sys.modules[getmodulename(path)]
-        # this dict stores the Mod's / global objects in the Mod's .py file
-        # it lets us iterate over its value to check for the Mod that we want to reload
-        mod_globals = {}
-        __import__(getmodulename(path), locals={}, globals=mod_globals)
-        for item in mod_globals.values():
-            if is_mod(item) and item.name == mod.name:
-                unregister_mod(mod)
-                register_mod(item())
+    try:
+        # get the module's file path, this is needed to add it to python's import search paths
+        path = Path(getfile(mod.__class__))
+        with temp_syspath(path.parent):
+            # this is needed to make python import the latest version from disk,
+            # python caches imports in sys.modules
+            # doing this removes it from the cache, so the latest version from the disk is imported
+            del sys.modules[getmodulename(path)]
+            # this dict stores the Mod's / global objects in the Mod's .py file
+            # it lets us iterate over its value to check for the Mod that we want to reload
+            for item in __import__(getmodulename(path), locals={}, globals={}).__dict__.values():
+                if is_mod(item) and item.name == mod.name:
+                    unregister_mod(mod)
+                    reloaded_mod = item()
+                    register_mod(reloaded_mod)
+                    # trigger events
+                    get_event_loop().create_task(trigger_mod_event(Event.on_mod_reloaded, reloaded_mod))
+                    get_event_loop().create_task(get_bot().on_mod_reloaded(reloaded_mod))
+                    get_event_loop().create_task(trigger_event(Event.on_mod_reloaded, reloaded_mod))
+                    return True
+
+    except Exception as e:
+        print(f'error trying to reload Mod "{mod.name}", error type: {type(e)}, error: {e}')
+        print_exc()
+    return False
 
 
 def is_mod(obj):

@@ -7,8 +7,8 @@ from twitchbot import (
     mod_exists,
     enable_mod,
     disable_mod,
-    mods
-)
+    mods,
+    reload_mod)
 
 MOD_MANAGE_PERMISSION = 'manage_mods'
 
@@ -53,3 +53,20 @@ async def cmd_disable_mod(msg: Message, *args):
 async def cmd_disabled_mods(msg: Message, *args):
     await msg.reply(f'disabled mods for "{msg.channel_name}": ' + ', '.join(
         mod for mod in mods if is_mod_disabled(msg.channel_name, mod)))
+
+
+@Command('reloadmod', context=CommandContext.CHANNEL, syntax='<modname(case sensitive)>',
+         permission=MOD_MANAGE_PERMISSION,
+         help='reloads a specific module (case sensitive) from disk')
+async def cmd_reload_mod(msg: Message, *args):
+    if len(args) != 1:
+        raise InvalidArgumentsError(f'missing required argument: modname', cmd=cmd_reload_mod)
+    mod = args[0]
+
+    if not mod_exists(mod):
+        raise InvalidArgumentsError(f'could not find any mod by name: {mod}', cmd=cmd_reload_mod)
+
+    if reload_mod(mod):
+        await msg.reply(f'reloaded mod "{mod}"')
+    else:
+        await msg.reply(f'failed to reload mod "{mod}"')

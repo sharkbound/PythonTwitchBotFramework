@@ -104,6 +104,7 @@ Event.on_raw_message : (self, msg: Message)
 Event.on_user_join : (self, user: str, channel: Channel)
 Event.on_user_part : (self, user: str, channel: Channel)
 Event.on_permission_check :  (self, msg: Message, cmd: Command) -> bool # return False to deny permission to execute the cmd
+Event.on_mod_reloaded :  (self, mod: Mod)  
 ```
 #### when using the decorator event override way, `self` is not included, ex: `(self, msg: Message)` becomes: `(msg: Message)` 
 
