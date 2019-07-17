@@ -8,15 +8,15 @@ from pathlib import Path
 from traceback import print_exc
 from typing import Dict, Callable, Any
 
-from .shared import get_bot
 from .channel import Channel
 from .command import Command
 from .config import cfg
 from .disabled_mods import is_mod_disabled
 from .enums import Event
+from .events import trigger_event, AsyncEventWrapper
 from .message import Message
+from .shared import get_bot
 from .util import temp_syspath, get_py_files, get_file_name
-from .events import trigger_event
 
 __all__ = ('ensure_mods_folder_exists', 'Mod', 'register_mod', 'trigger_mod_event', 'mods',
            'load_mods_from_directory', 'mod_exists', 'reload_mod', 'is_mod', 'unregister_mod')
@@ -231,14 +231,23 @@ def reload_mod(mod_name: str):
             # this is needed to make python import the latest version from disk,
             # python caches imports in sys.modules
             # doing this removes it from the cache, so the latest version from the disk is imported
+            prev_module = sys.modules[getmodulename(path)]
             del sys.modules[getmodulename(path)]
             # this dict stores the Mod's / global objects in the Mod's .py file
             # it lets us iterate over its value to check for the Mod that we want to reload
-            for item in __import__(getmodulename(path), locals={}, globals={}).__dict__.values():
+            module = __import__(getmodulename(path), locals={}, globals={})
+            for item in module.__dict__.values():
                 if is_mod(item) and item.name == mod.name:
                     unregister_mod(mod)
                     reloaded_mod = item()
                     register_mod(reloaded_mod)
+
+                    # removed previous events that were registered via @event_handler
+                    # this prevents event duplication and stacking
+                    for var in prev_module.__dict__.values():
+                        if isinstance(var, AsyncEventWrapper):
+                            var.unregister()
+
                     # trigger events
                     get_event_loop().create_task(trigger_mod_event(Event.on_mod_reloaded, reloaded_mod))
                     get_event_loop().create_task(get_bot().on_mod_reloaded(reloaded_mod))
