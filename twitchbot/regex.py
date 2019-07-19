@@ -31,5 +31,5 @@ RE_AT_MENTION = re.compile(
 
 # user notices / subscriptions
 RE_USERNOTICE = re.compile(
-    r'(?P<tags>.*):tmi\.twitch\.tv USERNOTICE #(?P<channel>[\w\d]+)( :)?(?P<content>.+)?'
+    r'(?P<tags>.*):tmi\.twitch\.tv USERNOTICE #(?P<channel>[\w\d]+)(?: :)?(?P<content>.+)?'
 )

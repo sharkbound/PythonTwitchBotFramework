@@ -24,6 +24,7 @@ class MessageType(NamedEnum):
     USER_JOIN = auto()
     USER_PART = auto()
     SUBSCRIPTION = auto()
+    USER_NOTICE = auto()
     NONE = auto()
 
 

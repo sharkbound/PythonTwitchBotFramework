@@ -31,33 +31,27 @@ class Message:
         self._parse()
 
     def _parse(self):
-        m = RE_USERNOTICE.search(self.raw_msg)
-        if m:
-            self.tags = Tags(m['tags'])
-            self.channel = channels[m['channel']]
-            self.author = self.tags.all_tags.get('login')
-            self.content = m['content']
-            if self.tags.msg_id in {'sub', 'resub', 'subgift', 'anonsubgift', 'submysterygift'}:
-                self.type = MessageType.SUBSCRIPTION
+        # this weird looking bit is to make sure we do not do unnecessary checks when we have found a match
+        (self._parse_usernotice()
+         or self._parse_privmsg()
+         or self._parse_whisper()
+         or self._parse_user_join()
+         or self._parse_user_part()
+         or self._check_ping())
 
-        m = RE_PRIVMSG.search(self.raw_msg)
+        if self.parts and any(p in emotes for p in self.parts):
+            self.emotes = tuple(emotes[p] for p in self.parts if p in emotes)
+
+    def _parse_user_part(self) -> bool:
+        m = RE_USER_PART.search(self.raw_msg)
         if m:
             self.channel = channels[m['channel']]
             self.author = m['user']
-            self.content = m['content']
-            self.type = MessageType.PRIVMSG
-            self.parts = split_message(self.content)
-            self.tags = Tags(m['tags'])
-            self.mentions = get_message_mentions(self)
+            self.type = MessageType.USER_PART
 
-        m = RE_WHISPER.search(self.raw_msg)
-        if m:
-            self.author = m['user']
-            self.receiver = m['receiver']
-            self.content = m['content']
-            self.type = MessageType.WHISPER
-            self.parts = split_message(self.content)
+        return bool(m)
 
+    def _parse_user_join(self) -> bool:
         m = RE_USER_JOIN.search(self.raw_msg)
         if m:
             # ensure the channel exists, if it does not, create it and put it in the cache
@@ -69,17 +63,51 @@ class Message:
             self.author = m['user']
             self.type = MessageType.USER_JOIN
 
-        m = RE_USER_PART.search(self.raw_msg)
+        return bool(m)
+
+    def _parse_whisper(self) -> bool:
+        m = RE_WHISPER.search(self.raw_msg)
+        if m:
+            self.author = m['user']
+            self.receiver = m['receiver']
+            self.content = m['content']
+            self.type = MessageType.WHISPER
+            self.parts = split_message(self.content)
+
+        return bool(m)
+
+    def _parse_privmsg(self) -> bool:
+        m = RE_PRIVMSG.search(self.raw_msg)
         if m:
             self.channel = channels[m['channel']]
             self.author = m['user']
-            self.type = MessageType.USER_PART
+            self.content = m['content']
+            self.type = MessageType.PRIVMSG
+            self.parts = split_message(self.content)
+            self.tags = Tags(m['tags'])
+            self.mentions = get_message_mentions(self)
 
-        elif self.raw_msg == 'PING :tmi.twitch.tv':
+        return bool(m)
+
+    def _parse_usernotice(self) -> bool:
+        m = RE_USERNOTICE.search(self.raw_msg)
+        if m:
+            self.tags = Tags(m['tags'])
+            self.channel = channels[m['channel']]
+            self.author = self.tags.all_tags.get('login')
+            self.content = m['content']
+            if self.tags.msg_id in {'sub', 'resub', 'subgift', 'anonsubgift', 'submysterygift'}:
+                self.type = MessageType.SUBSCRIPTION
+            else:
+                self.type = MessageType.USER_NOTICE
+
+        return bool(m)
+
+    def _check_ping(self) -> bool:
+        if self.raw_msg == 'PING :tmi.twitch.tv':
             self.type = MessageType.PING
 
-        if self.parts and any(p in emotes for p in self.parts):
-            self.emotes = tuple(emotes[p] for p in self.parts if p in emotes)
+        return self.type is MessageType.PING
 
     @property
     def is_user_message(self):
@@ -137,6 +165,18 @@ class Message:
 
         elif self.type is MessageType.PING:
             return 'PING'
+
+        elif self.type is MessageType.SUBSCRIPTION:
+            return f'{self.author} subscribed to {self.channel_name}'
+
+        elif self.type is MessageType.USER_NOTICE:
+            return f'USERNOTICE for {self.author}'
+
+        elif self.type is MessageType.USER_JOIN:
+            return f'{self.author} joined {self.channel_name}'
+
+        elif self.type is MessageType.USER_PART:
+            return f'{self.author} left {self.channel_name}'
 
         return self.raw_msg
 
