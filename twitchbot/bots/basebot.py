@@ -225,9 +225,9 @@ class BaseBot:
     def run(self):
         """runs/starts the bot, this is a blocking function that starts the mainloop"""
         self._running = True
-        get_event_loop().run_until_complete(self._mainloop())
+        get_event_loop().run_until_complete(self.mainloop())
 
-    async def _mainloop(self):
+    async def mainloop(self):
         """starts the bot, connects to twitch, then starts the message event loop"""
 
         await update_global_emotes()
