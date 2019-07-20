@@ -21,6 +21,7 @@ working twitchbot framework made in python 3.6+
 * [Reloading Permissions](#reloading-permissions)
 * [Command Server](#command-server)
 * [Command Console](#command-console)
+* [Mysql Support](#mysql-support)
 
 # basic info
 This is a fully async twitch bot framework complete with:
@@ -446,3 +447,12 @@ after verifying these are done, simply do `python command_console.py` to open th
 
 after choose the channel the prompt changes to `(CHANNEL_HERE):` and you are now able to send chat messages / commands to the choosen channel by typing your message and pressing enter
 
+
+# Mysql Support
+to enabled mysql
+
+* open `configs/mysql.json` (if its missing run the bot and close it, this should generate `mysql.json`)
+* set `enabled` to `true`
+* fill in `address`, `username`, `password`, and `database`
+* install the mysql library (if needed) `pip install --upgrade --user mysql-connector-python`
+* rerun the bot
