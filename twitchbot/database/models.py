@@ -1,10 +1,10 @@
-from asyncio import Future, Task
+from asyncio import Task
 
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
+from .session import Base, database_init
 from ..config import cfg
 from ..enums import CommandContext
-from .session import Base, database_init
 
 __all__ = ('Quote', 'CustomCommand', 'Balance', 'CurrencyName', 'MessageTimer')
 
@@ -13,10 +13,10 @@ class Quote(Base):
     __tablename__ = 'quotes'
 
     id = Column(Integer, primary_key=True, nullable=False)
-    user = Column(String)
-    channel = Column(String, nullable=False)
-    alias = Column(String)
-    value = Column(String, nullable=False)
+    user = Column(String(255))
+    channel = Column(String(255), nullable=False)
+    alias = Column(String(255))
+    value = Column(String(255), nullable=False)
 
     @classmethod
     def create(cls, channel: str, value: str, user: str = None, alias: str = None):
@@ -27,9 +27,9 @@ class CustomCommand(Base):
     __tablename__ = 'commands'
 
     id = Column(Integer, primary_key=True, nullable=False)
-    name = Column(String, nullable=False)
-    channel = Column(String, nullable=False)
-    response = Column(String, nullable=False)
+    name = Column(String(255), nullable=False)
+    channel = Column(String(255), nullable=False)
+    response = Column(String(255), nullable=False)
     context = CommandContext.CHANNEL
     permission = None
 
@@ -49,8 +49,8 @@ class Balance(Base):
     __tablename__ = 'balance'
 
     id = Column(Integer, nullable=False, primary_key=True)
-    channel = Column(String, nullable=False)
-    user = Column(String, nullable=False)
+    channel = Column(String(255), nullable=False)
+    user = Column(String(255), nullable=False)
     balance = Column(Integer, nullable=False)
 
     @classmethod
@@ -62,8 +62,8 @@ class CurrencyName(Base):
     __tablename__ = 'currency_names'
 
     id = Column(Integer, nullable=False, primary_key=True)
-    channel = Column(String, nullable=False)
-    name = Column(String, nullable=False)
+    channel = Column(String(255), nullable=False)
+    name = Column(String(255), nullable=False)
 
     @classmethod
     def create(cls, channel: str, name: str):
@@ -74,9 +74,9 @@ class MessageTimer(Base):
     __tablename__ = 'message_timers'
 
     id = Column(Integer, nullable=False, primary_key=True)
-    name = Column(String, nullable=False)
-    channel = Column(String, nullable=False)
-    message = Column(String, nullable=False)
+    name = Column(String(255), nullable=False)
+    channel = Column(String(255), nullable=False)
+    message = Column(String(255), nullable=False)
     interval = Column(Float, nullable=False)
     active = Column(Boolean, nullable=False, default=False)
     task: Task = None
