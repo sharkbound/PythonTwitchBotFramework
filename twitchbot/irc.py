@@ -43,6 +43,19 @@ class Irc:
         for msg in msgs:
             self.send(msg)
 
+    async def send_all_interval(self, *msgs, delay=.2):
+        """
+        sends all messages separately with no modifications, this function is not ratelimited!
+        delays messages with the delay passed in from the `delay` argument
+
+        do not call this function to send channel messages or whisper,
+        this function is not ratelimit and intended to internal use from 'send_privmsg' and 'send_whisper'
+        only use this function if you need to
+        """
+        for msg in msgs:
+            self.send(msg)
+            await asyncio.sleep(delay)
+
     async def send_privmsg(self, channel: str, msg: str):
         """sends a message to a channel"""
         # import it locally to avoid circular import

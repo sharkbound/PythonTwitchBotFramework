@@ -1,3 +1,4 @@
+import time
 from asyncio import get_event_loop
 from typing import Optional
 
@@ -219,6 +220,10 @@ class BaseBot:
     #             setattr(self, k.value, v)
 
     def shutdown(self):
+        for channel in channels:
+            self.irc.send(f'PART #{channel}')
+            time.sleep(.4)
+        self.irc.send('QUIT')
         self._running = False
 
     def run(self):
