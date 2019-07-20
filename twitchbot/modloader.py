@@ -122,7 +122,7 @@ class Mod:
         :param channel: the channel that the user left
         """
 
-    async def on_channel_subscription(self, channel: Channel, msg: Message):
+    async def on_channel_subscription(self, subscriber: str, channel: Channel, msg: Message):
         """
         triggered when a user subscribes
         """
