@@ -1,6 +1,8 @@
 from typing import List, Tuple, TYPE_CHECKING, Optional
+
+from twitchbot import get_bot
 from .util import get_message_mentions
-from twitchbot.channel import Channel, channels
+from .channel import Channel, channels
 from .irc import Irc
 from .regex import RE_PRIVMSG, RE_WHISPER, RE_USER_JOIN, RE_USERNOTICE, RE_USER_PART
 from .enums import MessageType
@@ -57,7 +59,7 @@ class Message:
             # ensure the channel exists, if it does not, create it and put it in the cache
             channel_name = m['channel']
             if channel_name not in channels:
-                Channel(channel_name, irc=self.irc, bot=self.bot, register_globally=True).start_update_loop()
+                Channel(channel_name, irc=self.irc, register_globally=True).start_update_loop()
 
             self.channel = channels[channel_name]
             self.author = m['user']
@@ -73,6 +75,7 @@ class Message:
             self.content = m['content']
             self.type = MessageType.WHISPER
             self.parts = split_message(self.content)
+            self.channel = Channel(self.author, self.irc, register_globally=False)
 
         return bool(m)
 

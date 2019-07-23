@@ -124,7 +124,7 @@ class BaseBot:
 
     def _create_channels(self):
         for name in cfg.channels:
-            chan = Channel(name, irc=self.irc, bot=self)
+            chan = Channel(name, irc=self.irc)
             chan.start_update_loop()
 
     async def _create_irc(self):
@@ -132,7 +132,6 @@ class BaseBot:
         creates the async reader/writer (using asyncio.open_connection() if not already exist),
         """
         self.irc = await create_irc()
-        self.irc.bot = self
 
     def _request_permissions(self):
         """requests permissions from twitch to be able to gets message tags, receive whispers, ect"""

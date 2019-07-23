@@ -2,10 +2,12 @@ import asyncio
 import typing
 from datetime import datetime
 from typing import Dict
+
+from .shared import get_bot
 from .irc import Irc
 from .config import cfg
 from .permission import perms
-from twitchbot.api.chatters import Chatters
+from .api.chatters import Chatters
 from .api import StreamInfoApi
 from .util import get_user_followers, get_headers
 from .data import UserFollowers
@@ -15,13 +17,13 @@ if typing.TYPE_CHECKING:
 
 
 class Channel:
-    def __init__(self, name, irc, bot=None, register_globally=True):
+    def __init__(self, name, irc, register_globally=True):
         self.irc: Irc = irc
         self.name: str = name
         self.chatters: Chatters = Chatters(self.name)
         self.is_mod: bool = False
         self.stats: StreamInfoApi = StreamInfoApi(cfg.client_id, self.name)
-        self.bot: 'BaseBot' = bot
+        self.bot: 'BaseBot' = get_bot()
 
         if register_globally:
             channels[self.name.lower()] = self

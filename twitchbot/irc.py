@@ -1,12 +1,14 @@
 import asyncio
-import typing
 import re
-from asyncio import StreamWriter, StreamReader, get_event_loop
-from .config import cfg
-from .ratelimit import privmsg_ratelimit, whisper_ratelimit
-from .enums import Event
+import typing
+from asyncio import StreamWriter, StreamReader
 from textwrap import wrap
+
+from .shared import get_bot
+from .config import cfg
+from .enums import Event
 from .events import trigger_event
+from .ratelimit import privmsg_ratelimit, whisper_ratelimit
 
 if typing.TYPE_CHECKING:
     from .bots import BaseBot
@@ -17,10 +19,10 @@ PRIV_MSG_FORMAT = 'PRIVMSG #{channel} :{line}'
 
 
 class Irc:
-    def __init__(self, reader, writer, bot=None):
+    def __init__(self, reader, writer):
         self.reader: StreamReader = reader
         self.writer: StreamWriter = writer
-        self.bot: 'BaseBot' = bot
+        self.bot: 'BaseBot' = get_bot()
 
     def send(self, msg):
         """
