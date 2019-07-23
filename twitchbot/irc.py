@@ -65,7 +65,7 @@ class Irc:
         from .modloader import trigger_mod_event
 
         for line in _wrap_message(msg):
-            await privmsg_ratelimit(channels.get(channel, DummyChannel(channel)))
+            await privmsg_ratelimit(channels.get(channel) or DummyChannel(channel))
             self.send(PRIV_MSG_FORMAT.format(channel=channel, line=line))
 
         # exclude calls from send_whisper being sent to the bots on_privmsg_received event

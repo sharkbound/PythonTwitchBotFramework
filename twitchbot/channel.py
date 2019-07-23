@@ -87,6 +87,8 @@ channels: Dict[str, Channel] = {}
 
 # DummyChannel is a placeholder channel for when the bots sends a whisper
 class DummyChannel:
+    __slots__ = 'name', 'is_mod'
+
     def __init__(self, name):
         self.name = name
         self.is_mod = False
