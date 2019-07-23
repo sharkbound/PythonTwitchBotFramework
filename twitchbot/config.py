@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from .gui import show_auth_gui
 
-__all__ = ('cfg', 'Config', 'mysql_cfg', 'CONFIG_FOLDER')
+__all__ = ('cfg', 'Config', 'mysql_cfg', 'CONFIG_FOLDER', 'init_config')
 
 CONFIG_FOLDER = Path('configs')
 
@@ -141,6 +141,3 @@ def init_config():
     cfg['owner'] = cfg['owner'].lower()
     cfg['channels'] = [chan.lower() for chan in cfg['channels']]
     cfg.save()
-
-
-init_config()

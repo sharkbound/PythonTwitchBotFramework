@@ -20,6 +20,7 @@ from ..events import trigger_event
 from ..permission import perms
 from ..modloader import Mod
 from ..shared import set_bot
+from ..config import init_config
 
 
 # noinspection PyMethodMayBeStatic
@@ -232,6 +233,7 @@ class BaseBot:
 
     async def mainloop(self):
         """starts the bot, connects to twitch, then starts the message event loop"""
+        init_config()
 
         await update_global_emotes()
 
