@@ -34,6 +34,7 @@ This is a fully async twitch bot framework complete with:
 * custom commands
 * builtin economy 
 
+there is also mod system builtin to the bot, there is a collection of pre-made mods here: [MODS](https://github.com/sharkbound/twitch_bot_mods)
 
 # Quick Start
 
@@ -43,7 +44,6 @@ from twitchbot.bots import BaseBot
 
 if __name__ == '__main__':
     BaseBot().run()
-
 ```
 
 this will start the bot. 
@@ -56,7 +56,6 @@ from twitchbot import BaseBot, load_commands_from_directory
 if __name__ == '__main__':
     load_commands_from_directory('PATH/TO/DIRECTORY')
     BaseBot().run()
-
 ```
 
 # Overriding Events
@@ -71,7 +70,6 @@ from twitchbot import event_handler, Event, Message
 @event_handler(Event.on_privmsg_received)
 async def on_privmsg_received(msg: Message):
     print(f'{msg.author} sent message {msg.content} to channel {msg.channel_name}')
-
 ```
 
 2) subclassing BaseBot
@@ -80,8 +78,6 @@ from twitchbot import BaseBot, Message
 class MyCustomTwitchBot(BaseBot):
     async def on_privmsg_received(self, msg: Message):
         print(f'{msg.author} sent message {msg.content} to channel {msg.channel_name}')
-
-
 ```
 then you would use MyCustomTwitchBot instead of BaseBot:
 ```python
