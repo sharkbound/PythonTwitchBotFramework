@@ -198,13 +198,13 @@ def ensure_mods_folder_exists():
         os.mkdir(cfg.mods_folder)
 
 
-def load_mods_from_directory(fullpath, predicate: Callable[[str, Any], bool] = None):
+def load_mods_from_directory(fullpath, predicate: Callable[[str, Any], bool] = None, log=True):
     """
     loads all mods from the given directory, only .py files are loaded
     :param fullpath: the path to search for mods to load
     """
-
-    print('loading mods from:', fullpath)
+    if log:
+        print('loading mods from:', fullpath)
 
     with temp_syspath(fullpath):
         for file in get_py_files(fullpath):
