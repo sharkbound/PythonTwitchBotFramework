@@ -26,6 +26,16 @@ __all__ = ('ensure_mods_folder_exists', 'Mod', 'register_mod', 'trigger_mod_even
 class Mod:
     name = 'DEFAULT'
 
+    async def loaded(self):
+        """
+        called when the Mod is loaded and created/registered
+        """
+
+    async def unloaded(self):
+        """
+        called when the Mod is unloaded (aka unregistered)
+        """
+
     # region events
     async def on_enable(self, channel: str):
         """
@@ -143,6 +153,7 @@ def register_mod(mod: Mod) -> bool:
         return False
 
     mods[mod.name] = mod
+    get_event_loop().create_task(mod.loaded())
     return True
 
 
@@ -155,7 +166,9 @@ def unregister_mod(mod: Mod) -> bool:
     if mod.name not in mods:
         return False
 
+    get_event_loop().create_task(mod.unloaded())
     del mods[mod.name]
+    return True
 
 
 async def trigger_mod_event(event: Event, *args, channel: str = None) -> list:
