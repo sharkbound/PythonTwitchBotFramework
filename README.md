@@ -37,6 +37,7 @@ This is a fully async twitch bot framework complete with:
 there is also mod system builtin to the bot, there is a collection of pre-made mods here: [MODS](https://github.com/sharkbound/twitch_bot_mods)
 
 # Quick Start
+for a reference for builtin command look at the wiki [HERE](https://github.com/sharkbound/PythonTwitchBotFramework/wiki/Builtin_Command_Reference)
 
 the minimum code to get the bot running is this:
 ```python
