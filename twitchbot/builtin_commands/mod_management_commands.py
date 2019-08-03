@@ -55,7 +55,7 @@ async def cmd_disabled_mods(msg: Message, *args):
         mod for mod in mods if is_mod_disabled(msg.channel_name, mod)))
 
 
-@Command('reloadmod', context=CommandContext.CHANNEL, syntax='<modname(case sensitive)>',
+@Command('reloadmod', context=CommandContext.CHANNEL, syntax='<modname(case sensitive) or all>',
          permission=MOD_MANAGE_PERMISSION,
          help='reloads a specific module (case sensitive) from disk')
 async def cmd_reload_mod(msg: Message, *args):
@@ -63,8 +63,16 @@ async def cmd_reload_mod(msg: Message, *args):
         raise InvalidArgumentsError(f'missing required argument: modname', cmd=cmd_reload_mod)
     mod = args[0]
 
-    if not mod_exists(mod):
+    if mod != 'all' and not mod_exists(mod):
         raise InvalidArgumentsError(f'could not find any mod by name: {mod}', cmd=cmd_reload_mod)
+
+    if mod == 'all':
+        for mod in tuple(mods):
+            if not reload_mod(mod):
+                await msg.reply(f'failed to reload mod "{mod}"')
+                return
+        await msg.reply('reloaded all mods')
+        return
 
     if reload_mod(mod):
         await msg.reply(f'reloaded mod "{mod}"')

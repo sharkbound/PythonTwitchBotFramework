@@ -1,14 +1,14 @@
 from setuptools import setup, find_packages
 
 with open('requirements.txt') as f:
-    requirements = f.read().split('\n')
+    requirements = f.read().splitlines(keepends=False)
 
 with open('README.md') as f:
     long_description = f.read()
 
 setup(
     name='PythonTwitchBotFramework',
-    version='1.3.8',
+    version='1.3.10',
     packages=find_packages(),
     url='https://github.com/sharkbound/PythonTwitchBotFramework',
     license='MIT',
@@ -18,6 +18,6 @@ setup(
     long_description_content_type='text/markdown',
     install_requires=requirements,
     scripts=[
-        'command_console.py',
+        'util/command_console.py',
     ]
 )
