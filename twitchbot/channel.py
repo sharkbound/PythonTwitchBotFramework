@@ -3,14 +3,14 @@ import typing
 from datetime import datetime
 from typing import Dict
 
-from .shared import get_bot
-from .irc import Irc
-from .config import cfg
-from .permission import perms
-from .api.chatters import Chatters
 from .api import StreamInfoApi
-from .util import get_user_followers, get_headers
+from .api.chatters import Chatters
+from .config import get_nick, get_client_id
 from .data import UserFollowers
+from .irc import Irc
+from .permission import perms
+from .shared import get_bot
+from .util import get_user_followers, get_headers
 
 if typing.TYPE_CHECKING:
     from .bots import BaseBot
@@ -22,7 +22,7 @@ class Channel:
         self.name: str = name
         self.chatters: Chatters = Chatters(self.name)
         self.is_mod: bool = False
-        self.stats: StreamInfoApi = StreamInfoApi(cfg.client_id, self.name)
+        self.stats: StreamInfoApi = StreamInfoApi(get_client_id(), self.name)
         self.bot: 'BaseBot' = get_bot()
 
         if register_globally:
@@ -46,11 +46,11 @@ class Channel:
     #     await self.send_command(f'ban {user}')
 
     async def update_loop(self):
-        if cfg.client_id != 'CLIENT_ID':
+        if get_client_id() != 'CLIENT_ID':
             while True:
                 await self.chatters.update()
                 await self.stats.update()
-                self.is_mod = cfg.nick.lower() in self.chatters.mods
+                self.is_mod = get_nick().lower() in self.chatters.mods
                 await asyncio.sleep(60)
 
     def start_update_loop(self):

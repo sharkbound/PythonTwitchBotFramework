@@ -6,7 +6,7 @@ from .. import util, create_irc
 from ..channel import Channel, channels
 from ..command import Command, commands, CustomCommandAction, is_command_on_cooldown, get_time_since_execute, \
     update_command_last_execute
-from ..config import cfg
+from ..config import cfg, get_nick
 from ..database import get_custom_command
 from ..disabled_commands import is_command_disabled
 from ..emote import update_global_emotes
@@ -147,7 +147,7 @@ class BaseBot:
 
     async def _connect(self):
         """connects to twitch, sends auth info, and joins the channels in the config"""
-        print(f'logging in as {cfg.nick}')
+        print(f'logging in as {get_nick()}')
 
         util.send_auth(self.irc)
         self._request_permissions()
@@ -259,7 +259,7 @@ class BaseBot:
 
             coro = mod_coro = event_coro = None
             cmd: Command = (await self.get_command_from_msg(msg)
-                            if msg.is_user_message and msg.author != cfg.nick
+                            if msg.is_user_message and msg.author != get_nick()
                             else None)
 
             if cmd and ((msg.is_whisper and cmd.context & CommandContext.WHISPER)
@@ -282,7 +282,7 @@ class BaseBot:
 
             elif msg.type is MessageType.USER_JOIN:
                 # the bot has joined a channel
-                if msg.author == cfg.nick:
+                if msg.author == get_nick():
                     coro = self.on_channel_joined(msg.channel)
                     mod_coro = trigger_mod_event(Event.on_channel_joined, msg.channel, channel=msg.channel_name)
                     event_coro = trigger_event(Event.on_channel_joined, msg.channel)

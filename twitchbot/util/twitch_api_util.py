@@ -4,7 +4,7 @@ from typing import Dict, Tuple
 from aiohttp import ClientSession, ClientResponse
 from async_timeout import timeout
 
-from ..config import cfg
+from ..config import get_client_id
 from ..data import UserFollowers, UserInfo, RateLimit
 
 __all__ = ('CHANNEL_CHATTERS_URL', 'get_channel_chatters', 'get_stream_data', 'get_url', 'get_user_data', 'get_user_id',
@@ -116,4 +116,4 @@ async def get_channel_chatters(channel: str) -> dict:
 
 
 def get_headers():
-    return {'Client-ID': cfg.client_id}
+    return {'Client-ID': get_client_id()}

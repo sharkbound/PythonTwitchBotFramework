@@ -23,7 +23,8 @@ from twitchbot import (
     get_duel,
     add_balance_to_all,
     Balance,
-    subtract_balance_from_all)
+    subtract_balance_from_all,
+    get_nick)
 
 PREFIX = cfg.prefix
 MANAGE_CURRENCY_PERMISSION = 'manage_currency'
@@ -253,7 +254,7 @@ async def cmd_mine(msg: Message, *args):
 async def cmd_top(msg: Message, *args):
     results = (session.query(Balance)
                .filter(Balance.channel == msg.channel_name, Balance.user != msg.channel_name,
-                       Balance.user != cfg.nick.lower())
+                       Balance.user != get_nick().lower())
                .order_by(Balance.balance.desc())
                .limit(10))
 

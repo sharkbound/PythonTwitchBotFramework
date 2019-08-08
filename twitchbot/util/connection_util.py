@@ -1,7 +1,7 @@
 import asyncio
 import ssl
 
-from ..config import cfg
+from ..config import get_nick, get_oauth
 from ..irc import Irc
 
 __all__ = ('SSL_PORT', 'HTTP_PORT', 'create_connection', 'send_auth', 'create_irc')
@@ -18,8 +18,8 @@ async def create_connection():
 
 def send_auth(irc: Irc):
     irc.send_all(
-        f'PASS {cfg.oauth}',
-        f'NICK {cfg.nick}')
+        f'PASS {get_oauth()}',
+        f'NICK {get_nick()}')
 
 
 async def create_irc() -> Irc:

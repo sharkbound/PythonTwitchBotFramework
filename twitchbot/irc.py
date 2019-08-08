@@ -5,7 +5,7 @@ from asyncio import StreamWriter, StreamReader
 from textwrap import wrap
 
 from .shared import get_bot
-from .config import cfg
+from .config import get_nick
 from .enums import Event
 from .events import trigger_event
 from .ratelimit import privmsg_ratelimit, whisper_ratelimit
@@ -71,9 +71,9 @@ class Irc:
         # exclude calls from send_whisper being sent to the bots on_privmsg_received event
         if not msg.startswith('/w'):
             if self.bot:
-                await self.bot.on_privmsg_sent(msg, channel, cfg.nick)
-            await trigger_mod_event(Event.on_privmsg_sent, msg, channel, cfg.nick, channel=channel)
-            await trigger_event(Event.on_privmsg_sent, msg, channel, cfg.nick)
+                await self.bot.on_privmsg_sent(msg, channel, get_nick())
+            await trigger_mod_event(Event.on_privmsg_sent, msg, channel, get_nick(), channel=channel)
+            await trigger_event(Event.on_privmsg_sent, msg, channel, get_nick())
 
     async def send_whisper(self, user: str, msg: str):
         """sends a whisper to a user"""
@@ -88,9 +88,9 @@ class Irc:
             await asyncio.sleep(.6)
 
         if self.bot:
-            await self.bot.on_whisper_sent(msg, user, cfg.nick)
-        await trigger_mod_event(Event.on_whisper_sent, msg, user, cfg.nick)
-        await trigger_event(Event.on_whisper_sent, msg, user, cfg.nick)
+            await self.bot.on_whisper_sent(msg, user, get_nick())
+        await trigger_mod_event(Event.on_whisper_sent, msg, user, get_nick())
+        await trigger_event(Event.on_whisper_sent, msg, user, get_nick())
 
     async def get_next_message(self):
         return (await self.reader.readline()).decode().strip()

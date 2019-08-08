@@ -1,9 +1,11 @@
 import os
 import json
 from pathlib import Path
+from typing import Optional
+
 from .gui import show_auth_gui
 
-__all__ = ('cfg', 'Config', 'mysql_cfg', 'CONFIG_FOLDER', 'init_config')
+__all__ = ('cfg', 'Config', 'mysql_cfg', 'CONFIG_FOLDER', 'init_config', 'get_oauth', 'get_nick', 'get_client_id')
 
 CONFIG_FOLDER = Path('configs')
 
@@ -122,7 +124,7 @@ mysql_cfg = Config(
 
 
 def init_config():
-    if cfg.nick == DEFAULT_NICK or cfg.oauth == DEFAULT_OAUTH:
+    if get_nick() == DEFAULT_NICK or get_oauth() == DEFAULT_OAUTH:
         print('please enter your twitch auth info the the GUI that will pop-up shortly')
         auth = show_auth_gui()
         cfg['nick'] = auth.username
@@ -141,3 +143,67 @@ def init_config():
     cfg['owner'] = cfg['owner'].lower()
     cfg['channels'] = [chan.lower() for chan in cfg['channels']]
     cfg.save()
+
+
+def get_nick() -> str:
+    """
+    gets the bot accounts NICK, this is the login username for the bot account
+
+    if the the NICK matches the pattern `ENV_KEY_HERE` it will get `KEY_HERE` from os.environ, else it just grabs it from the cfg
+    """
+    nick = cfg.nick
+    if _is_env_key(nick):
+        value = _get_env_value(nick)
+        if value is None:
+            print(f'could not get NICK from environment with key: {nick[4:]}')
+            input('\npress enter to exit...')
+            exit(1)
+        return value
+    return nick
+
+
+def get_oauth() -> str:
+    """
+    gets the bot accounts OAUTH
+    this is needed because of supporting getting it from os.environ
+
+    if the the OAUTH matches the pattern `ENV_KEY_HERE` it will get `KEY_HERE` from os.environ, else it just grabs it from the cfg
+    """
+    oauth = cfg.oauth
+    if _is_env_key(oauth):
+        value = _get_env_value(oauth)
+        if value is None:
+            print(f'could not get OAUTH from environment with key: {oauth[4:]}')
+            input('\npress enter to exit...')
+            exit(1)
+        return value
+    return oauth
+
+
+def get_client_id() -> str:
+    """
+    gets the bot accounts CLIENT_ID
+    this is needed because of supporting getting it from os.environ
+
+    if the the CLIENT_ID matches the pattern `ENV_KEY_HERE` it will get `KEY_HERE` from os.environ, else it just grabs it from the cfg
+    """
+    client_id = cfg.client_id
+    if _is_env_key(client_id):
+        value = _get_env_value(client_id)
+        if value is None:
+            print(f'could not get CLIENT_ID from environment with key: {client_id[4:]}')
+            input('\npress enter to exit...')
+            exit(1)
+        return value
+    return client_id
+
+
+def _is_env_key(key) -> bool:
+    return key.lower().startswith('env_')
+
+
+def _get_env_value(key) -> Optional[str]:
+    if key.lower().startswith('env_'):
+        key = key[4:]
+
+    return os.environ.get(key)
