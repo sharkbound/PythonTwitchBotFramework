@@ -1,5 +1,6 @@
 import time
 from asyncio import get_event_loop
+import logging
 from typing import Optional
 
 from .. import util, create_irc
@@ -21,6 +22,7 @@ from ..permission import perms
 from ..modloader import Mod
 from ..shared import set_bot
 from ..config import init_config
+from ..modloader import mods
 
 
 # noinspection PyMethodMayBeStatic
@@ -322,3 +324,13 @@ class BaseBot:
 
             if event_coro is not None:
                 get_event_loop().create_task(event_coro)
+
+        for mod in mods.values():
+            # notify all mods of being unloaded,
+            # this is put in a try/except
+            # so that any exceptions raised from unloaded overrides will not cancel unloading the others
+            try:
+                await mod.unloaded()
+            except Exception as e:
+                print(f'\nwhen unloading mod "{mod.name}" this exception occurred:\n')
+                logging.exception(e)
