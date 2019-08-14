@@ -28,6 +28,7 @@ class Message:
         self.tags: Optional[Tags] = None
         self.emotes: List[Emote] = []
         self.mentions: Tuple[str] = ()
+        self.system_message: Optional[str] = None
         self.bot: 'BaseBot' = bot
 
         self._parse()
@@ -43,6 +44,9 @@ class Message:
 
         if self.parts and any(p in emotes for p in self.parts):
             self.emotes = tuple(emotes[p] for p in self.parts if p in emotes)
+
+        if self.tags is not None and 'system-msg' in self.tags.all_tags:
+            self.system_message = self.tags.all_tags['system-msg'].replace(r'\s', ' ')
 
     def _parse_user_part(self) -> bool:
         m = RE_USER_PART.search(self.raw_msg)
@@ -170,7 +174,7 @@ class Message:
             return 'PING'
 
         elif self.type is MessageType.SUBSCRIPTION:
-            return f'{self.author} subscribed to {self.channel_name}'
+            return f'{self.author} subscribed to {self.channel_name}: {self.system_message}'
 
         elif self.type is MessageType.USER_NOTICE:
             return f'USERNOTICE for {self.author}'
