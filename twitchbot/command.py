@@ -152,6 +152,7 @@ class CustomCommandAction(Command):
     def __init__(self, cmd):
         super().__init__(cmd.name, prefix='', func=self.execute, global_command=False)
         self.cmd: CustomCommand = cmd
+        self.cooldown = 0
 
     async def execute(self, msg: Message):
         resp = self.cmd.response
@@ -194,6 +195,8 @@ def _create_cooldown_key(channel: str, cmd: str) -> Tuple[str, str]:
 
 
 def is_command_off_cooldown(channel: str, cmd: str, cooldown: int = None) -> bool:
+    if not command_exist(cmd):
+        return True
     return get_time_since_execute(channel, cmd) >= (cooldown or get_command(cmd).cooldown)
 
 
