@@ -1,4 +1,4 @@
-from twitchbot import Message, Command
+from twitchbot import Message, Command, CommandContext
 
 pings = 0
 
@@ -8,6 +8,10 @@ async def cmd_ping(msg: Message, *args):
     global pings
     pings += 1
     await msg.reply(f'Pong #{pings}')
+
+# @Command('whisper', context=CommandContext.WHISPER)
+# async def cmd_whisper(msg: Message, *args):
+#     await msg.reply('got it!')
 
 # @Command('shoutout', permission='shoutout')
 # async def cmd_shoutout(msg: Message, *args):
