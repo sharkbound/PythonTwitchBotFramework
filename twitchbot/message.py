@@ -103,8 +103,11 @@ class Message:
             self.channel = channels[m['channel']]
             self.author = self.tags.all_tags.get('login')
             self.content = m['content']
-            if self.tags.msg_id in {'sub', 'resub', 'subgift', 'anonsubgift', 'submysterygift'}:
+            if self.tags.msg_id in {'sub', 'resub', 'subgift', 'anonsubgift', 'submysterygift', 'anongiftpaidupgrade', 'giftpaidupgrade'}:
                 self.type = MessageType.SUBSCRIPTION
+            elif self.tags.msg_id == 'raid':
+                self.type = MessageType.RAID
+                self.author = self.tags.msg-param-login
             else:
                 self.type = MessageType.USER_NOTICE
 
@@ -131,6 +134,10 @@ class Message:
     @property
     def is_subscription(self):
         return self.type is MessageType.SUBSCRIPTION
+    
+    @property
+    def is_raid(self):
+        return self.type is MessageType.RAID
 
     @property
     def mention(self):
@@ -175,6 +182,9 @@ class Message:
 
         elif self.type is MessageType.SUBSCRIPTION:
             return f'{self.author} subscribed to {self.channel_name}: {self.system_message}'
+        
+        elif self.type is MessageType.RAID:
+            return f'{self.author} has raided {self.channel_name} with {self.tags.msg-param-viewerCount} viewers!'
 
         elif self.type is MessageType.USER_NOTICE:
             return f'USERNOTICE for {self.author}'
