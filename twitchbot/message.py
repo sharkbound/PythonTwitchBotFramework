@@ -184,8 +184,7 @@ class Message:
             return f'{self.author} subscribed to {self.channel_name}: {self.system_message}'
         
         elif self.type is MessageType.RAID:
-            numViewers = self.tags.all_tags.get("msg-param-viewerCount")
-            return f'{self.author} has raided {self.channel_name} with {numViewers} viewers!'
+            return f'{self.author} has raided {self.channel_name} with {self.tags.raid_count} viewers!'
 
         elif self.type is MessageType.USER_NOTICE:
             return f'USERNOTICE for {self.author}'
