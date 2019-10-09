@@ -113,12 +113,12 @@ class Mod:
         triggered when a bit donation is posted in chat
         """
 
-    async def on_channel_raided(self, channel: Channel, user: str, NumViewers: int):
+    async def on_channel_raided(self, channel: Channel, raider: str, viewer_count: int):
         """
         triggered when the channel is raided
         :param channel: the channel who was raided
-        :param user: the user who raided
-        :param NumViewers: the number of viewers who joined in the raid
+        :param raider: the user who raided
+        :param viewer_count: the number of viewers who joined in the raid
         """
 
     async def on_channel_joined(self, channel: Channel):

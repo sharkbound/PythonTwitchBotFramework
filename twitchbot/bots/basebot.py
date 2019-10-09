@@ -96,16 +96,14 @@ class BaseBot:
         """
         triggered when a bit donation is posted in chat
         """
-        pass
-    
-    async def on_channel_raided(self, channel: Channel, user: str, NumViewers: int):
+
+    async def on_channel_raided(self, channel: Channel, raider: str, viewer_count: int):
         """
         triggered when the channel is raided
         :param channel: the channel who was raided
-        :param user: the user who raided
-        :param NumViewers: the number of viewers who joined in the raid
+        :param raider: the user who raided
+        :param viewer_count: the number of viewers who joined in the raid
         """
-        pass
 
     async def on_channel_joined(self, channel: Channel):
         """
@@ -290,7 +288,6 @@ class BaseBot:
                 mod_coro = trigger_mod_event(Event.on_privmsg_received, msg, channel=msg.channel_name)
                 event_coro = trigger_event(Event.on_privmsg_received, msg)
 
-
             elif msg.type is MessageType.USER_JOIN:
                 # the bot has joined a channel
                 if msg.author == get_nick():
@@ -303,25 +300,24 @@ class BaseBot:
                     mod_coro = trigger_mod_event(Event.on_user_join, msg.author, msg.channel, channel=msg.channel_name)
                     event_coro = trigger_event(Event.on_user_join, msg.author, msg.channel)
 
-
             elif msg.type is MessageType.USER_PART:
                 coro = self.on_user_part(msg.author, msg.channel)
                 mod_coro = trigger_mod_event(Event.on_user_part, msg.author, msg.channel, channel=msg.channel_name)
                 event_coro = trigger_event(Event.on_user_part, msg.author, msg.channel)
-
 
             elif msg.type is MessageType.SUBSCRIPTION:
                 coro = self.on_channel_subscription(msg.author, msg.channel, msg)
                 mod_coro = trigger_mod_event(Event.on_channel_subscription, msg.author, msg.channel, msg,
                                              channel=msg.channel_name)
                 event_coro = trigger_event(Event.on_channel_subscription, msg.author, msg.channel, msg)
-                
+
             elif msg.type is MessageType.RAID:
-                coro = self.on_channel_raided(msg.channel, msg.author, msg.tags.raid_count)
-                mod_coro = trigger_mod_event(Event.on_channel_raided, msg.channel, msg.author, msg.tags.raid_count, 
+                coro = self.on_channel_raided(msg.channel, msg.author, msg.tags.raid_viewer_count)
+                mod_coro = trigger_mod_event(Event.on_channel_raided, msg.channel, msg.author,
+                                             msg.tags.raid_viewer_count,
                                              channel=msg.channel_name)
-                event_coro = trigger_event(Event.on_channel_raided, msg.channel, msg.author, msg.tags.raid_count)
-                
+                event_coro = trigger_event(Event.on_channel_raided, msg.channel, msg.author, msg.tags.raid_viewer_count)
+
             elif msg.type is MessageType.PING:
                 self.irc.send_pong()
 

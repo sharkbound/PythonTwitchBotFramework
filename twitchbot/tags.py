@@ -17,7 +17,7 @@ class Tags:
         self.bits_leader: int = self.all_tags.get('bits-leader')
         self.broadcaster: int = self.badges.get('broadcaster', 0)
         self.msg_id: str = self.all_tags.get('msg-id')
-        self.raid_count: int = _try_parse_int(self.all_tags.get('msg-param-viewerCount'))
+        self.raid_viewer_count: int = _try_parse_int(self.all_tags.get('msg-param-viewerCount'))
 
         # bit_leader is initially a string, it is then parsed into a int here
         if self.bits_leader:
