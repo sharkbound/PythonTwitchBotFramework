@@ -94,6 +94,7 @@ Event.on_permission_check : (self, msg: Message, cmd: Command) -> bool # return 
 Event.on_after_command_execute : (self, msg: Message, cmd: Command)
 Event.on_before_command_execute : (self, msg: Message, cmd: Command) -> bool # return False to cancel command
 Event.on_bits_donated : (self, msg: Message, bits: int)
+Event.on_channel_raided : (self, channel: Channel, user: str, NumViewers: int)
 Event.on_channel_joined : (self, channel: Channel)
 Event.on_channel_subscription : (self, subscriber: str, channel: Channel, msg: Message)
 Event.on_privmsg_received : (self, msg: Message)

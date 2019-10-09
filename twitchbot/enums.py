@@ -24,6 +24,7 @@ class MessageType(NamedEnum):
     USER_JOIN = auto()
     USER_PART = auto()
     SUBSCRIPTION = auto()
+    RAID = auto()
     USER_NOTICE = auto()
     NONE = auto()
 
@@ -39,6 +40,7 @@ class Event(NamedEnum):
     on_after_command_execute = auto()
     on_bits_donated = auto()
     on_channel_subscription = auto()
+    on_channel_raided = auto()
     on_channel_joined = auto()
     on_connected = auto()
     on_privmsg_received = auto()
