@@ -2,6 +2,7 @@ from asyncio import get_event_loop, start_server, StreamReader, StreamWriter
 from .config import cfg
 from .channel import channels, Channel
 from .util import add_task
+from traceback import format_exc
 
 __all__ = 'start_command_server',
 
@@ -16,7 +17,16 @@ def start_command_server():
         return
 
     print(f'starting command server on {HOST}:{PORT}')
-    add_task(COMMAND_TASK_ID, start_server(handle_client, HOST, PORT))
+    try:
+        # noinspection PyTypeChecker
+        add_task(COMMAND_TASK_ID, start_server(handle_client, HOST, PORT))
+    except Exception as e:
+        print(f"\n------COMMAND SERVER------\nfailed to bind/create command server\n"
+              f"this does not affect the bot, but it does mean that the command console will not work/be usable\n"
+              f"if this error happens a lot, command server can be disabled in the config.json in the bot's configs folder\n"
+              f'\nERROR INFO: {e}\n'
+              f'EXTENDED INFO: \n{format_exc()}\n\n'
+              f'------COMMAND SERVER------\n')
 
 
 async def handle_client(reader: StreamReader, writer: StreamWriter):
