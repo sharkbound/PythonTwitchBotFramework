@@ -23,6 +23,7 @@ from ..modloader import Mod
 from ..shared import set_bot
 from ..config import init_config
 from ..modloader import mods
+from ..util import stop_all_tasks
 
 
 # noinspection PyMethodMayBeStatic
@@ -242,7 +243,10 @@ class BaseBot:
 
     async def mainloop(self):
         """starts the bot, connects to twitch, then starts the message event loop"""
-        init_config()
+        # check if user wants to input oauth info manually
+        if not init_config():
+            stop_all_tasks()
+            return
 
         await update_global_emotes()
 

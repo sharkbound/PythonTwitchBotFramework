@@ -1,12 +1,14 @@
 from asyncio import get_event_loop, start_server, StreamReader, StreamWriter
 from .config import cfg
 from .channel import channels, Channel
+from .util import add_task
 
 __all__ = 'start_command_server',
 
 HOST = cfg.command_server_host
 PORT = cfg.command_server_port
 ENABLED = cfg.command_server_enabled
+COMMAND_TASK_ID = 'COMMAND_SERVER'
 
 
 def start_command_server():
@@ -14,7 +16,7 @@ def start_command_server():
         return
 
     print(f'starting command server on {HOST}:{PORT}')
-    get_event_loop().create_task(start_server(handle_client, HOST, PORT))
+    add_task(COMMAND_TASK_ID, start_server(handle_client, HOST, PORT))
 
 
 async def handle_client(reader: StreamReader, writer: StreamWriter):

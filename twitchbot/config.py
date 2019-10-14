@@ -125,14 +125,22 @@ mysql_cfg = Config(
 
 def init_config():
     if get_nick() == DEFAULT_NICK or get_oauth() == DEFAULT_OAUTH:
-        print('please enter your twitch auth info the the GUI that will pop-up shortly')
-        auth = show_auth_gui()
-        cfg['nick'] = auth.username
-        cfg['oauth'] = auth.oauth
+        if input('show the bot config GUI? [Y/N]: ').lower() == 'y':
+            print('please enter your twitch auth info the the GUI that will pop-up shortly')
+            auth = show_auth_gui()
+            cfg['nick'] = auth.username
+            cfg['oauth'] = auth.oauth
+        else:
+            print(
+                'open the config folder at <BOT_FOLDER>/configs/config.json\nthen enter the bot oauth/name, the owner, and the channels to join')
+            input('\npress enter to close bot...')
+            return False
+
     if 'oauth:' not in cfg['oauth']:
         print('oauth must start with `oauth:` and be followed by the token itself, ex: oauth:exampletoken12')
         input('press enter to exit...')
         exit()
+
     if len(cfg['oauth']) <= 10:
         print('oauth is too short, must be `oauth:` followed by the token itself, ex: oauth:exampletoken12')
         input('press enter to exit...')
@@ -143,6 +151,8 @@ def init_config():
     cfg['owner'] = cfg['owner'].lower()
     cfg['channels'] = [chan.lower() for chan in cfg['channels']]
     cfg.save()
+
+    return True
 
 
 def get_nick() -> str:

@@ -1,7 +1,7 @@
 from asyncio import ensure_future, Task, sleep, get_event_loop
 from typing import Dict, Coroutine, Optional
 
-__all__ = ('active_tasks', 'add_task', 'get_task', 'task_running', 'stop_task', 'task_exist')
+__all__ = ('active_tasks', 'add_task', 'get_task', 'task_running', 'stop_task', 'task_exist', 'stop_all_tasks')
 
 active_tasks: Dict[str, Task] = {}
 
@@ -16,6 +16,11 @@ def get_task(name: str) -> Optional[Task]:
 
 def task_exist(name: str):
     return name.lower() in active_tasks
+
+
+def stop_all_tasks():
+    for task in active_tasks.values():
+        task.cancel()
 
 
 def stop_task(name: str) -> bool:
