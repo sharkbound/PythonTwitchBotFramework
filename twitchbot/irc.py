@@ -64,6 +64,7 @@ class Irc:
         from .channel import channels, DummyChannel
         from .modloader import trigger_mod_event
 
+        channel = channel.lower()
         for line in _wrap_message(msg):
             await privmsg_ratelimit(channels.get(channel) or DummyChannel(channel))
             self.send(PRIV_MSG_FORMAT.format(channel=channel, line=line))
