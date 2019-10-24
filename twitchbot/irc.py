@@ -80,6 +80,7 @@ class Irc:
         """sends a whisper to a user"""
         from .modloader import trigger_mod_event
 
+        user = user.lower()
         for line in _wrap_message(f'/w {user} {msg}'):
             await whisper_ratelimit()
             self.send(PRIV_MSG_FORMAT.format(channel=user, line=line))
