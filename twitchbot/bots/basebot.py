@@ -334,7 +334,8 @@ class BaseBot:
 
             elif msg.type is MessageType.CHANNEL_POINTS_REDEMPTION:
                 coro = self.on_channel_points_redemption(msg, msg.reward)
-                mod_coro = trigger_mod_event(Event.on_channel_points_redemption, msg, msg.reward)
+                mod_coro = trigger_mod_event(Event.on_channel_points_redemption, msg, msg.reward,
+                                             channel=msg.channel_name)
                 event_coro = trigger_event(Event.on_channel_points_redemption, msg, msg.reward)
 
             if msg.is_privmsg and msg.tags and msg.tags.bits:
