@@ -235,6 +235,7 @@ class BaseBot:
             time.sleep(.4)
         self.irc.send('QUIT')
         self._running = False
+        stop_all_tasks()
 
     def run(self):
         """runs/starts the bot, this is a blocking function that starts the mainloop"""
