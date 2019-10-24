@@ -26,6 +26,7 @@ class MessageType(NamedEnum):
     SUBSCRIPTION = auto()
     RAID = auto()
     USER_NOTICE = auto()
+    CHANNEL_POINTS_REDEMPTION = auto()
     NONE = auto()
 
 
@@ -52,3 +53,4 @@ class Event(NamedEnum):
     on_user_join = auto()
     on_user_part = auto()
     on_mod_reloaded = auto()
+    on_channel_points_redemption = auto()

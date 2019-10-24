@@ -30,6 +30,7 @@ class Message:
         self.mentions: Tuple[str] = ()
         self.system_message: Optional[str] = None
         self.bot: 'BaseBot' = bot
+        self.reward: Optional[str] = None
 
         self._parse()
 
@@ -96,6 +97,11 @@ class Message:
             self.parts = split_message(self.content)
             self.tags = Tags(m['tags'])
             self.mentions = get_message_mentions(self)
+
+            # checking if its a channel point redemption
+            self.reward = self.tags.all_tags.get('msg-id')
+            if self.reward is not None:
+                self.type = MessageType.CHANNEL_POINTS_REDEMPTION
 
         return bool(m)
 

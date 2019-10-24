@@ -112,6 +112,12 @@ class BaseBot:
         """
         print(f'joined #{channel.name}')
 
+    async def on_channel_points_redemption(self, msg: Message, reward: str):
+        """
+        triggered when a viewers redeems channel points for a reward
+        """
+        print(f'{msg.author} has redeemed channel points reward "{reward}" in #{msg.channel_name}')
+
     async def on_user_join(self, user: str, channel: Channel):
         """
         triggered when a user joins a channel the bot is in
@@ -326,11 +332,15 @@ class BaseBot:
             elif msg.type is MessageType.PING:
                 self.irc.send_pong()
 
+            elif msg.type is MessageType.CHANNEL_POINTS_REDEMPTION:
+                coro = self.on_channel_points_redemption(msg, msg.reward)
+                mod_coro = trigger_mod_event(Event.on_channel_points_redemption, msg, msg.reward)
+                event_coro = trigger_event(Event.on_channel_points_redemption, msg, msg.reward)
+
             if msg.is_privmsg and msg.tags and msg.tags.bits:
                 get_event_loop().create_task(self.on_bits_donated(msg, msg.tags.bits))
-                get_event_loop().create_task(
-                    trigger_mod_event(Event.on_bits_donated, msg, msg.tags.bits, channel=msg.channel_name))
-                get_event_loop().create_task(trigger_event(Event.on_bits_donated, msg.channel, msg))
+                mod_coro = trigger_mod_event(Event.on_bits_donated, msg, msg.tags.bits, channel=msg.channel_name)
+                event_coro = trigger_event(Event.on_bits_donated, msg.channel, msg)
 
             if coro is not None:
                 get_event_loop().create_task(coro)

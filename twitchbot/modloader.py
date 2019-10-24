@@ -145,6 +145,11 @@ class Mod:
         triggered when a user subscribes
         """
 
+    async def on_channel_points_redemption(self, msg: Message, reward: str):
+        """
+        triggered when a viewers redeems channel points for a reward
+        """
+
     # endregion
 
 

@@ -105,6 +105,7 @@ Event.on_raw_message : (self, msg: Message)
 Event.on_user_join : (self, user: str, channel: Channel)
 Event.on_user_part : (self, user: str, channel: Channel)
 Event.on_mod_reloaded : (self, mod: Mod)  
+Event.on_channel_points_redemption : (self, msg: Message, reward: str)
 ```
 #### when using the decorator event override way, `self` is not included, ex: `(self, msg: Message)` becomes: `(msg: Message)` 
 
