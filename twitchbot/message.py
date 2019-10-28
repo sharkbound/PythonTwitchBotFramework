@@ -205,6 +205,9 @@ class Message:
         elif self.type is MessageType.USER_PART:
             return f'{self.author} left {self.channel_name}'
 
+        elif self.type is MessageType.CHANNEL_POINTS_REDEMPTION:
+            return f'{self.author} redeemws reward {self.reward} in #{self.channel_name}'
+
         return self.raw_msg
 
     def __len__(self):
