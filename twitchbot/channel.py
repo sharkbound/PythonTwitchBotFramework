@@ -21,6 +21,7 @@ class Channel:
         self.irc: Irc = irc
         self.name: str = name
         self.chatters: Chatters = Chatters(self.name)
+        self.is_vip: bool = False
         self.is_mod: bool = False
         self.stats: StreamInfoApi = StreamInfoApi(get_client_id(), self.name)
         self.bot: 'BaseBot' = get_bot()
@@ -51,6 +52,7 @@ class Channel:
                 await self.chatters.update()
                 await self.stats.update()
                 self.is_mod = get_nick().lower() in self.chatters.mods
+                self.is_vip = get_nick().lower() in self.chatters.vips
                 await asyncio.sleep(60)
 
     def start_update_loop(self):
@@ -87,8 +89,9 @@ channels: Dict[str, Channel] = {}
 
 # DummyChannel is a placeholder channel for when the bots sends a whisper
 class DummyChannel:
-    __slots__ = 'name', 'is_mod'
+    __slots__ = 'name', 'is_mod', 'is_vip'
 
     def __init__(self, name):
         self.name = name
+        self.is_vip = False
         self.is_mod = False
