@@ -8,6 +8,7 @@ __all__ = [
     'CHANNEL_CHATTERS_URL'
 ]
 
+VIPS = 'vips'
 MODERATORS = 'moderators'
 STAFF = 'staff'
 ADMINS = 'admins'
@@ -21,6 +22,7 @@ CHATTERS = 'chatters'
 class Chatters:
     channel: str
     mods: frozenset = frozenset()
+    vips: frozenset = frozenset()
     staff: frozenset = frozenset()
     admins: frozenset = frozenset()
     global_mods: frozenset = frozenset()
@@ -37,12 +39,13 @@ class Chatters:
             self._verify_chatters_response_is_valid(chatters)
 
             self.mods = frozenset(chatters[MODERATORS])
+            self.vips = frozenset(chatters[VIPS])
             self.staff = frozenset(chatters[STAFF])
             self.admins = frozenset(chatters[ADMINS])
             self.global_mods = frozenset(chatters[GLOBAL_MODS])
             self.viewers = frozenset(chatters[VIEWERS])
             self.viewer_count = json[CHATTER_COUNT]
-            self.all_viewers = self.mods | self.staff | self.admins | self.global_mods | self.viewers | {self.channel}
+            self.all_viewers = self.vips | self.mods | self.staff | self.admins | self.global_mods | self.viewers | {self.channel}
         except Exception as e:
             print(f'\nCHATTERS API ERROR\njson received: {json}\n{e}\nEND CHATTERS API ERROR\n')
 
@@ -69,4 +72,4 @@ class Chatters:
 
     def _verify_chatters_response_is_valid(self, json):
         self._verify_response_is_dict(json)
-        self._verify_keys(json, (MODERATORS, STAFF, ADMINS, GLOBAL_MODS, VIEWERS))
+        self._verify_keys(json, (VIPS, MODERATORS, STAFF, ADMINS, GLOBAL_MODS, VIEWERS))
