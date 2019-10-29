@@ -13,7 +13,6 @@ __all__ = [
 ]
 
 PRIVMSG_MAX_MOD = 100
-PRIVMSG_MAX_VIP = PRIVMSG_MAX_MOD
 PRIVMSG_MAX_NORMAL = 20
 
 WHISPER_MAX = 10
@@ -24,7 +23,10 @@ whisper_sent = 0
 
 async def privmsg_ratelimit(channel):
     global privmsg_sent
-    limit = PRIVMSG_MAX_MOD if channel.is_mod else PRIVMSG_MAX_NORMAL
+    limit = PRIVMSG_MAX_NORMAL
+    
+    if channel.is_mod or channel.is_vip:
+        limit = PRIVMSG_MAX_MOD
 
     while privmsg_sent >= limit:
         await sleep(1)
