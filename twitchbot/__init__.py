@@ -24,6 +24,7 @@ from .disabled_mods import *
 from .data import *
 from .exceptions import *
 from .shared import *
+from .replywaiter import *
 from . import builtin_commands
 from . import builtin_mods
 

@@ -21,7 +21,7 @@ from ..events import trigger_event
 from ..permission import perms
 from ..modloader import Mod
 from ..shared import set_bot
-from ..config import init_config
+from ..config import generate_config
 from ..modloader import mods
 from ..util import stop_all_tasks
 
@@ -251,7 +251,7 @@ class BaseBot:
     async def mainloop(self):
         """starts the bot, connects to twitch, then starts the message event loop"""
         # check if user wants to input oauth info manually
-        if not init_config():
+        if not generate_config():
             stop_all_tasks()
             return
 

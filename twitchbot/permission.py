@@ -1,9 +1,10 @@
+from itertools import chain
 from pathlib import Path
 from typing import Dict, Iterable, Tuple, Optional
 
 from .config import Config, cfg
 
-__all__ = ('perms', 'Permissions')
+__all__ = ('perms', 'Permissions', 'generate_permission_files', 'permission_defaults')
 
 permission_defaults = {
     'admin': {
@@ -190,4 +191,11 @@ class Permissions:
         return self.channels[item]
 
 
+# permissions are requested/generated in channel.py in __init__ for Channel class
 perms = Permissions()
+
+
+def generate_permission_files(*extra_channels):
+    from .config import cfg
+    for channel in chain(cfg.channels, extra_channels):
+        perms.load_permissions(channel, force_update=False)

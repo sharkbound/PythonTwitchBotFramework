@@ -5,7 +5,8 @@ from typing import Optional
 
 from .gui import show_auth_gui
 
-__all__ = ('cfg', 'Config', 'mysql_cfg', 'CONFIG_FOLDER', 'init_config', 'get_oauth', 'get_nick', 'get_client_id')
+__all__ = ('cfg', 'Config', 'mysql_cfg', 'CONFIG_FOLDER', 'generate_config', 'get_oauth', 'get_nick', 'get_client_id',
+           'DEFAULT_NICK', 'DEFAULT_OAUTH')
 
 CONFIG_FOLDER = Path('configs')
 
@@ -87,6 +88,9 @@ class Config:
         self.data[key] = value
         self.save()
 
+    def __contains__(self, item):
+        return item in self.data
+
     def __iter__(self):
         yield from self.data.items()
 
@@ -123,7 +127,7 @@ mysql_cfg = Config(
 )
 
 
-def init_config():
+def generate_config():
     if get_nick() == DEFAULT_NICK or get_oauth() == DEFAULT_OAUTH:
         if input('show the bot config GUI? [Y/N]: ').lower() == 'y':
             print('please enter your twitch auth info the the GUI that will pop-up shortly')
