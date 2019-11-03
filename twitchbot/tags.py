@@ -18,10 +18,32 @@ class Tags:
         self.broadcaster: int = self.badges.get('broadcaster', 0)
         self.msg_id: str = self.all_tags.get('msg-id')
         self.raid_viewer_count: int = _try_parse_int(self.all_tags.get('msg-param-viewerCount'))
+        self.resub_months: int = 0
+        self.sub_plan: int = 0
+        self.sub_recipient: str = self.all_tags.get('msg-param-recipient-display-name')
+
+        # twitch sends months in different tags based on event, find the actual amount of months here
+        if self.all_tags.get('msg-param-cumulative-months') is not None:
+            self.resub_months = _try_parse_int(self.all_tags.get('msg-param-cumulative-months'))
+        else:
+            self.resub_months = _try_parse_int(self.all_tags.get('msg-param-months'))
+
+        # attempt to figure out the person's subplan
+        if self.all_tags.get('msg-param-sub-plan') != 'Prime':
+            self.sub_plan = _try_parse_int(self.all_tags.get('msg-param-sub-plan'))
+        else:
+            # arbitrary number to signify prime status
+            self.sub_plan = 500
 
         # bit_leader is initially a string, it is then parsed into a int here
         if self.bits_leader:
             self.bits_leader = _try_parse_int(self.bits_leader.partition('/')[-1])
+
+    def is_gift_sub(self):
+        return self.msg_id in {'subgift', 'anonsubgift', 'submysterygift'}
+
+    def is_sub_upgrade(self):
+        return self.msg_id in {'anongiftpaidupgrade', 'giftpaidupgrade'}
 
 
 def _split_tags(tags: str):
