@@ -1,4 +1,4 @@
-from typing import List, Tuple, TYPE_CHECKING, Optional
+from typing import List, Tuple, TYPE_CHECKING, Optional, Callable, Awaitable
 
 from twitchbot import get_bot
 from .util import get_message_mentions
@@ -184,6 +184,27 @@ class Message:
 
         # else:
         #     raise ValueError(f'invalid message type to reply, expected PRIVMSG or WHISPER, current: {self.type}')
+
+    async def wait_for_reply(self, predicate: Callable[['Message'], Awaitable[bool]] = None, timeout=30, default=None,
+                             raise_on_timeout=False) -> 'Message':
+        """
+        waits for a message matching `predicate` to be received, when its received, it returns that message.
+
+        if no message matching `predicate` is received by the timeout, the default will be returned.
+
+        if raise_on_timeout is True and no matching message is received, this function will raise asyncio.TimeoutError
+
+        if raise_on_timeout is False and no matching message is received, default will be returned when it times-out
+
+        default is by default is None
+        raise_on_timeout by default is False
+        predicate defaults to `same_author_predicate`
+        """
+
+        from .replywaiter import wait_for_reply, same_author_predicate
+
+        return await wait_for_reply(predicate or same_author_predicate(self), timeout=timeout, default=default,
+                                    raise_on_timeout=raise_on_timeout)
 
     def __str__(self):
         if self.type is MessageType.PRIVMSG:
