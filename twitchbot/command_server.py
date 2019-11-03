@@ -1,10 +1,10 @@
 from asyncio import get_event_loop, start_server, StreamReader, StreamWriter
 from .config import cfg
 from .channel import channels, Channel
-from .util import add_task
+from .util import add_task, task_running, stop_task
 from traceback import format_exc
 
-__all__ = 'start_command_server',
+__all__ = 'start_command_server', 'stop_command_server'
 
 HOST = cfg.command_server_host
 PORT = cfg.command_server_port
@@ -15,6 +15,8 @@ COMMAND_TASK_ID = 'COMMAND_SERVER'
 def start_command_server():
     if not ENABLED:
         return
+    
+    stop_command_server()
 
     print(f'starting command server on {HOST}:{PORT}')
     try:
@@ -27,7 +29,10 @@ def start_command_server():
               f'\nERROR INFO: {e}\n'
               f'EXTENDED INFO: \n{format_exc()}\n\n'
               f'------COMMAND SERVER------\n')
-
+        
+def stop_command_server():
+    if task_running(COMMAND_TASK_ID):
+        stop_task(COMMAND_TASK_ID)
 
 async def handle_client(reader: StreamReader, writer: StreamWriter):
     # helper function to read the next message from the client
