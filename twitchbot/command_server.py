@@ -1,8 +1,9 @@
-from asyncio import get_event_loop, start_server, StreamReader, StreamWriter
-from .config import cfg
-from .channel import channels, Channel
-from .util import add_task, task_running, stop_task
+from asyncio import start_server, StreamReader, StreamWriter
 from traceback import format_exc
+
+from .channel import channels, Channel
+from .config import cfg
+from .util import add_task, task_running, stop_task
 
 __all__ = 'start_command_server', 'stop_command_server'
 
