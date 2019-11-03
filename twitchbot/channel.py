@@ -83,6 +83,15 @@ class Channel:
     def __str__(self):
         return f'<Channel name={repr(self.name)}>'
 
+    def __eq__(self, other):
+        if isinstance(other, str):
+            return self.name == other.lower()
+
+        if isinstance(other, Channel):
+            return self.name == other.name
+
+        return False
+
 
 channels: Dict[str, Channel] = {}
 
