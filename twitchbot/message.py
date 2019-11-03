@@ -215,6 +215,17 @@ class Message:
 
         return self.raw_msg
 
+    def __getitem__(self, item):
+        """
+        if item is a slice, returns a space joined parts of that slice
+
+        if item in a int, returns a single part at that index
+        """
+        if isinstance(item, int):
+            return self.parts[item]
+
+        return ' '.join(self.parts[item])
+
     def __len__(self):
         """
         :return: the len() of self.parts
