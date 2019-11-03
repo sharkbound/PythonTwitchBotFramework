@@ -39,9 +39,11 @@ class Tags:
         if self.bits_leader:
             self.bits_leader = _try_parse_int(self.bits_leader.partition('/')[-1])
 
+    @property
     def is_gift_sub(self):
         return self.msg_id in {'subgift', 'anonsubgift', 'submysterygift'}
 
+    @property
     def is_sub_upgrade(self):
         return self.msg_id in {'anongiftpaidupgrade', 'giftpaidupgrade'}
 
