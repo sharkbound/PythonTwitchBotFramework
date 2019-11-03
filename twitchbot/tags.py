@@ -1,3 +1,6 @@
+import warnings
+
+
 class Tags:
     def __init__(self, tags: str):
         self.all_tags = {name.strip().replace(' ', ''): value for name, value in _split_tags(tags)}
@@ -10,7 +13,6 @@ class Tags:
         self.room_id: int = _try_parse_int(self.all_tags.get('room-id'))
         self.subscriber: int = _try_parse_int(self.all_tags.get('subscriber'))
         self.tmi_sent_ts: int = _try_parse_int(self.all_tags.get('tmi-sent-ts'))
-        self.turbo: int = _try_parse_int(self.all_tags.get('turbo'))
         self.user_id: int = _try_parse_int(self.all_tags.get('user-id'))
         self.user_type: int = self.all_tags.get('user-type')
         self.bits: int = _try_parse_int(self.all_tags.get('bits'))
@@ -38,6 +40,11 @@ class Tags:
         # bit_leader is initially a string, it is then parsed into a int here
         if self.bits_leader:
             self.bits_leader = _try_parse_int(self.bits_leader.partition('/')[-1])
+
+    @property
+    def turbo(self):
+        warnings.warn('turbo is moving to badges in later twitch api versions')
+        return _try_parse_int(self.all_tags.get('turbo'))
 
     @property
     def is_gift_sub(self):
