@@ -6,7 +6,7 @@ from typing import Optional
 from .gui import show_auth_gui
 
 __all__ = ('cfg', 'Config', 'mysql_cfg', 'CONFIG_FOLDER', 'generate_config', 'get_oauth', 'get_nick', 'get_client_id',
-           'DEFAULT_NICK', 'DEFAULT_OAUTH')
+           'DEFAULT_NICK', 'DEFAULT_OAUTH', 'DEFAULT_CLIENT_ID', 'is_config_valid')
 
 CONFIG_FOLDER = Path('configs')
 
@@ -97,12 +97,13 @@ class Config:
 
 DEFAULT_OAUTH = 'oauth:'
 DEFAULT_NICK = 'nick'
+DEFAULT_CLIENT_ID = 'CLIENT_ID'
 
 cfg = Config(
     file_path=CONFIG_FOLDER / 'config.json',
     nick=DEFAULT_NICK,
     oauth=DEFAULT_OAUTH,
-    client_id='CLIENT_ID',
+    client_id=DEFAULT_CLIENT_ID,
     prefix='!',
     default_balance=200,
     loyalty_interval=60,
@@ -128,7 +129,7 @@ mysql_cfg = Config(
 
 
 def generate_config():
-    if get_nick() == DEFAULT_NICK or get_oauth() == DEFAULT_OAUTH:
+    if not is_config_valid(check_client_id=False):
         if input('show the bot config GUI? [Y/N]: ').lower() == 'y':
             print('please enter your twitch auth info the the GUI that will pop-up shortly')
             auth = show_auth_gui()
@@ -156,6 +157,13 @@ def generate_config():
     cfg['channels'] = [chan.lower() for chan in cfg['channels']]
     cfg.save()
 
+    return True
+
+
+def is_config_valid(check_client_id=False):
+    if get_nick() == DEFAULT_NICK or get_oauth() == DEFAULT_OAUTH or (
+            check_client_id and get_client_id() == DEFAULT_CLIENT_ID):
+        return False
     return True
 
 
