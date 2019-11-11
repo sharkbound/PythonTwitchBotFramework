@@ -104,7 +104,7 @@ class Message:
             self.mentions = get_message_mentions(self)
 
             # checking if its a channel point redemption
-            self.reward = self.tags.all_tags.get('msg-id')
+            self.reward = self.tags.all_tags.get('msg-id') or self.tags.all_tags.get('custom-reward-id')
             if self.reward is not None:
                 self.type = MessageType.CHANNEL_POINTS_REDEMPTION
 
@@ -232,7 +232,7 @@ class Message:
             return f'{self.author} left {self.channel_name}'
 
         elif self.type is MessageType.CHANNEL_POINTS_REDEMPTION:
-            return f'{self.author} redeemws reward {self.reward} in #{self.channel_name}'
+            return f'{self.author} redeems reward {self.reward} in #{self.channel_name}'
 
         return self.raw_msg
 
