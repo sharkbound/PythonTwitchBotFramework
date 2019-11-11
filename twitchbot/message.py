@@ -232,7 +232,7 @@ class Message:
             return f'{self.author} left {self.channel_name}'
 
         elif self.type is MessageType.CHANNEL_POINTS_REDEMPTION:
-            return f'{self.author} redeems reward {self.reward} in #{self.channel_name}'
+            return f'{self.author} redeemed reward {self.reward} in #{self.channel_name}'
 
         return self.raw_msg
 
