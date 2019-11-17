@@ -1,6 +1,6 @@
 from .util import add_task, task_running, stop_task
 from asyncio import sleep
-from .database import add_balance
+from .database import add_balance, session
 from .config import cfg
 from .channel import channels
 
@@ -11,8 +11,9 @@ async def _ticker_loop():
     while True:
         for channel in channels.values():
             for viewer in channel.chatters.all_viewers:
-                add_balance(channel.name, viewer, cfg.loyalty_amount)
+                add_balance(channel.name, viewer, cfg.loyalty_amount, commit=False)
                 await sleep(.2)
+            session.commit()
 
         await sleep(cfg.loyalty_interval)
 

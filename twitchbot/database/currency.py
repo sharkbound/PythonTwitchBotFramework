@@ -37,11 +37,12 @@ def set_balance(channel: str, user: str, value: int):
     session.commit()
 
 
-def add_balance(channel: str, user: str, value: int):
+def add_balance(channel: str, user: str, value: int, commit=True):
     """adds balance to a user in the specified channel"""
 
     get_balance(channel, user.lower()).balance += value
-    session.commit()
+    if commit:
+        session.commit()
 
 
 def subtract_balance(channel: str, user: str, value: int):
