@@ -144,12 +144,13 @@ def generate_config():
     if 'oauth:' not in cfg['oauth']:
         print('oauth must start with `oauth:` and be followed by the token itself, ex: oauth:exampletoken12')
         input('press enter to exit...')
-        exit()
+        return False
 
     if len(cfg['oauth']) <= 10:
         print('oauth is too short, must be `oauth:` followed by the token itself, ex: oauth:exampletoken12')
         input('press enter to exit...')
-        exit()
+        return False
+
     # this is to fix the edge case where the user entered enters cased names / channel names
     # without this, the twitch API returns weird responses that are not easy to figure out why it is doing it
     cfg['nick'] = cfg['nick'].lower()
