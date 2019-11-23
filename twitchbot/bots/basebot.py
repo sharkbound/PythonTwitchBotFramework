@@ -1,6 +1,9 @@
 import time
 from asyncio import get_event_loop
+import asyncio
 import logging
+import time
+from asyncio import get_event_loop
 from typing import Optional
 
 from .. import util, create_irc
@@ -8,21 +11,21 @@ from ..channel import Channel, channels
 from ..command import Command, commands, CustomCommandAction, is_command_on_cooldown, get_time_since_execute, \
     update_command_last_execute
 from ..config import cfg, get_nick
+from ..config import generate_config
 from ..database import get_custom_command
 from ..disabled_commands import is_command_disabled
 from ..emote import update_global_emotes
 from ..enums import Event
 from ..enums import MessageType, CommandContext
+from ..events import trigger_event
 from ..exceptions import InvalidArgumentsError
 from ..irc import Irc
 from ..message import Message
-from ..modloader import trigger_mod_event
-from ..events import trigger_event
-from ..permission import perms
 from ..modloader import Mod
-from ..shared import set_bot
-from ..config import generate_config
 from ..modloader import mods
+from ..modloader import trigger_mod_event
+from ..permission import perms
+from ..shared import set_bot
 from ..util import stop_all_tasks
 
 
@@ -308,7 +311,8 @@ class BaseBot:
                 # user joined a channel the bot was in
                 else:
                     coro = self.on_user_join(msg.author, msg.channel)
-                    mod_coro = trigger_mod_event(Event.on_user_join, msg.author, msg.channel, channel=msg.channel_name)
+                    mod_coro = trigger_mod_event(Event.on_user_join, msg.author, msg.channel,
+                                                 channel=msg.channel_name)
                     event_coro = trigger_event(Event.on_user_join, msg.author, msg.channel)
 
             elif msg.type is MessageType.USER_PART:
@@ -327,7 +331,8 @@ class BaseBot:
                 mod_coro = trigger_mod_event(Event.on_channel_raided, msg.channel, msg.author,
                                              msg.tags.raid_viewer_count,
                                              channel=msg.channel_name)
-                event_coro = trigger_event(Event.on_channel_raided, msg.channel, msg.author, msg.tags.raid_viewer_count)
+                event_coro = trigger_event(Event.on_channel_raided, msg.channel, msg.author,
+                                           msg.tags.raid_viewer_count)
 
             elif msg.type is MessageType.PING:
                 self.irc.send_pong()
