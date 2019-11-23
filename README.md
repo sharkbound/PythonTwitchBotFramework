@@ -7,7 +7,16 @@ this bot is also on PYPI: https://pypi.org/project/PythonTwitchBotFramework/
 install from pip: `pip install PythonTwitchBotFramework`
 
 # PythonTwitchBotFramework
-working twitchbot framework made in python 3.6+
+fully async twitchbot framework/library compatible with python 3.6+
+
+### how to stop the bot
+to stop the bot running, do any of these commands:
+
+`!shutdown` `!stop` or `!s` in the twitch chat of the channel its in, this command
+tries to properly shutdown all the tasks the bot is currently running and gives 
+time to stop/cancel
+
+these commands requires the caller have permission to execute them
 
 # Quick Links
 * [Quick Start](#quick-start)
