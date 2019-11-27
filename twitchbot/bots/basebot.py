@@ -344,7 +344,7 @@ class BaseBot:
                 event_coro = trigger_event(Event.on_channel_points_redemption, msg, msg.reward)
 
             elif msg.type is MessageType.BITS:
-                get_event_loop().create_task(self.on_bits_donated(msg, msg.tags.bits))
+                coro = self.on_bits_donated(msg, msg.tags.bits)
                 mod_coro = trigger_mod_event(Event.on_bits_donated, msg, msg.tags.bits, channel=msg.channel_name)
                 event_coro = trigger_event(Event.on_bits_donated, msg.channel, msg)
 
