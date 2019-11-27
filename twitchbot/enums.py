@@ -27,6 +27,7 @@ class MessageType(NamedEnum):
     RAID = auto()
     USER_NOTICE = auto()
     CHANNEL_POINTS_REDEMPTION = auto()
+    BITS = auto()
     NONE = auto()
 
 

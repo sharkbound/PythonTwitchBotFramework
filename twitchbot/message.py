@@ -103,6 +103,12 @@ class Message:
             self.tags = Tags(m['tags'])
             self.mentions = get_message_mentions(self)
 
+            # checking if the message contains any bit donations
+            if self.tags and self.tags.bits:
+                self.type = MessageType.BITS
+                # bits and rewards cannot be combined, so return here
+                return True
+
             # checking if its a channel point redemption
             self.reward = self.tags.all_tags.get('msg-id') or self.tags.all_tags.get('custom-reward-id')
             if self.reward is not None:
@@ -233,6 +239,9 @@ class Message:
 
         elif self.type is MessageType.CHANNEL_POINTS_REDEMPTION:
             return f'{self.author} redeemed reward {self.reward} in #{self.channel_name}'
+
+        elif self.type is MessageType.BITS:
+            return f'{self.author} donated {self.tags.bits} bits to #{self.channel_name}'
 
         return self.raw_msg
 

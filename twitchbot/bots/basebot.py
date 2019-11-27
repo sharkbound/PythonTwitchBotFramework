@@ -343,7 +343,7 @@ class BaseBot:
                                              channel=msg.channel_name)
                 event_coro = trigger_event(Event.on_channel_points_redemption, msg, msg.reward)
 
-            if msg.is_privmsg and msg.tags and msg.tags.bits:
+            elif msg.type is MessageType.BITS:
                 get_event_loop().create_task(self.on_bits_donated(msg, msg.tags.bits))
                 mod_coro = trigger_mod_event(Event.on_bits_donated, msg, msg.tags.bits, channel=msg.channel_name)
                 event_coro = trigger_event(Event.on_bits_donated, msg.channel, msg)
@@ -357,6 +357,7 @@ class BaseBot:
             if event_coro is not None:
                 get_event_loop().create_task(event_coro)
 
+        # clean up mods when the bot is exiting
         for mod in mods.values():
             # notify all mods of being unloaded,
             # this is put in a try/except
