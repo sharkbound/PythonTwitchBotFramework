@@ -2,7 +2,7 @@ from asyncio import Task
 
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
-from .session import Base, database_init
+from .session import Base, init_tables
 from ..config import cfg
 from ..enums import CommandContext
 
@@ -90,4 +90,4 @@ class MessageTimer(Base):
         return MessageTimer(name=name, channel=channel, message=message, interval=interval, active=active)
 
 
-database_init()
+init_tables()

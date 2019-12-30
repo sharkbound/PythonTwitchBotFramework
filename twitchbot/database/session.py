@@ -2,7 +2,7 @@ from sqlalchemy import create_engine, orm
 from sqlalchemy.ext.declarative import declarative_base
 from ..config import mysql_cfg
 
-__all__ = ('Base', 'engine', 'session', 'DB_FILENAME')
+__all__ = ('Base', 'engine', 'session', 'DB_FILENAME', 'init_tables')
 
 if mysql_cfg.enabled:
     try:
@@ -22,5 +22,5 @@ Session = orm.sessionmaker(bind=engine)
 session: orm.Session = Session()
 
 
-def database_init():
+def init_tables():
     Base.metadata.create_all(engine)
