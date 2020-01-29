@@ -8,7 +8,7 @@ with open('README.md') as f:
 
 setup(
     name='PythonTwitchBotFramework',
-    version='1.8.4',
+    version='1.9.0',
     packages=find_packages(),
     url='https://github.com/sharkbound/PythonTwitchBotFramework',
     license='MIT',
