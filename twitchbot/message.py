@@ -1,4 +1,5 @@
-from typing import List, Tuple, TYPE_CHECKING, Optional, Callable, Awaitable
+from itertools import islice
+from typing import List, Tuple, TYPE_CHECKING, Optional, Callable, Awaitable, FrozenSet
 
 from twitchbot import get_bot
 from .util import get_message_mentions
@@ -34,6 +35,34 @@ class Message:
         self.msg_id: Optional[str] = None
 
         self._parse()
+
+    def _normalize(self, s: str):
+        return s.strip().casefold()
+
+    @property
+    def normalized_parts(self) -> FrozenSet[str]:
+        """
+        parts of the message,
+        but they are are stripped of any leading or trailing whitespace
+        and converted to lowercase
+        """
+        return frozenset(map(self._normalize, self.parts))
+
+    @property
+    def normalized_args(self) -> FrozenSet[str]:
+        """
+        parts of the message starting at index 1,
+        but they are are stripped of any leading or trailing whitespace
+        and converted to lowercase
+        """
+        return frozenset(map(self._normalize, islice(self.parts, 1, None)))
+
+    @property
+    def args(self) -> List[str]:
+        """
+        parts of the message starting at index 1
+        """
+        return self.parts[1:]
 
     def _parse(self):
         # this weird looking bit is to make sure we do not do unnecessary checks when we have found a match
