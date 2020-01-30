@@ -58,6 +58,13 @@ class Message:
         return frozenset(map(self._normalize, islice(self.parts, 1, None)))
 
     @property
+    def normalized_content(self):
+        """
+        lowercase()'d and strip()'d version of msg.content
+        """
+        return self._normalize(self.content)
+
+    @property
     def args(self) -> List[str]:
         """
         parts of the message starting at index 1
