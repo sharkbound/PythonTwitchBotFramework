@@ -4,7 +4,7 @@ from typing import Dict, Tuple
 from aiohttp import ClientSession, ClientResponse
 from async_timeout import timeout
 
-from ..config import get_client_id
+from ..config import get_client_id, get_oauth
 from ..data import UserFollowers, UserInfo, RateLimit
 
 __all__ = ('CHANNEL_CHATTERS_URL', 'get_channel_chatters', 'get_stream_data', 'get_url', 'get_user_data', 'get_user_id',
@@ -49,7 +49,7 @@ async def get_user_info(user: str) -> UserInfo:
 
 
 async def get_user_creation_date(user: str) -> datetime:
-    _, json = await get_url(USER_ACCOUNT_AGE_API.format(user), get_headers())
+    _, json = await get_url(USER_ACCOUNT_AGE_API.format(user), get_headers(use_kraken=True))
 
     if 'created_at' not in json:
         return datetime.min()
@@ -115,5 +115,11 @@ async def get_channel_chatters(channel: str) -> dict:
     return data
 
 
-def get_headers():
-    return {'Client-ID': get_client_id()}
+def get_headers(use_kraken: bool=False):
+    headers = {'Client-ID': get_client_id()}
+    oauth_key = get_oauth().replace("oauth:","")
+    
+    # Check if we have a valid oauth key
+    if not use_kraken and not oauth_key:
+        headers.update({'Authorization': f'Bearer {oauth_key}'})
+    return headers
