@@ -115,10 +115,10 @@ async def get_channel_chatters(channel: str) -> dict:
     return data
 
 
-def get_headers(use_kraken: bool=False):
+def get_headers(use_kraken: bool = False):
     headers = {'Client-ID': get_client_id()}
-    oauth_key = get_oauth().replace("oauth:","")
-    
+    oauth_key = get_oauth().replace("oauth:", "")
+
     # Check if we have a valid oauth key
     if not use_kraken and not oauth_key:
         headers.update({'Authorization': f'Bearer {oauth_key}'})

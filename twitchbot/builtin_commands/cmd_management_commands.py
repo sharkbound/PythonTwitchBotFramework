@@ -6,14 +6,14 @@ from twitchbot import (
     Command,
     InvalidArgumentsError,
     command_exist,
-    cfg_disabled_commands
-)
+    cfg_disabled_commands,
+    channels)
 
-COMMAND_MANAGE_PERMISSION = 'manage_commands'
+MANAGE_COMMANDS_PERMISSION = 'manage_commands'
 
 
 @Command('disablecmd',
-         permission=COMMAND_MANAGE_PERMISSION,
+         permission=MANAGE_COMMANDS_PERMISSION,
          syntax='<name>',
          help='disables a command for the current channel')
 async def cmd_disable_cmd(msg: Message, *args):
@@ -35,7 +35,7 @@ async def cmd_disable_cmd(msg: Message, *args):
 
 
 @Command('enablecmd',
-         permission=COMMAND_MANAGE_PERMISSION,
+         permission=MANAGE_COMMANDS_PERMISSION,
          syntax='<name>',
          help='enables a command for the current channel')
 async def cmd_enable_cmd(msg: Message, *args):
@@ -55,7 +55,41 @@ async def cmd_enable_cmd(msg: Message, *args):
     await msg.reply(f'enabled command "{name}"')
 
 
-@Command('reloaddisabled', permission=COMMAND_MANAGE_PERMISSION, help='reloads disable commands config')
+@Command('reloaddisabled', permission=MANAGE_COMMANDS_PERMISSION, help='reloads disable commands config')
 async def cmd_reload_disabled(msg: Message, *args):
     cfg_disabled_commands.load()
     await msg.reply('reloaded disabled commands config')
+
+
+@Command('disablecmdglobal', permission=MANAGE_COMMANDS_PERMISSION, help='disables a command for all channels the bot is in')
+async def cmd_disable_command_global(msg: Message, *args):
+    if not args:
+        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_disable_cmd)
+
+    cmd = args[0].lower()
+
+    if not command_exist(cmd):
+        raise InvalidArgumentsError(reason=f'no command found for "{cmd}"', cmd=cmd_disable_cmd)
+
+    for channel in channels.values():
+        disable_command(channel.name, cmd)
+
+    await msg.reply(f'disabled command "{cmd}" globally')
+
+
+@Command('enablecmdglobal',
+         permission=MANAGE_COMMANDS_PERMISSION,
+         syntax='<name>',
+         help='enables a command for all channels the bot is in')
+async def cmd_enable_command_global(msg: Message, *args):
+    if not args:
+        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_enable_cmd)
+
+    cmd = args[0].lower()
+    if not command_exist(cmd):
+        raise InvalidArgumentsError(reason=f'no command found for "{cmd}"', cmd=cmd_enable_cmd)
+
+    for channel in channels.values():
+        enable_command(channel.name, cmd)
+
+    await msg.reply(f'enabled command "{cmd}" globally')
