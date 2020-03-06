@@ -113,3 +113,4 @@ venv.bak/
 # extras
 mods
 /util/commands.md
+/commands/
