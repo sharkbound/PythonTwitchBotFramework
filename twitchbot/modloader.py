@@ -19,7 +19,8 @@ from .shared import get_bot
 from .util import temp_syspath, get_py_files, get_file_name
 
 __all__ = ('ensure_mods_folder_exists', 'Mod', 'register_mod', 'trigger_mod_event', 'mods',
-           'load_mods_from_directory', 'mod_exists', 'reload_mod', 'is_mod', 'unregister_mod')
+           'load_mods_from_directory', 'mod_exists', 'reload_mod', 'is_mod', 'unregister_mod',
+           'ensure_commands_folder_exists')
 
 
 # noinspection PyMethodMayBeStatic
@@ -222,6 +223,14 @@ def ensure_mods_folder_exists():
     """
     if not os.path.exists(cfg.mods_folder):
         os.mkdir(cfg.mods_folder)
+
+
+def ensure_commands_folder_exists():
+    """
+    creates the commands folder if it does not exists
+    """
+    if not os.path.exists(cfg.commands_folder):
+        os.mkdir(cfg.commands_folder)
 
 
 def load_mods_from_directory(fullpath, predicate: Callable[[str, Any], bool] = None, log=True):

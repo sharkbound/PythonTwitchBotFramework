@@ -52,7 +52,7 @@ class Config:
     def load(self):
         """
         loads the config file's contents into this config object's `data` attribute
-        create the config if it doesnt exist
+        creates the config if it doesnt exist
         """
         if not self.exist:
             self.create()
@@ -111,10 +111,17 @@ cfg = Config(
     owner='BOT_OWNER_NAME',
     channels=['channel'],
     mods_folder='mods',
+    commands_folder='commands',
     command_server_enabled=True,
     command_server_port=1337,
     command_server_host='localhost',
     disable_whispers=False,
+    use_command_whitelist=False,
+    send_message_on_command_whitelist_deny=True,
+    command_whitelist=[
+        'help', 'commands', 'reloadcmdwhitelist', 'reloadmod', 'reloadperms', 'disablemod', 'enablemod', 'disablecmdglobal', 'disablecmd',
+        'enablecmdglobal', 'enablecmd', 'addcmd', 'delcmd', 'updatecmd', 'cmd'
+    ],
 )
 
 mysql_cfg = Config(
@@ -162,8 +169,8 @@ def generate_config():
 
 
 def is_config_valid(check_client_id=False):
-    if get_nick() == DEFAULT_NICK or get_oauth() == DEFAULT_OAUTH or (
-            check_client_id and get_client_id() == DEFAULT_CLIENT_ID):
+    if (get_nick() == DEFAULT_NICK or get_oauth() == DEFAULT_OAUTH
+            or (check_client_id and get_client_id() == DEFAULT_CLIENT_ID)):
         return False
     return True
 

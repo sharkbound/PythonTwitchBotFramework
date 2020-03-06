@@ -3,6 +3,7 @@ from asyncio import sleep
 from .database import add_balance, session
 from .config import cfg
 from .channel import channels
+from .config import cfg
 
 LOYALTY_TICKER_TASK_NAME = '_loyalty_ticker'
 
@@ -19,6 +20,10 @@ async def _ticker_loop():
 
 
 def start_loyalty_ticker():
+    if cfg.loyalty_interval == -1:
+        print('loyalty_interval in config is -1, loyalty ticker WILL NOT start')
+        return
+
     if not task_running(LOYALTY_TICKER_TASK_NAME):
         add_task(LOYALTY_TICKER_TASK_NAME, _ticker_loop())
 

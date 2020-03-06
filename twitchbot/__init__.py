@@ -25,13 +25,19 @@ from .data import *
 from .exceptions import *
 from .shared import *
 from .replywaiter import *
+from .command_whitelist import *
 from . import builtin_commands
 from . import builtin_mods
 
 import os
 
 load_commands_from_directory(os.path.join(__path__[0], 'builtin_commands'))
+
 load_mods_from_directory(os.path.join(__path__[0], 'builtin_mods'))
 load_mods_from_directory(os.path.abspath(cfg.mods_folder))
+
 ensure_mods_folder_exists()
+ensure_commands_folder_exists()
+
+load_commands_from_directory(os.path.abspath(cfg.commands_folder))
 start_command_server()

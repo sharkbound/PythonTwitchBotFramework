@@ -1,6 +1,4 @@
-import time
-from asyncio import get_event_loop
-import asyncio
+import logging
 import logging
 import time
 from asyncio import get_event_loop
@@ -27,6 +25,7 @@ from ..modloader import trigger_mod_event
 from ..permission import perms
 from ..shared import set_bot
 from ..util import stop_all_tasks
+from ..command_whitelist import is_command_whitelisted, send_message_on_command_whitelist_deny
 
 
 # noinspection PyMethodMayBeStatic
@@ -220,6 +219,12 @@ class BaseBot:
 
         elif not isinstance(cmd, CustomCommandAction) and is_command_disabled(msg.channel_name, cmd.fullname):
             return await msg.reply(f'{cmd.fullname} is disabled for this channel')
+
+        # also check if the command is whitelisted, (if its not a custom command)
+        if not isinstance(cmd, CustomCommandAction) and not is_command_whitelisted(cmd.name):
+            if send_message_on_command_whitelist_deny():
+                await msg.reply(f'{msg.mention} "{cmd.fullname}" is not enabled in the command whitelist')
+            return
 
         has_cooldown_bypass_permission = perms.has_permission(msg.channel_name, msg.author, cmd.cooldown_bypass)
         if (not has_cooldown_bypass_permission

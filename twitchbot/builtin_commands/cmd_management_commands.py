@@ -7,7 +7,9 @@ from twitchbot import (
     InvalidArgumentsError,
     command_exist,
     cfg_disabled_commands,
-    channels)
+    channels,
+    reload_whitelisted_commands,
+)
 
 MANAGE_COMMANDS_PERMISSION = 'manage_commands'
 
@@ -93,3 +95,11 @@ async def cmd_enable_command_global(msg: Message, *args):
         enable_command(channel.name, cmd)
 
     await msg.reply(f'enabled command "{cmd}" globally')
+
+
+@Command('reloadcmdwhitelist',
+         permission=MANAGE_COMMANDS_PERMISSION,
+         help='reloads whitelisted commands from the config file')
+async def cmd_reload_command_whitelist(msg: Message, *_):
+    reload_whitelisted_commands()
+    await msg.reply(f'{msg.mention} reloaded command whitelist')
