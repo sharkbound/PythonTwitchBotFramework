@@ -169,6 +169,22 @@ class BaseBot:
         print(f'logging in as {get_nick()}')
 
         util.send_auth(self.irc)
+
+        resp = (await self.irc.get_next_message()).lower()
+        if 'authentication failed' in resp:
+            print(
+                '\n\n=========AUTHENTICATION FAILED=========\n\n'
+                'check that your oauth is correct and valid and that the nick in the config is correct'
+                '\nthere is a chance that oauth was good, but is not anymore\n'
+                'the oauth token can be regenerated using this website: \n\n\thttps://twitchapps.com/tmi/')
+            input('\n\npress enter to exit')
+            exit(1)
+        elif 'welcome' not in resp:
+            print(
+                f'\n\ntwitch gave a bad response to sending authentication to twitch server\nbelow is the message received from twitch:\n\n\t{resp}')
+            input('\n\npress enter to exit')
+            exit(1)
+
         self._request_permissions()
 
         for chan in channels.values():
