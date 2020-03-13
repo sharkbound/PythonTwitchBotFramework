@@ -31,6 +31,7 @@ these commands requires the caller have permission to execute them
 * [Command Server](#command-server)
 * [Command Console](#command-console)
 * [Mysql Support](#mysql-support)
+* [Command Whitelist](#command-whitelist)
 
 # basic info
 This is a fully async twitch bot framework complete with:
@@ -294,22 +295,43 @@ hola @johndoe!
 the default config values are:
 ```json
 {
+  "nick": "nick",
   "oauth": "oauth:",
   "client_id": "CLIENT_ID",
-  "nick": "nick",
   "prefix": "!",
   "default_balance": 200,
+  "loyalty_interval": 60,
+  "loyalty_amount": 2,
   "owner": "BOT_OWNER_NAME",
   "channels": [
     "channel"
   ],
-  "loyalty_interval": 60,
-  "loyalty_amount": 2,
+  "mods_folder": "mods",
+  "commands_folder": "commands",
   "command_server_enabled": true,
   "command_server_port": 1337,
-  "command_server_host": "localhost"
+  "command_server_host": "localhost",
+  "disable_whispers": false,
+  "use_command_whitelist": false,
+  "send_message_on_command_whitelist_deny": true,
+  "command_whitelist": [
+    "help",
+    "commands",
+    "reloadcmdwhitelist",
+    "reloadmod",
+    "reloadperms",
+    "disablemod",
+    "enablemod",
+    "disablecmdglobal",
+    "disablecmd",
+    "enablecmdglobal",
+    "enablecmd",
+    "addcmd",
+    "delcmd",
+    "updatecmd",
+    "cmd"
+  ]
 }
-
 ```
 
 `oauth` is the twitch oauth used to login  
@@ -337,6 +359,14 @@ already have a economy balance
 `command_server_port` the port for the command server
 
 `command_server_host` the host name (address) for the command server
+
+`disable_whispers` is this value is set to `true` all whispers will be converted to regular channel messages
+
+`use_command_whitelist` enabled or disables the command whitelist (see [Command Whitelist](#command-whitelist))
+
+`send_message_on_command_whitelist_deny` should the bot tell users when you try to use a non-whitelisted command?
+
+`command_whitelist` json array of commands whitelisted without their prefix (only applicable if [Command Whitelist](#command-whitelist) is enabled)
 
 # Permissions
 
@@ -464,3 +494,18 @@ to enabled mysql
 * fill in `address`, `username`, `password`, and `database`
 * install the mysql library (if needed) `pip install --upgrade --user mysql-connector-python`
 * rerun the bot
+
+# Command Whitelist
+Command whitelist is a optional feature that only allows certain commands to be used (specified in the config)
+
+it is disabled by default, but can be enabled by setting `use_command_whitelist` to `true` in `configs/config.json`
+
+Command Whitelist limits what commands are enabled / usable on the bot
+
+if a command that is not whitelisted is ran, it will tell the command caller that it is not whitelisted if `send_message_on_command_whitelist_deny` is set to `true`, otherwise it will silently NOT RUN the command
+
+whitelisted commands can be edited with the `command_whitelist` json-array in `configs/config.json`
+
+to edit the command whitelist, you can add or remove elements from the `command_whitelist` json-array, do not include the command's prefix, AKA `!command` becomes `command` in `command_whitelist`
+
+### To reload the whitelist, restart the bot, or do `!reloadcmdwhitelist` in your the twitch chat (requires having `manage_commands` permission)
