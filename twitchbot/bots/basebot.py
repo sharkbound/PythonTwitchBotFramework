@@ -36,6 +36,21 @@ class BaseBot:
         set_bot(self)
 
     # region events
+    async def on_bot_banned_from_channel(self, msg: Message, channel: Channel):
+        """
+        triggered when the bot attempts to join a banned channel
+        :param msg: the message that twitch sent saying the bot was banned
+        :param channel: the channel the bot was banned from
+        """
+
+    async def on_bot_timed_out_from_channel(self, msg: Message, channel: Channel, seconds: int):
+        """
+        triggered when the bot is timed out on a channel
+        :param msg: the message that twitch sent saying the bot was timed out
+        :param channel: the channel the bot was timed out on
+        :param seconds: how many seconds left in the timeout
+        """
+
     async def on_mod_reloaded(self, mod: Mod):
         """
         triggered when a mod is reloaded using reload_mod() or !reloadmod
@@ -368,6 +383,16 @@ class BaseBot:
                 coro = self.on_bits_donated(msg, msg.tags.bits)
                 mod_coro = trigger_mod_event(Event.on_bits_donated, msg, msg.tags.bits, channel=msg.channel_name)
                 event_coro = trigger_event(Event.on_bits_donated, msg.channel, msg)
+
+            elif msg.type == MessageType.BOT_PERMANENTLY_BANNED:
+                coro = self.on_bot_banned_from_channel(msg, msg.channel)
+                mod_coro = trigger_mod_event(Event.on_bot_banned_from_channel, msg, msg.channel, channel=msg.channel_name)
+                event_coro = trigger_event(Event.on_bot_banned_from_channel, msg, msg.channel)
+
+            elif msg.type == MessageType.BOT_TIMED_OUT:
+                coro = self.on_bot_timed_out_from_channel(msg, msg.channel, msg.timeout_seconds)
+                mod_coro = trigger_mod_event(Event.on_bot_timed_out_from_channel, msg, msg.channel, msg.timeout_seconds, channel=msg.channel_name)
+                event_coro = trigger_event(Event.on_bot_timed_out_from_channel, msg, msg.channel, msg.timeout_seconds)
 
             if coro is not None:
                 get_event_loop().create_task(coro)

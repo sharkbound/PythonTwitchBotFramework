@@ -33,3 +33,15 @@ RE_AT_MENTION = re.compile(
 RE_USERNOTICE = re.compile(
     r'(?P<tags>.*):tmi\.twitch\.tv USERNOTICE #(?P<channel>[\w\d]+)(?: :)?(?P<content>.+)?'
 )
+
+# user notices / subscriptions
+# example:
+# @msg-id=msg_banned :tmi.twitch.tv NOTICE #X :You are permanently banned from talking in X.
+RE_NOTICE = re.compile(
+    r'(?P<tags>.*):tmi\.twitch\.tv NOTICE #(?P<channel>[\w\d]+)(?: :)?(?P<content>.+)?'
+)
+
+#  @msg-id=msg_timedout :tmi.twitch.tv NOTICE #X :You are timed out for 99906 more seconds.
+RE_TIMEOUT_DURATION = re.compile(
+    r'timed out for (?P<seconds>\d+)'
+)

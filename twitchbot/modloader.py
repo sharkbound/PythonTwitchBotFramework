@@ -56,6 +56,21 @@ class Mod:
         :param mod: mod being reloaded
         """
 
+    async def on_bot_banned_from_channel(self, msg: Message, channel: Channel):
+        """
+        triggered when the bot attempts to join a banned channel
+        :param msg: the message that twitch sent saying the bot was banned
+        :param channel: the channel the bot was banned from
+        """
+
+    async def on_bot_timed_out_from_channel(self, msg: Message, channel: Channel, seconds: int):
+        """
+        triggered when the bot is timed out on a channel
+        :param msg: the message that twitch sent saying the bot was timed out
+        :param channel: the channel the bot was timed out on
+        :param seconds: how many seconds left in the timeout
+        """
+
     async def on_connected(self):
         """
         triggered when the bot connects to all the channels specified in the config file

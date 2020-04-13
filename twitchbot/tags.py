@@ -58,7 +58,7 @@ class Tags:
 def _split_tags(tags: str):
     for tag in tags.split(';'):
         name, _, value = tag.partition('=')
-        yield name, value
+        yield name.replace('@', ''), value.strip()
 
 
 def _parse_badges(badges: str):

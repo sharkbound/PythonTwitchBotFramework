@@ -28,6 +28,9 @@ class MessageType(NamedEnum):
     USER_NOTICE = auto()
     CHANNEL_POINTS_REDEMPTION = auto()
     BITS = auto()
+    NOTICE = auto()
+    BOT_PERMANENTLY_BANNED = auto()
+    BOT_TIMED_OUT = auto()
     NONE = auto()
 
 
@@ -55,3 +58,5 @@ class Event(NamedEnum):
     on_user_part = auto()
     on_mod_reloaded = auto()
     on_channel_points_redemption = auto()
+    on_bot_banned_from_channel = auto()
+    on_bot_timed_out_from_channel = auto()

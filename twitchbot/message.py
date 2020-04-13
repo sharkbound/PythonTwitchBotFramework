@@ -5,7 +5,7 @@ from twitchbot import get_bot
 from .util import get_message_mentions
 from .channel import Channel, channels
 from .irc import Irc
-from .regex import RE_PRIVMSG, RE_WHISPER, RE_USER_JOIN, RE_USERNOTICE, RE_USER_PART
+from .regex import RE_PRIVMSG, RE_WHISPER, RE_USER_JOIN, RE_USERNOTICE, RE_USER_PART, RE_NOTICE, RE_TIMEOUT_DURATION
 from .enums import MessageType
 from .util import split_message
 from .tags import Tags
@@ -33,6 +33,7 @@ class Message:
         self.bot: 'BaseBot' = bot
         self.reward: Optional[str] = None
         self.msg_id: Optional[str] = None
+        self.timeout_seconds: Optional[int] = None
 
         self._parse()
 
@@ -77,6 +78,7 @@ class Message:
         # if the first check is false, it tries the next, then if thats false, it tries the next one, and it keeps doing this
         # until one matches or it run out of functions to check
         (self._parse_usernotice()
+         or self._parse_notice()
          or self._parse_privmsg()
          or self._parse_whisper()
          or self._parse_user_join()
@@ -165,8 +167,29 @@ class Message:
             elif self.tags.msg_id == 'raid':
                 self.type = MessageType.RAID
                 self.author = self.tags.all_tags.get('msg-param-login')
+            # RAW >> @msg-id=msg_banned :tmi.twitch.tv NOTICE #X :You are permanently banned from talking in X.
+            elif self.tags.msg_id == 'msg_banned':
+                self.type = MessageType.BOT_PERMANENTLY_BANNED
+            elif self.tags.msg_id == 'msg_timedout':
+                self.type = MessageType.BOT_TIMED_OUT
             else:
                 self.type = MessageType.USER_NOTICE
+
+        return bool(m)
+
+    def _parse_notice(self) -> bool:
+        m = RE_NOTICE.search(self.raw_msg)
+        if m:
+            self.tags = Tags(m['tags'])
+            self.channel = channels[m['channel']]
+            self.content = m['content']
+            if self.tags.msg_id == 'msg_banned':
+                self.type = MessageType.BOT_PERMANENTLY_BANNED
+            elif self.tags.msg_id == 'msg_timedout':
+                self.type = MessageType.BOT_TIMED_OUT
+                self.timeout_seconds = int(RE_TIMEOUT_DURATION.search(self.content)['seconds'])
+            else:
+                self.type = MessageType.NOTICE
 
         return bool(m)
 
