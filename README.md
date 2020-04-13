@@ -116,6 +116,8 @@ Event.on_user_join : (self, user: str, channel: Channel)
 Event.on_user_part : (self, user: str, channel: Channel)
 Event.on_mod_reloaded : (self, mod: Mod)  
 Event.on_channel_points_redemption : (self, msg: Message, reward: str)
+Event.on_bot_timed_out_from_channel : (self, msg: Message, channel: Channel, seconds: int)
+Event.on_bot_banned_from_channel : (self, msg: Message, channel: Channel)
 ```
 #### when using the decorator event override way, `self` is not included, ex: `(self, msg: Message)` becomes: `(msg: Message)` 
 

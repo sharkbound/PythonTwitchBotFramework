@@ -384,12 +384,12 @@ class BaseBot:
                 mod_coro = trigger_mod_event(Event.on_bits_donated, msg, msg.tags.bits, channel=msg.channel_name)
                 event_coro = trigger_event(Event.on_bits_donated, msg.channel, msg)
 
-            elif msg.type == MessageType.BOT_PERMANENTLY_BANNED:
+            elif msg.type is MessageType.BOT_PERMANENTLY_BANNED:
                 coro = self.on_bot_banned_from_channel(msg, msg.channel)
                 mod_coro = trigger_mod_event(Event.on_bot_banned_from_channel, msg, msg.channel, channel=msg.channel_name)
                 event_coro = trigger_event(Event.on_bot_banned_from_channel, msg, msg.channel)
 
-            elif msg.type == MessageType.BOT_TIMED_OUT:
+            elif msg.type is MessageType.BOT_TIMED_OUT:
                 coro = self.on_bot_timed_out_from_channel(msg, msg.channel, msg.timeout_seconds)
                 mod_coro = trigger_mod_event(Event.on_bot_timed_out_from_channel, msg, msg.channel, msg.timeout_seconds, channel=msg.channel_name)
                 event_coro = trigger_event(Event.on_bot_timed_out_from_channel, msg, msg.channel, msg.timeout_seconds)
