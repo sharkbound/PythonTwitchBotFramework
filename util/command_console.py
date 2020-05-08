@@ -9,7 +9,7 @@ SIZE = 300
 
 
 def read():
-    return s.recv(SIZE).decode()
+    return s.recv(SIZE).decode('utf8')
 
 
 def send(text):

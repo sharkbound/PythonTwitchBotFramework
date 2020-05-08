@@ -95,7 +95,7 @@ class Irc:
         await trigger_event(Event.on_whisper_sent, msg, user, get_nick())
 
     async def get_next_message(self):
-        return (await self.reader.readline()).decode().strip()
+        return (await self.reader.readline()).decode('utf8').strip()
 
     def send_pong(self):
         self.send('PONG :tmi.twitch.tv')

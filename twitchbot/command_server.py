@@ -40,7 +40,7 @@ def stop_command_server():
 async def handle_client(reader: StreamReader, writer: StreamWriter):
     # helper function to read the next message from the client
     async def read():
-        return (await reader.readline()).decode().strip()
+        return (await reader.readline()).decode('utf8').strip()
 
     try:
         writer.write(b'Connected to the command server!\n')
