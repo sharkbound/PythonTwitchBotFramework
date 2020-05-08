@@ -1,3 +1,5 @@
+import traceback
+from datetime import datetime
 from itertools import islice
 from typing import List, Tuple, TYPE_CHECKING, Optional, Callable, Awaitable, FrozenSet
 
@@ -303,6 +305,15 @@ class Message:
             return f'{self.author} donated {self.tags.bits} bits to #{self.channel_name}'
 
         return self.raw_msg
+
+    def safe_print(self):
+        try:
+            print(self)
+        except Exception as e:
+            err = traceback.format_exc()
+            print(err)
+            with open('printing_errors.log', 'a') as f:
+                f.write(f'\n\n{datetime.now()}:\n{err}')
 
     def __getitem__(self, item):
         """

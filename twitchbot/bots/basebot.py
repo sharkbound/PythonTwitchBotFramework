@@ -323,17 +323,17 @@ class BaseBot:
 
             if cmd and ((msg.is_whisper and cmd.context & CommandContext.WHISPER)
                         or (msg.is_privmsg and cmd.context & CommandContext.CHANNEL)):
-                print(msg)
+                msg.safe_print()
                 coro = self._run_command(msg, cmd)
 
             elif msg.type is MessageType.WHISPER:
-                print(msg)
+                msg.safe_print()
                 coro = self.on_whisper_received(msg)
                 mod_coro = trigger_mod_event(Event.on_whisper_received, msg)
                 event_coro = trigger_event(Event.on_whisper_received, msg)
 
             elif msg.type is MessageType.PRIVMSG:
-                print(msg)
+                msg.safe_print()
                 coro = self.on_privmsg_received(msg)
                 mod_coro = trigger_mod_event(Event.on_privmsg_received, msg, channel=msg.channel_name)
                 event_coro = trigger_event(Event.on_privmsg_received, msg)
