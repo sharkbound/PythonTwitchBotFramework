@@ -19,7 +19,7 @@ engine = create_engine(f'sqlite:///{DB_FILENAME}'
                        if not mysql_cfg.enabled else
                        f'mysql+mysqlconnector://{mysql_cfg.username}:{mysql_cfg.password}@{mysql_cfg.address}:{mysql_cfg.port}/{mysql_cfg.database}')
 Session = orm.sessionmaker(bind=engine)
-session: orm.Session = Session()
+session: orm.Session = orm.scoped_session(Session)
 
 
 def init_tables():
