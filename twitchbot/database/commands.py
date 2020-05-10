@@ -30,8 +30,8 @@ def add_custom_command(cmd: CustomCommand) -> bool:
     if get_custom_command(cmd.channel, cmd.name) is not None:
         return False
 
-    session().add(cmd)
-    session().commit()
+    session.add(cmd)
+    session.commit()
     return True
 
 

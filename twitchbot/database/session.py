@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine, orm
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import scoped_session
 
 from ..config import mysql_cfg
 
