@@ -1,5 +1,7 @@
 from sqlalchemy import create_engine, orm
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import scoped_session
+
 from ..config import mysql_cfg
 
 __all__ = ('Base', 'engine', 'session', 'DB_FILENAME', 'init_tables')
@@ -19,7 +21,7 @@ engine = create_engine(f'sqlite:///{DB_FILENAME}'
                        if not mysql_cfg.enabled else
                        f'mysql+mysqlconnector://{mysql_cfg.username}:{mysql_cfg.password}@{mysql_cfg.address}:{mysql_cfg.port}/{mysql_cfg.database}')
 Session = orm.sessionmaker(bind=engine)
-session: orm.Session = Session()
+session = orm.scoped_session(Session)
 
 
 def init_tables():
