@@ -249,8 +249,16 @@ class Message:
 
             await self.irc.send_whisper(self.author, msg)
 
-        # else:
-        #     raise ValueError(f'invalid message type to reply, expected PRIVMSG or WHISPER, current: {self.type}')
+        # used for weirder cases like NOTICE, and point redeemation, ect
+        # exclude PRIVMSG and WHISPER since they are handled above as well
+        elif self.type not in (MessageType.PRIVMSG, MessageType.WHISPER):
+            # check we have a valid channel to send to
+            if self.channel is not None and self.channel.irc is not None and self.channel.name.strip():
+                # relay the message
+                await self.channel.send_message(msg)
+
+    # else:
+    #     raise ValueError(f'invalid message type to reply, expected PRIVMSG or WHISPER, current: {self.type}')
 
     async def wait_for_reply(self, predicate: Callable[['Message'], Awaitable[bool]] = None, timeout=30, default=None,
                              raise_on_timeout=False) -> 'Message':
