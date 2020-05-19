@@ -15,8 +15,7 @@ if typing.TYPE_CHECKING:
 
 PRIVMSG_MAX_LINE_LENGTH = 450
 WHISPER_MAX_LINE_LENGTH = 438
-PRIV_MSG_FORMAT = 'PRIVMSG #{channel} :{line}'
-
+PRIVMSG_FORMAT = 'PRIVMSG #{channel} :{line}'
 
 class Irc:
     def __init__(self, reader, writer):
@@ -65,9 +64,10 @@ class Irc:
         from .modloader import trigger_mod_event
 
         channel = channel.lower()
+        chan = channels.get(channel) or DummyChannel(channel)
         for line in _wrap_message(msg):
-            await privmsg_ratelimit(channels.get(channel) or DummyChannel(channel))
-            self.send(PRIV_MSG_FORMAT.format(channel=channel, line=line))
+            await privmsg_ratelimit(chan)
+            self.send(PRIVMSG_FORMAT.format(channel=channel, line=line))
 
         # exclude calls from send_whisper being sent to the bots on_privmsg_received event
         if not msg.startswith('/w'):
@@ -83,7 +83,7 @@ class Irc:
         user = user.lower()
         for line in _wrap_message(f'/w {user} {msg}'):
             await whisper_ratelimit()
-            self.send(PRIV_MSG_FORMAT.format(channel=user, line=line))
+            self.send(PRIVMSG_FORMAT.format(channel=user, line=line))
             # this sleep is necessary to make sure all whispers get sent
             # without it, consecutive whispers get dropped occasionally
             # if i find a better fix, will do it instead, but until then, this works
