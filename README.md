@@ -21,6 +21,7 @@ these commands requires the caller have permission to execute them
 # Quick Links
 * [Quick Start](#quick-start)
 * [Overriding Events](#overriding-events)
+* [Overriding Events On Mods](#overriding-events-on-mods)
 * [Adding Commands](#adding-commands)
 * [SubCommands](#subcommands)
 * [DummyCommands](#dummycommands)
@@ -73,7 +74,7 @@ if __name__ == '__main__':
 
 the bots events are overridable via the following 2 ways:
 
-1) using decorators:
+## using decorators:
 
 ```python
 from twitchbot import event_handler, Event, Message
@@ -83,7 +84,7 @@ async def on_privmsg_received(msg: Message):
     print(f'{msg.author} sent message {msg.content} to channel {msg.channel_name}')
 ```
 
-2) subclassing BaseBot
+## subclassing BaseBot
 ```python
 from twitchbot import BaseBot, Message
 class MyCustomTwitchBot(BaseBot):
@@ -95,7 +96,15 @@ then you would use MyCustomTwitchBot instead of BaseBot:
 MyCustomTwitchBot().run()
 ```
 
+## Overriding Events On Mods
+Visit [***the mods wiki page***](https://github.com/sharkbound/PythonTwitchBotFramework/wiki/Mods#index) 
+on this repo's wiki to view how to do it via Mods
+
+
 * all overridable events are:
+
+#### when using the decorator event override way, `self` is not included, ex: `(self, msg: Message)` becomes: `(msg: Message)` 
+
 ```python
 from twitchbot import Event
 
@@ -119,7 +128,6 @@ Event.on_channel_points_redemption : (self, msg: Message, reward: str)
 Event.on_bot_timed_out_from_channel : (self, msg: Message, channel: Channel, seconds: int)
 Event.on_bot_banned_from_channel : (self, msg: Message, channel: Channel)
 ```
-#### when using the decorator event override way, `self` is not included, ex: `(self, msg: Message)` becomes: `(msg: Message)` 
 
 if this is the first time running the bot it will generate a folder
 named `configs`. 
