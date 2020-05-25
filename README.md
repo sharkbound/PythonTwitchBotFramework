@@ -91,7 +91,9 @@ class MyCustomTwitchBot(BaseBot):
     async def on_privmsg_received(self, msg: Message):
         print(f'{msg.author} sent message {msg.content} to channel {msg.channel_name}')
 ```
+
 then you would use MyCustomTwitchBot instead of BaseBot:
+
 ```python
 MyCustomTwitchBot().run()
 ```
