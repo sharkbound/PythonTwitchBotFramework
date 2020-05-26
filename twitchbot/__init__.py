@@ -26,6 +26,7 @@ from .exceptions import *
 from .shared import *
 from .replywaiter import *
 from .command_whitelist import *
+from .poll import *
 from . import builtin_commands
 from . import builtin_mods
 
