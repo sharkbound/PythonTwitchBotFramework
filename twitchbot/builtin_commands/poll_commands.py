@@ -8,6 +8,8 @@ LIST_POLLS_PERMISSION = 'listpolls'
 POLL_INFO_PERMISSION = 'pollinfo'
 
 
+# todo: add coroutines to say when a poll is done
+
 @Command('startpoll',
          syntax='<title> [option1, option2, ect] seconds_for_poll',
          help='starts the poll for the the current channel',
@@ -35,7 +37,7 @@ async def cmd_vote(msg: Message, *args):
         raise InvalidArgumentsError(reason='missing required vote arguments, must provide the id of the choice you want to vote for', cmd=cmd_vote)
 
     choice = args[0]
-    count = get_active_poll_count(msg.channel_name)
+    count = get_active_channel_poll_count(msg.channel_name)
 
     if not count:
         await msg.reply('there are NOT any active polls running right now to vote for')
@@ -79,7 +81,7 @@ async def cmd_list_polls(msg: Message, *args):
 
 @Command('pollinfo', syntax='(POLL_ID)', help='views info about the poll using the passed poll id', permission=POLL_INFO_PERMISSION)
 async def cmd_poll_info(msg: Message, *args):
-    count = get_active_poll_count(msg.channel_name)
+    count = get_active_channel_poll_count(msg.channel_name)
 
     if not count:
         await msg.reply('there are not any polls active right now')

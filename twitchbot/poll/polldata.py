@@ -3,7 +3,7 @@ __all__ = [
     'get_channel_poll_by_id',
     'get_active_channel_polls',
     'active_polls',
-    'get_active_poll_count',
+    'get_active_channel_poll_count',
     'PollVote'
 ]
 
@@ -114,5 +114,5 @@ def get_active_channel_polls(channel: str) -> Tuple[PollData]:
     return tuple(poll for poll in active_polls[channel] if not poll.done)
 
 
-def get_active_poll_count(channel: str) -> int:
-    return len(active_polls[channel])
+def get_active_channel_poll_count(channel: str) -> int:
+    return sum(1 for poll in active_polls[channel] if not poll.done)
