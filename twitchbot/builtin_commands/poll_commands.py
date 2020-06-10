@@ -1,6 +1,6 @@
 from twitchbot import *
 
-RE_POLL_INFO = re.compile(r'(?P<title>.+)\[(?P<options>[\w\d\s,]+)\]\s*(?P<time>[0-9.]*)')
+RE_POLL_INFO = re.compile(r'(?P<title>.+)\[(?P<options>[\w\d\s,]+)]\s*(?P<time>[0-9.]*)')
 
 VOTE_PERMISSION = 'vote'
 START_POLL_PERMISSION = 'startpoll'
@@ -51,12 +51,11 @@ async def cmd_vote(msg: Message, *args):
                 f'{msg.mention} there are multiple polls active, please specify the poll id, example: {cfg.prefix}vote {choice} <POLL_ID>')
             return
 
-        if not args[1].isdigit():
-            raise InvalidArgumentsError(f'{args[1]} is not a valid number')
+        passed_poll_id = _cast_to_int_or_error(args[1])
 
-        poll = get_channel_poll_by_id(msg.channel_name, int(args[1]))
+        poll = get_channel_poll_by_id(msg.channel_name, passed_poll_id)
         if poll is None:
-            raise InvalidArgumentsError(f'Could not find poll by ID {args[1]}')
+            raise InvalidArgumentsError(reason=f'Could not find poll by ID {passed_poll_id}', cmd=cmd_vote)
 
     if not choice.isdigit():
         raise InvalidArgumentsError(reason=f'{choice} is not a valid number', cmd=cmd_vote)
@@ -72,6 +71,12 @@ async def cmd_vote(msg: Message, *args):
 
     poll.add_vote(msg.author, choice)
     print(poll.votes)
+
+
+def _cast_to_int_or_error(value: str) -> int:
+    if not value.isdigit():
+        raise InvalidArgumentsError(f'{value} is not a valid number')
+    return int(value)
 
 
 @Command('listpolls', help='list all active polls', permission=LIST_POLLS_PERMISSION)
