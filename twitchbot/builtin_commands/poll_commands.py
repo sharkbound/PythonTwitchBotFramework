@@ -6,12 +6,13 @@ VOTE_PERMISSION = 'vote'
 START_POLL_PERMISSION = 'startpoll'
 LIST_POLLS_PERMISSION = 'listpolls'
 POLL_INFO_PERMISSION = 'pollinfo'
+DEFAULT_POLL_DURATION = 60
 
 
 # todo: add coroutines to say when a poll is done
 
 @Command('startpoll',
-         syntax='<title> [option1, option2, ect] seconds_for_poll',
+         syntax='<title> [option1, option2, ect] (seconds_for_poll)',
          help='starts the poll for the the current channel',
          permission=START_POLL_PERMISSION)
 async def cmd_start_poll(msg: Message, *args):
@@ -51,17 +52,13 @@ async def cmd_vote(msg: Message, *args):
                 f'{msg.mention} there are multiple polls active, please specify the poll id, example: {cfg.prefix}vote {choice} <POLL_ID>')
             return
 
-        passed_poll_id = _cast_to_int_or_error(args[1])
-
+        passed_poll_id = _cast_to_int_or_error(args[1], cmd_vote)
         poll = get_channel_poll_by_id(msg.channel_name, passed_poll_id)
+
         if poll is None:
             raise InvalidArgumentsError(reason=f'Could not find poll by ID {passed_poll_id}', cmd=cmd_vote)
 
-    if not choice.isdigit():
-        raise InvalidArgumentsError(reason=f'{choice} is not a valid number', cmd=cmd_vote)
-
-    choice = int(choice)
-
+    choice = _cast_to_int_or_error(choice, cmd_vote)
     if not poll.is_valid_vote(choice):
         await msg.reply(f'{choice} is not a valid choice id for poll#{poll.id}, choices are: {poll.format_choices()}')
         return
@@ -71,12 +68,6 @@ async def cmd_vote(msg: Message, *args):
 
     poll.add_vote(msg.author, choice)
     print(poll.votes)
-
-
-def _cast_to_int_or_error(value: str) -> int:
-    if not value.isdigit():
-        raise InvalidArgumentsError(f'{value} is not a valid number')
-    return int(value)
 
 
 @Command('listpolls', help='list all active polls', permission=LIST_POLLS_PERMISSION)
@@ -101,14 +92,19 @@ async def cmd_poll_info(msg: Message, *args):
     if count == 1:
         poll = get_active_channel_polls(msg.channel_name)[0]
     else:
-        if not args[0].isdigit():
-            raise InvalidArgumentsError(reason=f'{args[0]} is not valid number', cmd=cmd_poll_info)
+        poll_id = _cast_to_int_or_error(args[0], cmd_poll_info)
+        poll = get_channel_poll_by_id(msg.channel_name, poll_id)
 
-        poll = get_channel_poll_by_id(msg.channel_name, int(args[0]))
         if poll is None:
-            raise InvalidArgumentsError(reason=f'could not find any poll by ID {args[0]}', cmd=cmd_poll_info)
+            raise InvalidArgumentsError(reason=f'could not find any poll by ID {poll_id}', cmd=cmd_poll_info)
 
     await msg.reply(f'POLL INFO #{poll.id} - title: "{poll.title}" - choices: {poll.format_choices()} - seconds left: {poll.seconds_left}')
+
+
+def _cast_to_int_or_error(value: str, src_cmd) -> int:
+    if not value.isdigit():
+        raise InvalidArgumentsError(reason=f'{value} is not a valid number', cmd=src_cmd)
+    return int(value)
 
 
 def _parse_poll_data(msg: Message) -> Optional[PollData]:
@@ -119,7 +115,7 @@ def _parse_poll_data(msg: Message) -> Optional[PollData]:
 
     title = match[1].strip()
     choices = [s.strip() for s in match[2].split(',')]
-    seconds = _try_parse_float(match[3], 30) if len(match.groups()) == 3 else 30
+    seconds = _try_parse_float(match[3], DEFAULT_POLL_DURATION) if len(match.groups()) == 3 else 30
 
     return PollData(msg.channel, msg.author, title, seconds, *choices)
 

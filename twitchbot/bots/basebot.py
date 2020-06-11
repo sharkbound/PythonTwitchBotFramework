@@ -26,6 +26,7 @@ from ..permission import perms
 from ..shared import set_bot
 from ..util import stop_all_tasks
 from ..command_whitelist import is_command_whitelisted, send_message_on_command_whitelist_deny
+from ..poll import poll_event_processor_loop
 
 
 # noinspection PyMethodMayBeStatic
@@ -303,6 +304,8 @@ class BaseBot:
         await self.on_connected()
         await trigger_mod_event(Event.on_connected)
         await trigger_event(Event.on_connected)
+
+        util.add_nameless_task(poll_event_processor_loop())
 
         while self._running:
             raw_msg = await self.irc.get_next_message()

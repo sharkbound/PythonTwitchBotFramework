@@ -4,15 +4,20 @@ __all__ = [
     'get_active_channel_polls',
     'active_polls',
     'get_active_channel_poll_count',
-    'PollVote'
+    'PollVote',
+    'poll_event_processor_loop',
+    'POLL_CHECK_INTERVAL_SECONDS'
 ]
 
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
 from typing import List, DefaultDict, Optional, Tuple
+from asyncio import sleep
 
 from ..channel import Channel
+
+POLL_CHECK_INTERVAL_SECONDS = 1.5
 
 active_polls: DefaultDict[str, List['PollData']] = defaultdict(list)
 
@@ -116,3 +121,20 @@ def get_active_channel_polls(channel: str) -> Tuple[PollData]:
 
 def get_active_channel_poll_count(channel: str) -> int:
     return sum(1 for poll in active_polls[channel] if not poll.done)
+
+
+async def poll_event_processor_loop():
+    to_remove = []
+    while True:
+        for channel_name, polls in active_polls.items():
+            for index, poll in enumerate(polls):
+                if poll.done:
+                    to_remove.append((channel_name, poll))
+
+        for channel_name, poll in to_remove:
+            await poll.channel.send_message(f'removed poll #{poll.id}')
+            # todo: add event trigger here
+            active_polls[channel_name].remove(poll)
+
+        to_remove.clear()
+        await sleep(POLL_CHECK_INTERVAL_SECONDS)
