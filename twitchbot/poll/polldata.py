@@ -9,11 +9,11 @@ __all__ = [
     'POLL_CHECK_INTERVAL_SECONDS'
 ]
 
+from asyncio import sleep
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
 from typing import List, DefaultDict, Optional, Tuple
-from asyncio import sleep, get_event_loop
 
 from ..channel import Channel
 from ..event_util import forward_event
@@ -94,12 +94,18 @@ class PollData:
     async def end(self):
         pass
 
-    async def start(self):
+    async def start(self, trigger_event: bool = True):
         await self.channel.send_message(
             f'{self.owner} has started poll "{self.title}" ID({self.id}) that will end in {self.duration_seconds} seconds - {self.format_choices()}'
         )
 
+        self._trigger_start_event(trigger_event)
         active_polls[self.channel_name].append(self)
+
+    def _trigger_start_event(self, trigger_event):
+        from ..event_util import forward_event, Event
+        if trigger_event:
+            forward_event(Event.on_poll_started, self.channel, self)
 
     @property
     def channel_name(self):
@@ -138,7 +144,7 @@ async def poll_event_processor_loop():
         for channel_name, poll in to_remove:
             from twitchbot import Event
 
-            forward_event(Event.on_poll_started, poll.channel, poll, channel=poll.channel.name)
+            forward_event(Event.on_poll_ended, poll.channel, poll, channel=poll.channel.name)
             active_polls[channel_name].remove(poll)
 
         to_remove.clear()

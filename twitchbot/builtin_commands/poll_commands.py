@@ -9,8 +9,6 @@ POLL_INFO_PERMISSION = 'pollinfo'
 DEFAULT_POLL_DURATION = 60
 
 
-# todo: add coroutines to say when a poll is done
-
 @Command('startpoll',
          syntax='<title> [option1, option2, ect] (seconds_for_poll)',
          help='starts the poll for the the current channel',

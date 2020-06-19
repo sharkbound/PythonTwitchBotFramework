@@ -178,6 +178,13 @@ class Mod:
         :param poll: the poll that was started
         """
 
+    async def on_poll_ended(self, channel: Channel, poll: 'PollData'):
+        """
+        triggered when a poll ends
+        :param channel: channel the poll originated in
+        :param poll: the poll that has ended
+        """
+
     # endregion
 
 
