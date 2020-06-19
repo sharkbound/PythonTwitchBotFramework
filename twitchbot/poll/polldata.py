@@ -11,7 +11,7 @@ __all__ = [
 from asyncio import sleep
 from collections import defaultdict, Counter
 from datetime import datetime
-from typing import List, DefaultDict, Optional, Tuple, Set
+from typing import List, DefaultDict, Optional, Tuple, Set, Any
 
 from ..channel import Channel
 from ..event_util import forward_event
@@ -53,6 +53,11 @@ class PollData:
     def seconds_left(self):
         return max(0, round(self.duration_seconds - (datetime.now() - self.start_time).total_seconds(), 1))
 
+    def choice_to_str(self, choice_id: int, default: Any = None):
+        if choice_id - 1 >= len(self.choices):
+            return default
+        return self.choices[choice_id - 1]
+
     def _format(self, value: str) -> str:
         return value.lower().strip()
 
@@ -86,7 +91,9 @@ class PollData:
         return ' '.join(f'{i}) {v}' for i, v in enumerate(self.choices, start=1))
 
     async def end(self):
-        pass
+        if not self.votes:
+            # TODO: add message code
+            return
 
     async def start(self, trigger_event: bool = True):
         await self.channel.send_message(
