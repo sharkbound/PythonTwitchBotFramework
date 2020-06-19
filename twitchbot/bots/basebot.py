@@ -4,6 +4,7 @@ import time
 from asyncio import get_event_loop
 from typing import Optional
 
+from ..poll import PollData
 from .. import util, create_irc
 from ..channel import Channel, channels
 from ..command import Command, commands, CustomCommandAction, is_command_on_cooldown, get_time_since_execute, \
@@ -153,6 +154,13 @@ class BaseBot:
     async def on_channel_subscription(self, subscriber: str, channel: Channel, msg: Message):
         """
         triggered when a user subscribes
+        """
+
+    async def on_poll_started(self, channel: Channel, poll: PollData):
+        """
+        triggered when a poll starts
+        :param channel: channel the poll originated in
+        :param poll: the poll that was started
         """
 
     # endregion

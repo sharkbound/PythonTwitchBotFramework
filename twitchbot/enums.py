@@ -60,3 +60,4 @@ class Event(NamedEnum):
     on_channel_points_redemption = auto()
     on_bot_banned_from_channel = auto()
     on_bot_timed_out_from_channel = auto()
+    on_poll_started = auto()

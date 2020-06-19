@@ -1,12 +1,17 @@
 import os
 import sys
 import traceback
+import typing
+
 from asyncio import get_event_loop
 from importlib import import_module
 from inspect import isclass, getfile, getmodulename
 from pathlib import Path
 from traceback import print_exc
 from typing import Dict, Callable, Any
+
+if typing.TYPE_CHECKING:
+    from .poll import PollData
 
 from .channel import Channel
 from .command import Command
@@ -164,6 +169,13 @@ class Mod:
     async def on_channel_points_redemption(self, msg: Message, reward: str):
         """
         triggered when a viewers redeems channel points for a reward
+        """
+
+    async def on_poll_started(self, channel: Channel, poll: 'PollData'):
+        """
+        triggered when a poll starts
+        :param channel: channel the poll originated in
+        :param poll: the poll that was started
         """
 
     # endregion

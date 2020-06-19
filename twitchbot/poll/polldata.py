@@ -13,11 +13,15 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
 from typing import List, DefaultDict, Optional, Tuple
-from asyncio import sleep
+from asyncio import sleep, get_event_loop
 
 from ..channel import Channel
+from ..event_util import forward_event
 
-POLL_CHECK_INTERVAL_SECONDS = 1.5
+# from ..events import trigger_event
+# from ..modloader import trigger_mod_event
+
+POLL_CHECK_INTERVAL_SECONDS = 2
 
 active_polls: DefaultDict[str, List['PollData']] = defaultdict(list)
 
@@ -127,13 +131,14 @@ async def poll_event_processor_loop():
     to_remove = []
     while True:
         for channel_name, polls in active_polls.items():
-            for index, poll in enumerate(polls):
+            for poll in polls:
                 if poll.done:
                     to_remove.append((channel_name, poll))
 
         for channel_name, poll in to_remove:
-            await poll.channel.send_message(f'removed poll #{poll.id}')
-            # todo: add event trigger here
+            from twitchbot import Event
+
+            forward_event(Event.on_poll_started, poll.channel, poll, channel=poll.channel.name)
             active_polls[channel_name].remove(poll)
 
         to_remove.clear()

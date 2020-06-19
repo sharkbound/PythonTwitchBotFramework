@@ -129,6 +129,7 @@ Event.on_mod_reloaded : (self, mod: Mod)
 Event.on_channel_points_redemption : (self, msg: Message, reward: str)
 Event.on_bot_timed_out_from_channel : (self, msg: Message, channel: Channel, seconds: int)
 Event.on_bot_banned_from_channel : (self, msg: Message, channel: Channel)
+Event.on_poll_started : (self, channel: Channel, poll: PollData)
 ```
 
 if this is the first time running the bot it will generate a folder
