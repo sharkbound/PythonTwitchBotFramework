@@ -81,6 +81,7 @@ class BaseBot:
     async def on_privmsg_received(self, msg: Message) -> None:
         """triggered when a privmsg is received, is not triggered if the msg is a command"""
 
+
     async def on_whisper_sent(self, msg: str, receiver: str, sender: str):
         """
         triggered when the bot sends a whisper to someone

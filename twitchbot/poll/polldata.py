@@ -9,10 +9,9 @@ __all__ = [
 ]
 
 from asyncio import sleep
-from collections import defaultdict
-from dataclasses import dataclass
+from collections import defaultdict, Counter
 from datetime import datetime
-from typing import List, DefaultDict, Optional, Tuple, Dict, Set
+from typing import List, DefaultDict, Optional, Tuple, Set
 
 from ..channel import Channel
 from ..event_util import forward_event
@@ -33,7 +32,7 @@ class PollData:
         self.choices: List[str] = list(choices)
         self.choices_normalized: List[str] = list(map(self._format, choices))
         self.channel: Channel = channel
-        self.votes: DefaultDict[int, int] = defaultdict(int)
+        self.votes: Counter[int, int] = Counter()
         self.voters: Set[str] = set()
         self.owner = owner
         self.title = title
