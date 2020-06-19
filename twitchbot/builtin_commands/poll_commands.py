@@ -62,10 +62,10 @@ async def cmd_vote(msg: Message, *args):
         return
 
     if poll.has_already_voted(msg.author):
+        print('DUPE')
         return
 
     poll.add_vote(msg.author, choice)
-    print(poll.votes)
 
 
 @Command('listpolls', help='list all active polls', permission=LIST_POLLS_PERMISSION)

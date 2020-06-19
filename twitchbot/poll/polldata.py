@@ -4,7 +4,6 @@ __all__ = [
     'get_active_channel_polls',
     'active_polls',
     'get_active_channel_poll_count',
-    'PollVote',
     'poll_event_processor_loop',
     'POLL_CHECK_INTERVAL_SECONDS'
 ]
@@ -13,7 +12,7 @@ from asyncio import sleep
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List, DefaultDict, Optional, Tuple
+from typing import List, DefaultDict, Optional, Tuple, Dict, Set
 
 from ..channel import Channel
 from ..event_util import forward_event
@@ -26,12 +25,6 @@ POLL_CHECK_INTERVAL_SECONDS = 2
 active_polls: DefaultDict[str, List['PollData']] = defaultdict(list)
 
 
-@dataclass(frozen=True)
-class PollVote:
-    voter: str
-    choice: int
-
-
 class PollData:
     _last_id = 0
 
@@ -40,7 +33,8 @@ class PollData:
         self.choices: List[str] = list(choices)
         self.choices_normalized: List[str] = list(map(self._format, choices))
         self.channel: Channel = channel
-        self.votes: List[PollVote] = []
+        self.votes: DefaultDict[int, int] = defaultdict(int)
+        self.voters: Set[str] = set()
         self.owner = owner
         self.title = title
         self.start_time = datetime.now()
@@ -79,13 +73,14 @@ class PollData:
             self.choices_normalized.remove(normalized)
 
     def has_already_voted(self, username: str):
-        return any(v.voter == username for v in self.votes)
+        return username.lower().strip() in self.voters
 
     def add_vote(self, voter: str, choice_id: int) -> bool:
         if not self.is_valid_vote(choice_id):
             return False
 
-        self.votes.append(PollVote(voter, choice_id - 1))
+        self.votes[choice_id] += 1
+        self.voters.add(voter.lower().strip())
         return True
 
     def format_choices(self):

@@ -4,6 +4,7 @@ import time
 from asyncio import get_event_loop
 from typing import Optional
 
+from ..event_util import forward_event
 from ..poll import PollData
 from .. import util, create_irc
 from ..channel import Channel, channels
@@ -330,13 +331,7 @@ class BaseBot:
 
             msg = Message(raw_msg, irc=self.irc, bot=self)
 
-            await self.on_raw_message(msg)
-            get_event_loop().create_task(trigger_mod_event(Event.on_raw_message, msg, channel=msg.channel_name))
-            get_event_loop().create_task(trigger_event(Event.on_raw_message, msg))
-
-            # TODO: use forward_event() instead of separate event calls
-
-            coro = mod_coro = event_coro = None
+            forward_event(Event.on_raw_message, msg, channel=msg.channel_name)
             cmd: Command = (await self.get_command_from_msg(msg)
                             if msg.is_user_message and msg.author != get_nick()
                             else None)
@@ -344,84 +339,47 @@ class BaseBot:
             if cmd and ((msg.is_whisper and cmd.context & CommandContext.WHISPER)
                         or (msg.is_privmsg and cmd.context & CommandContext.CHANNEL)):
                 msg.safe_print()
-                coro = self._run_command(msg, cmd)
+                get_event_loop().create_task(self._run_command(msg, cmd))
 
             elif msg.type is MessageType.WHISPER:
                 msg.safe_print()
-                coro = self.on_whisper_received(msg)
-                mod_coro = trigger_mod_event(Event.on_whisper_received, msg)
-                event_coro = trigger_event(Event.on_whisper_received, msg)
+                forward_event(Event.on_whisper_received, msg, channel=msg.channel_name)
 
             elif msg.type is MessageType.PRIVMSG:
                 msg.safe_print()
-                coro = self.on_privmsg_received(msg)
-                mod_coro = trigger_mod_event(Event.on_privmsg_received, msg, channel=msg.channel_name)
-                event_coro = trigger_event(Event.on_privmsg_received, msg)
+                forward_event(Event.on_privmsg_received, msg, channel=msg.channel_name)
 
             elif msg.type is MessageType.USER_JOIN:
                 # the bot has joined a channel
                 if msg.author == get_nick():
-                    coro = self.on_channel_joined(msg.channel)
-                    mod_coro = trigger_mod_event(Event.on_channel_joined, msg.channel, channel=msg.channel_name)
-                    event_coro = trigger_event(Event.on_channel_joined, msg.channel)
+                    forward_event(Event.on_channel_joined, msg.channel, channel=msg.channel_name)
                 # user joined a channel the bot was in
                 else:
-                    coro = self.on_user_join(msg.author, msg.channel)
-                    mod_coro = trigger_mod_event(Event.on_user_join, msg.author, msg.channel,
-                                                 channel=msg.channel_name)
-                    event_coro = trigger_event(Event.on_user_join, msg.author, msg.channel)
+                    forward_event(Event.on_user_join, msg.author, msg.channel, channel=msg.channel_name)
 
             elif msg.type is MessageType.USER_PART:
-                coro = self.on_user_part(msg.author, msg.channel)
-                mod_coro = trigger_mod_event(Event.on_user_part, msg.author, msg.channel, channel=msg.channel_name)
-                event_coro = trigger_event(Event.on_user_part, msg.author, msg.channel)
+                forward_event(Event.on_user_part, msg.author, msg.channel, channel=msg.channel_name)
 
             elif msg.type is MessageType.SUBSCRIPTION:
-                coro = self.on_channel_subscription(msg.author, msg.channel, msg)
-                mod_coro = trigger_mod_event(Event.on_channel_subscription, msg.author, msg.channel, msg,
-                                             channel=msg.channel_name)
-                event_coro = trigger_event(Event.on_channel_subscription, msg.author, msg.channel, msg)
+                forward_event(Event.on_channel_subscription, msg.author, msg.channel, msg, channel=msg.channel_name)
 
             elif msg.type is MessageType.RAID:
-                coro = self.on_channel_raided(msg.channel, msg.author, msg.tags.raid_viewer_count)
-                mod_coro = trigger_mod_event(Event.on_channel_raided, msg.channel, msg.author,
-                                             msg.tags.raid_viewer_count,
-                                             channel=msg.channel_name)
-                event_coro = trigger_event(Event.on_channel_raided, msg.channel, msg.author,
-                                           msg.tags.raid_viewer_count)
+                forward_event(Event.on_channel_raided, msg.channel, msg.author, msg.tags.raid_viewer_count, channel=msg.channel_name)
 
             elif msg.type is MessageType.PING:
                 self.irc.send_pong()
 
             elif msg.type is MessageType.CHANNEL_POINTS_REDEMPTION:
-                coro = self.on_channel_points_redemption(msg, msg.reward)
-                mod_coro = trigger_mod_event(Event.on_channel_points_redemption, msg, msg.reward,
-                                             channel=msg.channel_name)
-                event_coro = trigger_event(Event.on_channel_points_redemption, msg, msg.reward)
+                forward_event(Event.on_channel_points_redemption, msg, msg.reward, channel=msg.channel_name)
 
             elif msg.type is MessageType.BITS:
-                coro = self.on_bits_donated(msg, msg.tags.bits)
-                mod_coro = trigger_mod_event(Event.on_bits_donated, msg, msg.tags.bits, channel=msg.channel_name)
-                event_coro = trigger_event(Event.on_bits_donated, msg.channel, msg)
+                forward_event(Event.on_bits_donated, msg, msg.tags.bits, channel=msg.channel_name)
 
             elif msg.type is MessageType.BOT_PERMANENTLY_BANNED:
-                coro = self.on_bot_banned_from_channel(msg, msg.channel)
-                mod_coro = trigger_mod_event(Event.on_bot_banned_from_channel, msg, msg.channel, channel=msg.channel_name)
-                event_coro = trigger_event(Event.on_bot_banned_from_channel, msg, msg.channel)
+                forward_event(Event.on_bot_banned_from_channel, msg, msg.channel, channel=msg.channel_name)
 
             elif msg.type is MessageType.BOT_TIMED_OUT:
-                coro = self.on_bot_timed_out_from_channel(msg, msg.channel, msg.timeout_seconds)
-                mod_coro = trigger_mod_event(Event.on_bot_timed_out_from_channel, msg, msg.channel, msg.timeout_seconds, channel=msg.channel_name)
-                event_coro = trigger_event(Event.on_bot_timed_out_from_channel, msg, msg.channel, msg.timeout_seconds)
-
-            if coro is not None:
-                get_event_loop().create_task(coro)
-
-            if mod_coro is not None:
-                get_event_loop().create_task(mod_coro)
-
-            if event_coro is not None:
-                get_event_loop().create_task(event_coro)
+                forward_event(Event.on_bot_timed_out_from_channel, msg, msg.channel, msg.timeout_seconds, channel=msg.channel_name)
 
         # clean up mods when the bot is exiting
         for mod in mods.values():
