@@ -327,6 +327,8 @@ class BaseBot:
             get_event_loop().create_task(trigger_mod_event(Event.on_raw_message, msg, channel=msg.channel_name))
             get_event_loop().create_task(trigger_event(Event.on_raw_message, msg))
 
+            # TODO: use forward_event() instead of separate event calls
+
             coro = mod_coro = event_coro = None
             cmd: Command = (await self.get_command_from_msg(msg)
                             if msg.is_user_message and msg.author != get_nick()
