@@ -144,6 +144,7 @@ async def poll_event_processor_loop():
         for channel_name, poll in to_remove:
             from twitchbot import Event
 
+            await poll.end()
             forward_event(Event.on_poll_ended, poll.channel, poll, channel=poll.channel.name)
             active_polls[channel_name].remove(poll)
 
