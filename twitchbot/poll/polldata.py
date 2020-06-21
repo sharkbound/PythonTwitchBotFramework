@@ -83,7 +83,27 @@ class PollData:
         self.voters.add(voter.lower().strip())
         return True
 
-    def format_choices(self):
+    def format_poll_results(self, reverse: bool = True):
+        """
+        returns a joined string of the poll's choices, ordered by vote
+
+        if reverse is True, then it will order by highest to lowest votes
+        else, order from lowest to highest
+
+        :param reverse: if true, results are sorted by high to low vote; if false, low to high
+        :return:
+        """
+        return ' ~ '.join(
+            f'[{self.votes[id]} votes] {text}'
+            for id, text
+            in sorted(
+                enumerate(self.choices, start=1),
+                key=lambda items: self.votes[items[0]],
+                reverse=reverse
+            )
+        )
+
+    def formatted_choices(self):
         return ' '.join(f'{i}) {v}' for i, v in enumerate(self.choices, start=1))
 
     async def end(self):

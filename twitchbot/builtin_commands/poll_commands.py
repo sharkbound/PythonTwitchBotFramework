@@ -58,7 +58,7 @@ async def cmd_vote(msg: Message, *args):
 
     choice = _cast_to_int_or_error(choice, cmd_vote)
     if not poll.is_valid_vote(choice):
-        await msg.reply(f'{choice} is not a valid choice id for poll#{poll.id}, choices are: {poll.format_choices()}')
+        await msg.reply(f'{choice} is not a valid choice id for poll#{poll.id}, choices are: {poll.formatted_choices()}')
         return
 
     if poll.has_already_voted(msg.author):
@@ -95,7 +95,7 @@ async def cmd_poll_info(msg: Message, *args):
         if poll is None:
             raise InvalidArgumentsError(reason=f'could not find any poll by ID {poll_id}', cmd=cmd_poll_info)
 
-    await msg.reply(f'POLL INFO #{poll.id} - title: "{poll.title}" - choices: {poll.format_choices()} - seconds left: {poll.seconds_left}')
+    await msg.reply(f'POLL INFO #{poll.id} - title: "{poll.title}" - choices: {poll.formatted_choices()} - seconds left: {poll.seconds_left}')
 
 
 def _cast_to_int_or_error(value: str, src_cmd) -> int:
