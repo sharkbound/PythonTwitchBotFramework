@@ -14,10 +14,6 @@ from datetime import datetime
 from typing import List, DefaultDict, Optional, Tuple, Set, Any
 
 from ..channel import Channel
-from ..event_util import forward_event
-
-# from ..events import trigger_event
-# from ..modloader import trigger_mod_event
 
 POLL_CHECK_INTERVAL_SECONDS = 2
 
@@ -91,22 +87,14 @@ class PollData:
         return ' '.join(f'{i}) {v}' for i, v in enumerate(self.choices, start=1))
 
     async def end(self):
-        if not self.votes:
-            # TODO: add message code
-            return
-
-    async def start(self, trigger_event: bool = True):
-        await self.channel.send_message(
-            f'{self.owner} has started poll "{self.title}" ID({self.id}) that will end in {self.duration_seconds} seconds - {self.format_choices()}'
-        )
-
-        self._trigger_start_event(trigger_event)
-        active_polls[self.channel_name].append(self)
-
-    def _trigger_start_event(self, trigger_event):
+        # poll is removed from active poll from the event loop that calls .end()
         from ..event_util import forward_event, Event
-        if trigger_event:
-            forward_event(Event.on_poll_started, self.channel, self)
+        forward_event(Event.on_poll_ended, self.channel, self, channel=self.channel.name)
+
+    async def start(self):
+        active_polls[self.channel_name].append(self)
+        from ..event_util import forward_event, Event
+        forward_event(Event.on_poll_started, self.channel, self, channel=self.channel.name)
 
     @property
     def channel_name(self):
@@ -143,10 +131,7 @@ async def poll_event_processor_loop():
                     to_remove.append((channel_name, poll))
 
         for channel_name, poll in to_remove:
-            from twitchbot import Event
-
             await poll.end()
-            forward_event(Event.on_poll_ended, poll.channel, poll, channel=poll.channel.name)
             active_polls[channel_name].remove(poll)
 
         to_remove.clear()
