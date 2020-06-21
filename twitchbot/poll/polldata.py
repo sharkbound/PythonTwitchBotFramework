@@ -108,6 +108,7 @@ class PollData:
 
     async def end(self):
         # poll is removed from active poll from the event loop that calls .end()
+        # scroll down to poll_event_processor_loop() to see
         from ..event_util import forward_event, Event
         forward_event(Event.on_poll_ended, self.channel, self, channel=self.channel.name)
 
