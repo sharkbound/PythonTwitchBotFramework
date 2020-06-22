@@ -3,7 +3,7 @@ from asyncio import Future, ensure_future
 from twitchbot.channel import Channel
 from secrets import choice
 from twitchbot.database import add_balance, get_currency_name
-from .config import cfg
+from .config import cfg, get_command_prefix
 
 ARENA_WAIT_TIME = 30
 ARENA_DEFAULT_ENTRY_FEE = 30
@@ -30,7 +30,7 @@ class Arena:
 
         await self.channel.send_message(
             f'FFA arena has been opened and will start in {delay} seconds! Entry fee is {self.entry_fee} {curname}. '
-            f'Type {cfg.prefix}arena to join')
+            f'Type {get_command_prefix()}arena to join')
 
         await asyncio.sleep(delay)
         await self._start_arena()

@@ -6,7 +6,7 @@ from typing import Optional
 from .gui import show_auth_gui
 
 __all__ = ('cfg', 'Config', 'mysql_cfg', 'CONFIG_FOLDER', 'generate_config', 'get_oauth', 'get_nick', 'get_client_id',
-           'DEFAULT_NICK', 'DEFAULT_OAUTH', 'DEFAULT_CLIENT_ID', 'is_config_valid')
+           'DEFAULT_NICK', 'DEFAULT_OAUTH', 'DEFAULT_CLIENT_ID', 'is_config_valid', 'get_command_prefix')
 
 CONFIG_FOLDER = Path('configs')
 
@@ -226,6 +226,10 @@ def get_client_id() -> str:
             exit(1)
         return value
     return client_id
+
+
+def get_command_prefix() -> str:
+    return cfg.prefix
 
 
 def _is_env_key(key) -> bool:

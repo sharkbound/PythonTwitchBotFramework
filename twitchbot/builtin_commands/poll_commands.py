@@ -69,7 +69,7 @@ async def cmd_vote(msg: Message, *args):
 
 @Command('listpolls', help='list all active polls', permission=LIST_POLLS_PERMISSION)
 async def cmd_list_polls(msg: Message, *args):
-    await msg.reply(' | '.join(f'{poll.id} -> "{poll.title}"' for poll in get_active_channel_polls(msg.channel_name)))
+    await msg.reply(' '.join(f'{poll.id}) {poll.title}' for poll in get_active_channel_polls(msg.channel_name)))
 
 
 @Command('pollinfo', syntax='(POLL_ID)', help='views info about the poll using the passed poll id', permission=POLL_INFO_PERMISSION)
@@ -95,7 +95,7 @@ async def cmd_poll_info(msg: Message, *args):
         if poll is None:
             raise InvalidArgumentsError(reason=f'could not find any poll by ID {poll_id}', cmd=cmd_poll_info)
 
-    await msg.reply(f'POLL INFO #{poll.id} - title: "{poll.title}" - choices: {poll.formatted_choices()} - seconds left: {poll.seconds_left}')
+    await msg.reply(f'POLL INFO #{poll.id} ~ {poll.title} ~ {poll.formatted_choices()} ~ seconds left: {poll.seconds_left}')
 
 
 def _cast_to_int_or_error(value: str, src_cmd) -> int:

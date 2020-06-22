@@ -1,5 +1,4 @@
 import logging
-import logging
 import time
 from asyncio import get_event_loop
 from typing import Optional
@@ -10,7 +9,7 @@ from .. import util, create_irc
 from ..channel import Channel, channels
 from ..command import Command, commands, CustomCommandAction, is_command_on_cooldown, get_time_since_execute, \
     update_command_last_execute
-from ..config import cfg, get_nick
+from ..config import cfg, get_nick, get_command_prefix
 from ..config import generate_config
 from ..database import get_custom_command
 from ..disabled_commands import is_command_disabled
@@ -80,7 +79,6 @@ class BaseBot:
 
     async def on_privmsg_received(self, msg: Message) -> None:
         """triggered when a privmsg is received, is not triggered if the msg is a command"""
-
 
     async def on_whisper_sent(self, msg: str, receiver: str, sender: str):
         """
@@ -278,13 +276,11 @@ class BaseBot:
         except InvalidArgumentsError as e:
             await self._send_cmd_help(msg, cmd, e)
         else:
-            await self.on_after_command_execute(msg, cmd)
-            await trigger_mod_event(Event.on_after_command_execute, msg, cmd, channel=msg.channel_name)
-            await trigger_event(Event.on_after_command_execute, msg, cmd)
+            forward_event(Event.on_after_command_execute, msg, cmd, channel=msg.channel_name)
 
     async def _send_cmd_help(self, msg: Message, cmd: Command, exc: InvalidArgumentsError):
         await msg.reply(
-            f'{exc.reason} - "{cmd.fullname} {cmd.syntax}" - do "{cfg.prefix}help {cmd.fullname}" for more details')
+            f'{exc.reason} - "{cmd.fullname} {cmd.syntax}" - do "{get_command_prefix()}help {cmd.fullname}" for more details')
 
     # kept if needed later
     # def _load_overrides(self):
