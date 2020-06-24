@@ -21,8 +21,8 @@ def _verify_resp_is_valid(resp: str):
 
 
 @Command('addcmd', permission=PERMISSION, syntax='<name> <response>',
-         help='adds a custom command to the database for the this channel.'
-              'place holders: %user : the name of the person that triggered the command,'
+         help='adds a custom command to the database for the this channel, '
+              'placeholders: %user : the name of the person that triggered the command,'
               '%uptime : the channels live uptime,'
               '%channel : the channels name')
 async def cmd_add_custom_command(msg: Message, *args):

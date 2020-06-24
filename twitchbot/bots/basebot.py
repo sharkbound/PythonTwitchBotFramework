@@ -3,7 +3,6 @@ import time
 from asyncio import get_event_loop
 from typing import Optional
 
-from ..event_util import forward_event
 from ..poll import PollData
 from .. import util, create_irc
 from ..channel import Channel, channels
@@ -28,6 +27,7 @@ from ..shared import set_bot
 from ..util import stop_all_tasks
 from ..command_whitelist import is_command_whitelisted, send_message_on_command_whitelist_deny
 from ..poll import poll_event_processor_loop
+from ..event_util import forward_event_with_results, forward_event
 
 
 # noinspection PyMethodMayBeStatic
@@ -239,11 +239,7 @@ class BaseBot:
         return None
 
     async def _run_command(self, msg: Message, cmd: Command):
-        if (
-                not await self.on_permission_check(msg, cmd)
-                or not all(await trigger_mod_event(Event.on_permission_check, msg, cmd, channel=msg.channel_name))
-                or not all(await trigger_event(Event.on_permission_check, msg, cmd))
-        ):
+        if (not all(await forward_event_with_results(Event.on_permission_check, msg, cmd, channel=msg.channel_name))):
             return await msg.reply(
                 whisper=True,
                 msg=f'you do not have permission to execute {cmd.fullname} in #{msg.channel_name}, permission required: {cmd.permission}')
@@ -263,10 +259,8 @@ class BaseBot:
             return await msg.reply(
                 f'{cmd.fullname} is on cooldown, seconds left: {cmd.cooldown - get_time_since_execute(msg.channel_name, cmd.fullname)}')
 
-        if (not await self.on_before_command_execute(msg, cmd)
-                or not all(await trigger_mod_event(Event.on_before_command_execute, msg, cmd, channel=msg.channel_name))
-                or not all(await trigger_event(Event.on_before_command_execute, msg, cmd))
-        ):
+        # check that all event listeners return True for this command executing
+        if not all(await forward_event_with_results(Event.on_before_command_execute, msg, cmd, channel=msg.channel_name)):
             return
 
         try:
