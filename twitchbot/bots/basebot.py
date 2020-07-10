@@ -239,10 +239,13 @@ class BaseBot:
         return None
 
     async def _run_command(self, msg: Message, cmd: Command):
-        if (not all(await forward_event_with_results(Event.on_permission_check, msg, cmd, channel=msg.channel_name))):
-            return await msg.reply(
+        # [0] is needed here because get_sub_cmd() also returns the modified args relative to the level it recursively reached
+        if not await cmd.get_sub_cmd(msg.args)[0].has_permission_to_run_from_msg(msg):
+            await msg.reply(
                 whisper=True,
-                msg=f'you do not have permission to execute {cmd.fullname} in #{msg.channel_name}, permission required: {cmd.permission}')
+                msg=f'you do not have permission to execute "{msg.content}" in #{msg.channel_name}'
+            )
+            return
 
         elif not isinstance(cmd, CustomCommandAction) and is_command_disabled(msg.channel_name, cmd.fullname):
             return await msg.reply(f'{cmd.fullname} is disabled for this channel')
