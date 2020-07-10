@@ -53,7 +53,7 @@ class Command:
         self.name: str = name.lower()
         self.fullname: str = self.prefix + self.name
         self.sub_cmds: Dict[str, Command] = {}
-        self.parent: Command = None
+        self.parent: Optional[Command] = None
 
         if global_command:
             commands[self.fullname] = self
@@ -63,6 +63,25 @@ class Command:
                 for alias in aliases:
                     commands[self.prefix + alias] = self
 
+    def parent_chain(self) -> List['Command']:
+        """
+        returns a list with the chain of commands leading to this command
+
+        also includes this command
+
+        ex (with subcommands used):
+            c subcommands b subcommands a
+            parent_chain() returns [a, b, c]
+
+        :return: list of parents leading to this command, plus the current command at the end
+        """
+        parents = [self]
+        parent = self.parent
+        while parent:
+            parents.append(parent)
+            parent = parent.parent
+        return parents[::-1]
+
     def _get_cmd_func(self, args) -> Tuple['Callable', List[str]]:
         """returns a tuple of the final commands command function and the remaining argument"""
         if not self.sub_cmds or not args or args[0].lower() not in self.sub_cmds:
@@ -70,17 +89,33 @@ class Command:
 
         return self.sub_cmds[args[0].lower()]._get_cmd_func(args[1:])
 
-        # while verison:
-        # cmd = self
-        # while cmd.sub_cmds and args and args[0].lower() in cmd.sub_cmds:
-        #     cmd = cmd.sub_cmds[args[0].lower()]
-        #     args = args[1:]
-        #
-        # return cmd.func, args
+    def get_sub_cmd(self, args) -> Tuple['Command', Tuple[str]]:
+        """
+        returns the final command in a sub-command chain from the args passed to the this function
+
+        the sub-command chain is based off of the current command this function is called on
+
+        args is a list or tuple of strings
+        """
+        if not self.sub_cmds or not args or args[0].lower() not in self.sub_cmds:
+            return self, args
+
+        return self.sub_cmds[args[0].lower()].get_sub_cmd(args[1:])
 
     async def execute(self, msg: Message):
         func, args = self._get_cmd_func(msg.parts[1:])
         await func(msg, *args)
+
+    async def has_permission_to_run_from_msg(self, origin_msg: Message):
+        from .event_util import forward_event_with_results
+        from .enums import Event
+
+        print(self.parent_chain())
+        for parent in self.parent_chain():
+            if (parent.permission
+                    and not all(await forward_event_with_results(Event.on_permission_check, origin_msg, parent, channel=origin_msg.channel_name))):
+                return False
+        return True
 
     # decorator support
     def __call__(self, func) -> 'Command':
@@ -92,6 +127,9 @@ class Command:
 
     def __getitem__(self, item):
         return self.sub_cmds.get(item.lower()) or self.sub_cmds.get(item.lower()[1:])
+
+    def __repr__(self):
+        return f'<{self.__class__.__name__} fullname={self.fullname}>'
 
 
 class SubCommand(Command):
