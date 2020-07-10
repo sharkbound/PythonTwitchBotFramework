@@ -10,7 +10,7 @@ from twitchbot import (
     Command,
     InvalidArgumentsError)
 
-PERMISSION = 'manange_commands'
+PERMISSION = 'manage_commands'
 
 PREFIX = cfg.prefix
 BLACKLISTED_PREFIX_CHARACTERS = './'
