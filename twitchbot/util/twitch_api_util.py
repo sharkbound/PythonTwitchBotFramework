@@ -120,6 +120,6 @@ def get_headers(use_kraken: bool = False):
     oauth_key = get_oauth().replace("oauth:", "")
 
     # Check if we have a valid oauth key
-    if not use_kraken and not oauth_key:
+    if not use_kraken and oauth_key:
         headers.update({'Authorization': f'Bearer {oauth_key}'})
     return headers
