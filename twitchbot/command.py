@@ -109,8 +109,7 @@ class Command:
     async def has_permission_to_run_from_msg(self, origin_msg: Message):
         from .event_util import forward_event_with_results
         from .enums import Event
-
-        print(self.parent_chain())
+        
         for parent in self.parent_chain():
             if (parent.permission
                     and not all(await forward_event_with_results(Event.on_permission_check, origin_msg, parent, channel=origin_msg.channel_name))):
