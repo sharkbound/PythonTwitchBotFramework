@@ -49,7 +49,7 @@ magic_8_ball_messages = [
     'not happening',
     'no',
     'maybe',
-    "it's possible"
+    "it's possible",
 ]
 
 
