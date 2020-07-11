@@ -327,7 +327,7 @@ class BaseBot:
 
             forward_event(Event.on_raw_message, msg, channel=msg.channel_name)
             cmd: Command = (await self.get_command_from_msg(msg)
-                            if msg.is_user_message and msg.author != get_nick()
+                            if msg.is_user_message
                             else None)
 
             if cmd and ((msg.is_whisper and cmd.context & CommandContext.WHISPER)
