@@ -1,1 +1,1 @@
-from .client import *
+from .pubsub_client import *

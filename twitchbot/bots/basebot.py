@@ -28,6 +28,7 @@ from ..util import stop_all_tasks
 from ..command_whitelist import is_command_whitelisted, send_message_on_command_whitelist_deny
 from ..poll import poll_event_processor_loop
 from ..event_util import forward_event_with_results, forward_event
+from ..pubsub import PubSubClient
 
 
 # noinspection PyMethodMayBeStatic
@@ -35,6 +36,7 @@ class BaseBot:
     def __init__(self):
         self.irc: Irc = None
         self._running = False
+        self.pubsub = PubSubClient()
         set_bot(self)
 
     # region events
