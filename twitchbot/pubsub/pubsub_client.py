@@ -45,11 +45,12 @@ class PubSubClient:
     def connected(self):
         return self.socket and self.socket.open
 
-    def create_listen_request_data(self, nonce: str = None, topics=()) -> str:
+    def create_listen_request_data(self, nonce: str = None, topics=(), access_token: str = '') -> str:
         """
         returns the json data (as a string) for listening to topic(s) on twitch's PUBSUB
         :param nonce: optional
         :param topics:
+        :param access_token:
         """
         from twitchbot import get_oauth
 
@@ -57,7 +58,7 @@ class PubSubClient:
             'type': self.LISTEN,
             'data': {
                 'topics': topics,
-                'auth_token': get_oauth(remove_prefix=True),
+                'auth_token': access_token or get_oauth(remove_prefix=True),
             },
         }
 
@@ -66,7 +67,7 @@ class PubSubClient:
 
         return json.dumps(data)
 
-    async def listen_to_channel(self, channel_name: str, points: bool = True, chat: bool = True):
+    async def listen_to_channel(self, channel_name: str, points: bool = True, chat: bool = True, access_token: str = '', nonce=None):
         if not self.socket or not self.socket.open:
             await self._connect()
             await sleep(.5)
@@ -86,7 +87,7 @@ class PubSubClient:
             return
 
         await self.socket.send(
-            self.create_listen_request_data(topics=topics)
+            self.create_listen_request_data(topics=topics, access_token=access_token, nonce=nonce)
         )
 
     async def read(self) -> Optional[str]:
