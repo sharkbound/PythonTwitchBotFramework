@@ -34,7 +34,7 @@ from ..pubsub import PubSubClient
 # noinspection PyMethodMayBeStatic
 class BaseBot:
     def __init__(self):
-        self.irc: Irc = None
+        self.irc: Optional[Irc] = None
         self._running = False
         self.pubsub = PubSubClient()
         set_bot(self)
@@ -170,6 +170,11 @@ class BaseBot:
         triggered when a poll ends
         :param channel: channel the poll originated in
         :param poll: the poll that has ended
+        """
+
+    async def on_pubsub_received(self, raw: dict):
+        """
+        triggered when data is received from the pubsub client
         """
 
     # endregion
@@ -311,11 +316,12 @@ class BaseBot:
 
         await self._create_irc()
         self._create_channels()
-
         await self._connect()
         await self.on_connected()
         await trigger_mod_event(Event.on_connected)
         await trigger_event(Event.on_connected)
+        await self.pubsub._connect()
+        self.pubsub.start_loop()
 
         util.add_nameless_task(poll_event_processor_loop())
 

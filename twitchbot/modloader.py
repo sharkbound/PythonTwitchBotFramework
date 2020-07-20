@@ -185,6 +185,11 @@ class Mod:
         :param poll: the poll that has ended
         """
 
+    async def on_pubsub_received(self, raw: dict):
+        """
+        triggered when data is received from the pubsub client
+        """
+
     # endregion
 
 
@@ -219,7 +224,7 @@ def unregister_mod(mod: Mod) -> bool:
     return True
 
 
-async def trigger_mod_event(event: Event, *args, channel: str = None) -> list:
+async def trigger_mod_event(event: Event, *args, channel: str = '') -> list:
     """
     triggers a event on all mods
     if the channel is passed, the it is checked if the mod is enabled for that channel,
@@ -235,7 +240,7 @@ async def trigger_mod_event(event: Event, *args, channel: str = None) -> list:
 
     output = []
     for mod in mods.values():
-        if channel is not None and is_mod_disabled(channel, mod.name):
+        if channel and is_mod_disabled(channel, mod.name):
             continue
 
         try:

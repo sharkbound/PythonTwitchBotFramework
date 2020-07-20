@@ -6,14 +6,23 @@ from typing import Optional
 from asyncio import sleep
 
 __all__ = [
-    'PubSubClient'
+    'PubSubClient',
+    'PubSubKeys'
 ]
 
 
+class PubSubKeys:
+    nonce = 'nonce'
+    listen = 'listen'
+    error = 'error'
+    type = 'type'
+
+
 class PubSubClient:
-    URL = 'wss://pubsub-edge.twitch.tv'
-    LISTEN = 'LISTEN'
-    NONCE = 'NONCE'
+    TASK_NAME = 'pubsub_client_processor'
+    PUBSUB_WEBSOCKET_URL = 'wss://pubsub-edge.twitch.tv'
+    NONCE_REQUEST_VALUE = 'NONCE'
+    LISTEN_REQUEST_KEY = 'LISTEN'
 
     def __init__(self):
         self.socket: Optional[websockets.client.WebSocketClientProtocol] = None
@@ -48,14 +57,14 @@ class PubSubClient:
     def create_listen_request_data(self, nonce: str = None, topics=(), access_token: str = '') -> str:
         """
         returns the json data (as a string) for listening to topic(s) on twitch's PUBSUB
-        :param nonce: optional
-        :param topics:
-        :param access_token:
+        :param nonce: optional identifier for the request
+        :param topics: topics to listen to on PUBSUB
+        :param access_token: access token used to LISTEN to a channel's PUBSUB
         """
         from twitchbot import get_oauth
 
         data = {
-            'type': self.LISTEN,
+            'type': self.LISTEN_REQUEST_KEY,
             'data': {
                 'topics': topics,
                 'auth_token': access_token or get_oauth(remove_prefix=True),
@@ -63,7 +72,7 @@ class PubSubClient:
         }
 
         if nonce:
-            data[self.NONCE] = nonce
+            data[self.NONCE_REQUEST_VALUE] = nonce
 
         return json.dumps(data)
 
@@ -72,7 +81,6 @@ class PubSubClient:
             await self._connect()
             await sleep(.5)
 
-        # debug
         await sleep(.5)  # small thing to rate limit to a degree
 
         topics = []
@@ -87,7 +95,7 @@ class PubSubClient:
             return
 
         await self.socket.send(
-            self.create_listen_request_data(topics=topics, access_token=access_token, nonce=nonce)
+            self.create_listen_request_data(topics=topics, access_token=access_token, nonce=nonce or channel_name)
         )
 
     async def read(self) -> Optional[str]:
@@ -97,5 +105,23 @@ class PubSubClient:
         return data
 
     async def _connect(self) -> 'PubSubClient':
-        self.socket = await websockets.connect(self.URL)
+        self.socket = await websockets.connect(self.PUBSUB_WEBSOCKET_URL)
         return self
+
+    def start_loop(self):
+        from ..util import add_task, task_exist
+        if not task_exist(self.TASK_NAME):
+            add_task(self.TASK_NAME, self._processor_loop())
+
+    async def _processor_loop(self):
+        from ..event_util import forward_event, Event
+        while True:
+            if self.socket is not None:
+                try:
+                    data = json.loads(await self.read())
+                except (json.JSONDecodeError, TypeError):
+                    continue
+
+                forward_event(Event.on_pubsub_received, data)
+            else:
+                await sleep(2)
