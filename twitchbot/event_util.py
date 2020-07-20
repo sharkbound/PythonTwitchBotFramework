@@ -60,7 +60,7 @@ async def _wrap_async_result_with_list(coro: Coroutine):
     return [await coro]
 
 
-def forward_event(event: Event, *args: Any, channel: Optional[Union['Channel', 'Message', str]] = None):
+def forward_event(event: Event, *args: Any, channel: Union['Channel', 'Message', str] = ''):
     """
     forwards a event to all event systems
     """
@@ -70,15 +70,12 @@ def forward_event(event: Event, *args: Any, channel: Optional[Union['Channel', '
     loop.create_task(trigger_event(event, *args))
     loop.create_task(trigger_mod_event(event, *args, channel=channel))
     loop.create_task(_get_bot_event(event)(*args))
-    # bot_event = getattr(get_bot(), event.name, None)
-    # if bot_event is not None and callable(bot_event):
-    #     loop.create_task(bot_event(*args))
 
 
 async def forward_event_with_results(
         event: Event,
         *args: Any,
-        channel: Optional[Union['Channel', 'Message', str]] = None,
+        channel: Union['Channel', 'Message', str] = '',
         allow_none_results: bool = False) -> list:
     """
     forwards a event to all event systems, then yield all the results though a generator
