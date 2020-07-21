@@ -114,7 +114,6 @@ class PubSubClient:
             add_task(self.TASK_NAME, self._processor_loop())
 
     async def _processor_loop(self):
-        from ..event_util import forward_event, Event
         while True:
             if self.socket is not None:
                 try:
@@ -122,6 +121,10 @@ class PubSubClient:
                 except (json.JSONDecodeError, TypeError):
                     continue
 
-                forward_event(Event.on_pubsub_received, data)
+                await self._trigger_events(data)
             else:
                 await sleep(2)
+
+    async def _trigger_events(self, data):
+        from ..event_util import forward_event, Event
+        forward_event(Event.on_pubsub_received, data)
