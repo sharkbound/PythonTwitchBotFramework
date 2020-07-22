@@ -2,13 +2,15 @@ import warnings
 import json
 import websockets
 
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from asyncio import sleep
 
 __all__ = [
     'PubSubClient',
     'PubSubKeys'
 ]
+
+from .pubsub_models import PubSubData
 
 
 class PubSubKeys:
@@ -76,7 +78,7 @@ class PubSubClient:
 
         return json.dumps(data)
 
-    async def listen_to_channel(self, channel_name: str, points: bool = True, chat: bool = True, access_token: str = '', nonce=None):
+    async def listen_to_channel(self, channel_name: str, points: bool = True, chat: bool = True, access_token: str = '', nonce=None) -> bool:
         if not self.socket or not self.socket.open:
             await self._connect()
             await sleep(.5)
@@ -92,11 +94,13 @@ class PubSubClient:
             topics.append(await self._create_channel_chat_topic(channel_name))
 
         if not topics:
-            return
+            return False
 
         await self.socket.send(
             self.create_listen_request_data(topics=topics, access_token=access_token, nonce=nonce or channel_name)
         )
+
+        return True
 
     async def read(self) -> Optional[str]:
         data = await self.socket.recv()
@@ -117,7 +121,7 @@ class PubSubClient:
         while True:
             if self.socket is not None:
                 try:
-                    data = json.loads(await self.read())
+                    data = PubSubData(json.loads(await self.read()))
                 except (json.JSONDecodeError, TypeError):
                     continue
 
@@ -125,6 +129,6 @@ class PubSubClient:
             else:
                 await sleep(2)
 
-    async def _trigger_events(self, data: dict):
+    async def _trigger_events(self, data: 'PubSubData'):
         from ..event_util import forward_event, Event
         forward_event(Event.on_pubsub_received, data)
