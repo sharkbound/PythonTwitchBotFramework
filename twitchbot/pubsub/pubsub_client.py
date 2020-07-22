@@ -125,6 +125,6 @@ class PubSubClient:
             else:
                 await sleep(2)
 
-    async def _trigger_events(self, data):
+    async def _trigger_events(self, data: dict):
         from ..event_util import forward_event, Event
         forward_event(Event.on_pubsub_received, data)
