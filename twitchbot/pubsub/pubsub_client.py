@@ -4,6 +4,7 @@ import websockets
 
 from typing import Optional, TYPE_CHECKING
 from asyncio import sleep
+import time
 
 __all__ = [
     'PubSubClient',
@@ -29,6 +30,7 @@ class PubSubClient:
     def __init__(self):
         self.socket: Optional[websockets.client.WebSocketClientProtocol] = None
         self.listen_count = 0
+        self._last_ping_sent_time = time.time()
 
     @classmethod
     async def _create_channel_points_topic(cls, channel_name: str) -> Optional[str]:
@@ -102,6 +104,14 @@ class PubSubClient:
 
         return True
 
+    @property
+    def last_ping_time_diff(self):
+        return time.time() - self._last_ping_sent_time
+
+    async def _send_ping(self):
+        await self.socket.send(json.dumps({'type': 'PING'}))
+        self._last_ping_sent_time = time.time()
+
     async def read(self) -> Optional[str]:
         data = await self.socket.recv()
         if isinstance(data, bytes):
@@ -110,6 +120,7 @@ class PubSubClient:
 
     async def _connect(self) -> 'PubSubClient':
         self.socket = await websockets.connect(self.PUBSUB_WEBSOCKET_URL)
+        self._last_ping_sent_time = time.time()
         return self
 
     def start_loop(self):
