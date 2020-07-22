@@ -6,3 +6,4 @@ from .task_util import *
 from .misc_util import *
 from .command_util import *
 from .cached_property import *
+from .dict_util import *
