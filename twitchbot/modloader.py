@@ -12,6 +12,7 @@ from typing import Dict, Callable, Any
 
 if typing.TYPE_CHECKING:
     from .poll import PollData
+    from .pubsub import PubSubData
 
 from .channel import Channel
 from .command import Command
@@ -185,7 +186,7 @@ class Mod:
         :param poll: the poll that has ended
         """
 
-    async def on_pubsub_received(self, raw: dict):
+    async def on_pubsub_received(self, raw: 'PubSubData'):
         """
         triggered when data is received from the pubsub client
         """

@@ -1,7 +1,7 @@
 import logging
 import time
 from asyncio import get_event_loop
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from ..poll import PollData
 from .. import util, create_irc
@@ -29,6 +29,9 @@ from ..command_whitelist import is_command_whitelisted, send_message_on_command_
 from ..poll import poll_event_processor_loop
 from ..event_util import forward_event_with_results, forward_event
 from ..pubsub import PubSubClient
+
+if TYPE_CHECKING:
+    from ..pubsub import PubSubData
 
 
 # noinspection PyMethodMayBeStatic
@@ -172,7 +175,7 @@ class BaseBot:
         :param poll: the poll that has ended
         """
 
-    async def on_pubsub_received(self, raw: dict):
+    async def on_pubsub_received(self, raw: 'PubSubData'):
         """
         triggered when data is received from the pubsub client
         """
