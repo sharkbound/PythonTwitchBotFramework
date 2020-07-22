@@ -28,9 +28,5 @@ class PubSubData:
         return self.message_data.get('type', '')
 
     @cached_property
-    def message_type_str(self) -> str:
-        return self.message_data.get('type', '')
-
-    @cached_property
     def moderation_action_str(self) -> str:
         return self.message_data.get('moderation_action', '')
