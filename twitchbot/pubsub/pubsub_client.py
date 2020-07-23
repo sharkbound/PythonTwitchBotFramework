@@ -1,10 +1,11 @@
-import warnings
+import asyncio
 import json
-import websockets
-
-from typing import Optional, TYPE_CHECKING
-from asyncio import sleep
 import time
+import warnings
+from asyncio import sleep
+from typing import Optional
+
+import websockets
 
 __all__ = [
     'PubSubClient',
@@ -26,11 +27,13 @@ class PubSubClient:
     PUBSUB_WEBSOCKET_URL = 'wss://pubsub-edge.twitch.tv'
     NONCE_REQUEST_VALUE = 'NONCE'
     LISTEN_REQUEST_KEY = 'LISTEN'
+    PING_SEND_INTERVAL = 60 * 4.6
 
     def __init__(self):
         self.socket: Optional[websockets.client.WebSocketClientProtocol] = None
         self.listen_count = 0
         self._last_ping_sent_time = time.time()
+        self._pong_received = False
 
     @classmethod
     async def _create_channel_points_topic(cls, channel_name: str) -> Optional[str]:
@@ -106,14 +109,22 @@ class PubSubClient:
 
     @property
     def last_ping_time_diff(self):
-        return time.time() - self._last_ping_sent_time
+        return abs(time.time() - self._last_ping_sent_time)
+
+    @property
+    def last_ping_time_diff_minutes(self):
+        return abs(time.time() - self._last_ping_sent_time) / 60
 
     async def _send_ping(self):
         await self.socket.send(json.dumps({'type': 'PING'}))
         self._last_ping_sent_time = time.time()
 
-    async def read(self) -> Optional[str]:
-        data = await self.socket.recv()
+    async def read(self, timeout: float = 10) -> Optional[str]:
+        try:
+            data = await asyncio.wait_for(self.socket.recv(), timeout=timeout)
+        except asyncio.TimeoutError:
+            return None
+
         if isinstance(data, bytes):
             return data.decode('utf-8')
         return data
@@ -132,14 +143,24 @@ class PubSubClient:
         while True:
             if self.socket is not None:
                 try:
-                    data = PubSubData(json.loads(await self.read()))
+                    await self._read_and_handle()
                 except (json.JSONDecodeError, TypeError):
-                    continue
+                    pass
 
-                await self._trigger_events(data)
+                print(self.last_ping_time_diff_minutes)
+                await self._send_ping_if_needed()
             else:
                 await sleep(2)
+
+    async def _read_and_handle(self):
+        raw_resp = await self.read(timeout=10)
+        data = PubSubData(json.loads(raw_resp))
+        await self._trigger_events(data)
 
     async def _trigger_events(self, data: 'PubSubData'):
         from ..event_util import forward_event, Event
         forward_event(Event.on_pubsub_received, data)
+
+    async def _send_ping_if_needed(self):
+        if self.last_ping_time_diff >= self.PING_SEND_INTERVAL:
+            await self._send_ping()
