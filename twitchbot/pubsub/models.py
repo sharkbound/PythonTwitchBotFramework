@@ -9,9 +9,16 @@ class PubSubData:
     def __init__(self, raw_data: dict):
         self.raw_data: dict = raw_data
 
+    def is_type(self, type: str):
+        return self.raw_data.get('type').lower() == type.lower()
+
     @cached_property
     def is_pong(self):
-        return self.raw_data.get('type') == 'PONG'
+        return self.is_type('PONG')
+
+    @cached_property
+    def is_channel_points_redeemed(self):
+        return self.is_type('reward-redeemed')
 
     @cached_property
     def topic(self) -> str:

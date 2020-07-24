@@ -3,23 +3,15 @@ import json
 import time
 import warnings
 from asyncio import sleep
-from typing import Optional
+from typing import Optional, Tuple, Iterable
 
 import websockets
 
 __all__ = [
     'PubSubClient',
-    'PubSubKeys'
 ]
 
-from .pubsub_models import PubSubData
-
-
-class PubSubKeys:
-    nonce = 'nonce'
-    listen = 'listen'
-    error = 'error'
-    type = 'type'
+from .models import PubSubData
 
 
 class PubSubClient:
@@ -34,28 +26,6 @@ class PubSubClient:
         self.listen_count = 0
         self._last_ping_sent_time = time.time()
         self._pong_received = False
-
-    @classmethod
-    async def _create_channel_points_topic(cls, channel_name: str) -> Optional[str]:
-        from ..util import get_user_id
-
-        user_id = await get_user_id(channel_name)
-        if user_id == -1:
-            warnings.warn(f'[PUBSUB-CLIENT] unable to get user id in pubsub client for channel "{channel_name}"')
-            return None
-
-        return f'channel-subscribe-events-v1.{user_id}'
-
-    @classmethod
-    async def _create_channel_chat_topic(cls, channel_name: str) -> Optional[str]:
-        from ..util import get_user_id
-
-        user_id = await get_user_id(channel_name)
-        if user_id == -1:
-            warnings.warn(f'[PUBSUB-CLIENT] unable to get user id in pubsub client for channel "{channel_name}"')
-            return None
-
-        return f'chat_moderator_actions.{user_id}'
 
     @property
     def connected(self):
@@ -83,21 +53,21 @@ class PubSubClient:
 
         return json.dumps(data)
 
-    async def listen_to_channel(self, channel_name: str, points: bool = True, chat: bool = True, access_token: str = '', nonce=None) -> bool:
+    async def listen_to_channel(self, channel_name: str, topics: Iterable[str], access_token: str = '', nonce=None) -> bool:
+        from ..util import get_user_id
+
         if not self.socket or not self.socket.open:
             await self._connect()
             await sleep(.5)
 
         await sleep(.5)  # small thing to rate limit to a degree
 
-        topics = []
+        user_id = await get_user_id(channel_name)
+        if user_id == -1:
+            warnings.warn(f'[PUBSUB-CLIENT] unable to get user id in pubsub client for channel "{channel_name}"')
+            return False
 
-        if points:
-            topics.append(await self._create_channel_points_topic(channel_name))
-
-        if chat:
-            topics.append(await self._create_channel_chat_topic(channel_name))
-
+        topics = [f'{topic}{user_id}' for topic in topics]
         if not topics:
             return False
 
