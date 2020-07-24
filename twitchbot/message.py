@@ -39,6 +39,9 @@ class Message:
 
         self._parse()
 
+    def _get_channel_or_default(self, channel_name: str, default=None):
+        return channels.get(channel_name, default)
+
     def _normalize(self, s: str):
         return s.strip().casefold()
 
@@ -100,7 +103,7 @@ class Message:
     def _parse_user_part(self) -> bool:
         m = RE_USER_PART.search(self.raw_msg)
         if m:
-            self.channel = channels[m['channel']]
+            self.channel = self._get_channel_or_default(m.get('channel'))
             self.author = m['user']
             self.type = MessageType.USER_PART
 
@@ -135,7 +138,7 @@ class Message:
     def _parse_privmsg(self) -> bool:
         m = RE_PRIVMSG.search(self.raw_msg)
         if m:
-            self.channel = channels[m['channel']]
+            self.channel = self._get_channel_or_default(m.get('channel'))
             self.author = m['user']
             self.content = m['content']
             self.type = MessageType.PRIVMSG
@@ -160,7 +163,7 @@ class Message:
         m = RE_USERNOTICE.search(self.raw_msg)
         if m:
             self.tags = Tags(m['tags'])
-            self.channel = channels[m['channel']]
+            self.channel = self._get_channel_or_default(m.get('channel'))
             self.author = self.tags.all_tags.get('login')
             self.content = m['content']
             if self.tags.msg_id in {'sub', 'resub', 'subgift', 'anonsubgift', 'submysterygift', 'anongiftpaidupgrade',
@@ -183,7 +186,7 @@ class Message:
         m = RE_NOTICE.search(self.raw_msg)
         if m:
             self.tags = Tags(m['tags'])
-            self.channel = channels[m['channel']]
+            self.channel = self._get_channel_or_default(m.get('channel'))
             self.content = m['content']
             if self.tags.msg_id == 'msg_banned':
                 self.type = MessageType.BOT_PERMANENTLY_BANNED
