@@ -117,7 +117,6 @@ class PubSubClient:
                 except (json.JSONDecodeError, TypeError):
                     pass
 
-                print(self.last_ping_time_diff_minutes)
                 await self._send_ping_if_needed()
             else:
                 await sleep(2)
@@ -128,7 +127,8 @@ class PubSubClient:
         await self._trigger_events(data)
 
     async def _trigger_events(self, data: 'PubSubData'):
-        from ..event_util import forward_event, Event
+        from ..event_util import forward_event
+        from ..enums import Event
         forward_event(Event.on_pubsub_received, data)
 
     async def _send_ping_if_needed(self):
