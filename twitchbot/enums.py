@@ -62,3 +62,4 @@ class Event(NamedEnum):
     on_bot_timed_out_from_channel = auto()
     on_poll_started = auto()
     on_poll_ended = auto()
+    on_pubsub_received = auto()

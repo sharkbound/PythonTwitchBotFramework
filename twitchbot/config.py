@@ -192,14 +192,14 @@ def get_nick() -> str:
     return nick
 
 
-def get_oauth() -> str:
+def get_oauth(remove_prefix: bool = False) -> str:
     """
     gets the bot accounts OAUTH
     this is needed because of supporting getting it from os.environ
 
     if the the OAUTH matches the pattern `ENV_KEY_HERE` it will get `KEY_HERE` from os.environ, else it just grabs it from the cfg
     """
-    oauth = cfg.oauth
+    oauth: str = cfg.oauth
     if _is_env_key(oauth):
         value = _get_env_value(oauth)
         if value is None:
@@ -207,6 +207,10 @@ def get_oauth() -> str:
             input('\npress enter to exit...')
             exit(1)
         return value
+
+    if remove_prefix:
+        oauth = oauth.replace('oauth:', '')
+        
     return oauth
 
 

@@ -1,7 +1,7 @@
 import logging
 import time
 from asyncio import get_event_loop
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from ..poll import PollData
 from .. import util, create_irc
@@ -28,13 +28,18 @@ from ..util import stop_all_tasks
 from ..command_whitelist import is_command_whitelisted, send_message_on_command_whitelist_deny
 from ..poll import poll_event_processor_loop
 from ..event_util import forward_event_with_results, forward_event
+from ..pubsub import PubSubClient
+
+if TYPE_CHECKING:
+    from ..pubsub import PubSubData
 
 
 # noinspection PyMethodMayBeStatic
 class BaseBot:
     def __init__(self):
-        self.irc: Irc = None
+        self.irc: Optional[Irc] = None
         self._running = False
+        self.pubsub = PubSubClient()
         set_bot(self)
 
     # region events
@@ -168,6 +173,11 @@ class BaseBot:
         triggered when a poll ends
         :param channel: channel the poll originated in
         :param poll: the poll that has ended
+        """
+
+    async def on_pubsub_received(self, raw: 'PubSubData'):
+        """
+        triggered when data is received from the pubsub client
         """
 
     # endregion
@@ -309,11 +319,12 @@ class BaseBot:
 
         await self._create_irc()
         self._create_channels()
-
         await self._connect()
         await self.on_connected()
         await trigger_mod_event(Event.on_connected)
         await trigger_event(Event.on_connected)
+        await self.pubsub._connect()
+        self.pubsub.start_loop()
 
         util.add_nameless_task(poll_event_processor_loop())
 
