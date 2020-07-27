@@ -3,9 +3,11 @@ import json
 import time
 import warnings
 from asyncio import sleep
-from typing import Optional, Tuple, Iterable
+from typing import Optional, Iterable
 
 import websockets
+
+from ..enums import Event
 
 __all__ = [
     'PubSubClient',
@@ -132,8 +134,26 @@ class PubSubClient:
 
     async def _trigger_events(self, data: 'PubSubData'):
         from ..event_util import forward_event
-        from ..enums import Event
         forward_event(Event.on_pubsub_received, data)
+
+        # checks for and runs a matching pubsub event
+        (
+                self._check_for_channel_point_redemption(data)
+                or self._noop()
+        )
+
+    def _noop(self, *_):
+        pass
+
+    def _check_for_channel_point_redemption(self, data: 'PubSubData'):
+        from ..event_util import forward_event
+        from .point_redemption_model import PubSubPointRedemption
+
+        if not data.is_channel_points_redeemed:
+            return False
+
+        forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
+        return True
 
     async def _send_ping_if_needed(self):
         if self.last_ping_time_diff >= self.PING_SEND_INTERVAL:

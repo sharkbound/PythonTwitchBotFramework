@@ -63,3 +63,4 @@ class Event(NamedEnum):
     on_poll_started = auto()
     on_poll_ended = auto()
     on_pubsub_received = auto()
+    on_pubsub_custom_channel_point_reward = auto()

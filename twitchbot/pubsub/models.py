@@ -28,7 +28,11 @@ class PubSubData:
 
     @cached_property
     def is_channel_points_redeemed(self):
-        return self.is_type(self.MESSAGE_TYPE) and self.message_dict.get('type', '').lower() == self.REWARD_REDEEMED_TYPE
+        return self.is_type(self.MESSAGE_TYPE) and self.message_dict.get('type', '').lower() == self.REWARD_REDEEMED_TYPE.lower()
+
+    @cached_property
+    def channel_point_redemption_dict(self):
+        return self.message_data.get('redemption', {})
 
     @cached_property
     def topic(self) -> str:
