@@ -54,6 +54,10 @@ class PubSubClient:
         return json.dumps(data)
 
     async def listen_to_channel(self, channel_name: str, topics: Iterable[str], access_token: str = '', nonce=None) -> bool:
+        if not self.connected:
+            self.start_loop()
+            await self._connect()
+
         from ..util import get_user_id
 
         if not self.socket or not self.socket.open:

@@ -323,8 +323,6 @@ class BaseBot:
         await self.on_connected()
         await trigger_mod_event(Event.on_connected)
         await trigger_event(Event.on_connected)
-        await self.pubsub._connect()
-        self.pubsub.start_loop()
 
         util.add_nameless_task(poll_event_processor_loop())
 
