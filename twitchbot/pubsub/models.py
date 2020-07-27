@@ -5,7 +5,17 @@ from ..util import dict_get_value
 from functools import cached_property
 
 
+def _try_parse_json(data: str) -> dict:
+    try:
+        return json.loads(data)
+    except (TypeError, json.JSONDecodeError) as _:
+        return {}
+
+
 class PubSubData:
+    MESSAGE_TYPE = 'MESSAGE'
+    REWARD_REDEEMED_TYPE = 'reward-redeemed'
+
     def __init__(self, raw_data: dict):
         self.raw_data: dict = raw_data
 
@@ -18,7 +28,7 @@ class PubSubData:
 
     @cached_property
     def is_channel_points_redeemed(self):
-        return self.is_type('reward-redeemed')
+        return self.is_type(self.MESSAGE_TYPE) and self.message_dict.get('type', '').lower() == self.REWARD_REDEEMED_TYPE
 
     @cached_property
     def topic(self) -> str:
@@ -26,10 +36,7 @@ class PubSubData:
 
     @cached_property
     def message_dict(self):
-        try:
-            return json.loads(dict_get_value(self.raw_data, 'data', 'message', default='{}'))
-        except (TypeError, json.JSONDecodeError):
-            return {}
+        return _try_parse_json(dict_get_value(self.raw_data, 'data', 'message', default='{}'))
 
     @cached_property
     def message_data(self):
