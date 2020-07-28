@@ -19,7 +19,6 @@ from ..enums import Event
 from ..enums import MessageType, CommandContext
 from ..events import trigger_event
 from ..exceptions import InvalidArgumentsError
-from ..irc import Irc
 from ..message import Message
 from ..modloader import Mod
 from ..modloader import mods
@@ -34,12 +33,13 @@ from ..pubsub import PubSubClient
 
 if TYPE_CHECKING:
     from ..pubsub import PubSubData, PubSubPointRedemption
+    from ..irc import Irc
 
 
 # noinspection PyMethodMayBeStatic
 class BaseBot:
     def __init__(self):
-        self.irc: Optional[Irc] = None
+        self.irc: Optional['Irc'] = None
         self._running = False
         self.pubsub = PubSubClient()
         set_bot(self)

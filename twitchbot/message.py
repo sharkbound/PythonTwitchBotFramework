@@ -6,7 +6,6 @@ from typing import List, Tuple, TYPE_CHECKING, Optional, Callable, Awaitable, Fr
 from twitchbot import get_bot
 from .util import get_message_mentions
 from .channel import Channel, channels
-from .irc import Irc
 from .regex import RE_PRIVMSG, RE_WHISPER, RE_USER_JOIN, RE_USERNOTICE, RE_USER_PART, RE_NOTICE, RE_TIMEOUT_DURATION
 from .enums import MessageType
 from .util import split_message
@@ -15,6 +14,7 @@ from .emote import emotes, Emote
 from .config import cfg
 
 if TYPE_CHECKING:
+    from .irc import Irc
     from .bots import BaseBot
 
 
@@ -27,7 +27,7 @@ class Message:
         self.type: MessageType = MessageType.NONE
         self.raw_msg: str = msg
         self.receiver: Optional[str] = None
-        self.irc: Irc = irc
+        self.irc: 'Irc' = irc
         self.tags: Optional[Tags] = None
         self.emotes: List[Emote] = []
         self.mentions: Tuple[str] = ()

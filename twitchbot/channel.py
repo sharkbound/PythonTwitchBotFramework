@@ -7,18 +7,18 @@ from .api import StreamInfoApi
 from .api.chatters import Chatters
 from .config import get_nick, get_client_id
 from .data import UserFollowers
-from .irc import Irc
 from .permission import perms
 from .shared import get_bot
 from .util import get_user_followers, get_headers
 
 if typing.TYPE_CHECKING:
     from .bots import BaseBot
+    from .irc import Irc
 
 
 class Channel:
-    def __init__(self, name, irc, register_globally=True):
-        self.irc: Irc = irc
+    def __init__(self, name, irc: 'Irc', register_globally=True):
+        self.irc: 'Irc' = irc
         self.name: str = name
         self.chatters: Chatters = Chatters(self.name)
         self.is_vip: bool = False
