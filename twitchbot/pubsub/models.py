@@ -2,7 +2,7 @@ import json
 from itertools import chain
 
 from ..util import dict_get_value
-from functools import cached_property
+from ..cached_property import cached_property
 
 
 def _try_parse_json(data: str) -> dict:
