@@ -1,7 +1,9 @@
+import asyncio
 import logging
 import time
 from asyncio import get_event_loop
 from typing import Optional, TYPE_CHECKING
+from threading import Thread
 
 from ..poll import PollData
 from .. import util, create_irc
@@ -313,7 +315,17 @@ class BaseBot:
     def run(self):
         """runs/starts the bot, this is a blocking function that starts the mainloop"""
         self._running = True
-        get_event_loop().run_until_complete(self.mainloop())
+        try:
+            loop = get_event_loop()
+        except RuntimeError as _:
+            loop = asyncio.new_event_loop()
+        loop.run_until_complete(self.mainloop())
+
+    def run_threaded(self) -> Thread:
+        """runs/starts the bot in its own thread, this is a NON-BLOCKING function that starts the mainloop"""
+        thread = Thread(target=self.run, name='twitch_bot_thread')
+        thread.start()
+        return thread
 
     async def mainloop(self):
         """starts the bot, connects to twitch, then starts the message event loop"""
