@@ -1,8 +1,10 @@
+import json
 from typing import Any
 
 __all__ = [
     'dict_get_value',
     'dict_has_keys',
+    'try_parse_json',
 ]
 
 
@@ -27,3 +29,10 @@ def dict_get_value(data: dict, *keys, default: Any = None) -> Any:
             return default
 
     return data
+
+
+def try_parse_json(data: str, **default_keys) -> dict:
+    try:
+        return json.loads(data)
+    except (TypeError, json.JSONDecodeError) as _:
+        return default_keys

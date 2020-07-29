@@ -1,30 +1,45 @@
 import json
 from itertools import chain
+from typing import TYPE_CHECKING
 
-from ..util import dict_get_value
+from ..util import dict_get_value, try_parse_json
 from ..cached_property import cached_property
 
-
-def _try_parse_json(data: str) -> dict:
-    try:
-        return json.loads(data)
-    except (TypeError, json.JSONDecodeError) as _:
-        return {}
+if TYPE_CHECKING:
+    from .point_redemption_model import PubSubPointRedemption
+    from .whisper_model import PubSubWhisper
 
 
 class PubSubData:
     MESSAGE_TYPE = 'MESSAGE'
     REWARD_REDEEMED_TYPE = 'reward-redeemed'
+    WHISPER_MESSAGE_TYPE = 'thread'
 
     def __init__(self, raw_data: dict):
         self.raw_data: dict = raw_data
 
+    def as_point_redemption(self) -> 'PubSubPointRedemption':
+        from .point_redemption_model import PubSubPointRedemption
+        return PubSubPointRedemption(self)
+
+    def as_whisper(self) -> 'PubSubWhisper':
+        from .whisper_model import PubSubWhisper
+        return PubSubWhisper(self)
+
     def is_type(self, type: str):
         return self.raw_data.get('type').lower() == type.lower()
+
+    @property
+    def is_message(self):
+        return self.is_type(self.MESSAGE_TYPE)
 
     @cached_property
     def is_pong(self):
         return self.is_type('PONG')
+
+    @property
+    def is_whisper(self):
+        return self.is_message and self.message_dict.get('type', '').lower() == self.WHISPER_MESSAGE_TYPE.lower()
 
     @cached_property
     def is_channel_points_redeemed(self):
@@ -40,15 +55,23 @@ class PubSubData:
 
     @cached_property
     def message_dict(self):
-        return _try_parse_json(dict_get_value(self.raw_data, 'data', 'message', default='{}'))
+        return try_parse_json(dict_get_value(self.raw_data, 'data', 'message', default='{}'))
 
     @cached_property
-    def message_data(self):
-        return self.message_dict.get('data', {})
+    def message_data(self) -> dict:
+        data = self.message_dict.get('data', {})
+        if isinstance(data, str):
+            return try_parse_json(data)
+        return data
 
     @cached_property
     def message_type(self) -> str:
-        return self.message_data.get('type', '')
+        if self.is_whisper or self.is_channel_points_redeemed:
+            return self.message_dict.get('type', '')
+        try:
+            return self.message_data.get('type', '')
+        except AttributeError:
+            return ''
 
     @cached_property
     def moderation_action(self) -> str:
