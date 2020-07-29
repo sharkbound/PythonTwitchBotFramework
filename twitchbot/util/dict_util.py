@@ -31,7 +31,10 @@ def dict_get_value(data: dict, *keys, default: Any = None) -> Any:
     return data
 
 
-def try_parse_json(data: str, **default_keys) -> dict:
+def try_parse_json(data, **default_keys) -> dict:
+    if isinstance(data, dict):
+        return data
+
     try:
         return json.loads(data)
     except (TypeError, json.JSONDecodeError) as _:
