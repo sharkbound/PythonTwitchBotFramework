@@ -131,6 +131,8 @@ Event.on_bot_timed_out_from_channel : (self, msg: Message, channel: Channel, sec
 Event.on_bot_banned_from_channel : (self, msg: Message, channel: Channel)
 Event.on_poll_started : (self, channel: Channel, poll: PollData)
 Event.on_poll_ended : (self, channel: Channel, poll: PollData)
+Event.on_pubsub_received : (self, raw: 'PubSubData')
+Event.on_pubsub_custom_channel_point_reward : (self, raw: 'PubSubData', data: 'PubSubPointRedemption')
 ```
 
 if this is the first time running the bot it will generate a folder
