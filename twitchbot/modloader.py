@@ -12,7 +12,7 @@ from typing import Dict, Callable, Any
 
 if typing.TYPE_CHECKING:
     from .poll import PollData
-    from .pubsub import PubSubData, PubSubPointRedemption
+    from .pubsub import PubSubData, PubSubPointRedemption, PubSubBits
 
 from .channel import Channel
 from .command import Command
@@ -196,6 +196,13 @@ class Mod:
         triggered when a user redeems a channel's custom channel point reward
         :param raw: the raw pubsub message
         :param data: data specific to the custom channel point reward redeemed
+        """
+
+    async def on_pubsub_bits(self, raw: 'PubSubData', data: 'PubSubBits'):
+        """
+        triggered when a user sends bits to a channel
+        :param raw: the raw pubsub message
+        :param data: data specific to the bits being sent
         """
 
     # endregion

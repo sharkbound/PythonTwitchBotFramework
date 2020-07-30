@@ -8,12 +8,14 @@ from ..cached_property import cached_property
 if TYPE_CHECKING:
     from .point_redemption_model import PubSubPointRedemption
     from .whisper_model import PubSubWhisper
+    from .bits_model import PubSubBits
 
 
 class PubSubData:
     MESSAGE_TYPE = 'MESSAGE'
     REWARD_REDEEMED_TYPE = 'reward-redeemed'
     WHISPER_MESSAGE_TYPE = 'thread'
+    BITS_MESSAGE_TYPE = 'bits_event'
 
     def __init__(self, raw_data: dict):
         self.raw_data: dict = raw_data
@@ -25,6 +27,10 @@ class PubSubData:
     def as_whisper(self) -> 'PubSubWhisper':
         from .whisper_model import PubSubWhisper
         return PubSubWhisper(self)
+
+    def as_bits(self) -> 'PubSubBits':
+        from .bits_model import PubSubBits
+        return PubSubBits(self)
 
     def is_type(self, type: str):
         return self.raw_data.get('type').lower() == type.lower()
@@ -44,6 +50,10 @@ class PubSubData:
     @cached_property
     def is_channel_points_redeemed(self):
         return self.is_type(self.MESSAGE_TYPE) and self.message_dict.get('type', '').lower() == self.REWARD_REDEEMED_TYPE.lower()
+
+    @cached_property
+    def is_bits(self):
+        return self.is_type(self.MESSAGE_TYPE) and self.message_dict.get('message_type', '').lower() == self.BITS_MESSAGE_TYPE.lower()
 
     @cached_property
     def channel_point_redemption_dict(self):

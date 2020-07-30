@@ -32,7 +32,7 @@ from ..event_util import forward_event_with_results, forward_event
 from ..pubsub import PubSubClient
 
 if TYPE_CHECKING:
-    from ..pubsub import PubSubData, PubSubPointRedemption
+    from ..pubsub import PubSubData, PubSubPointRedemption, PubSubBits
     from ..irc import Irc
 
 
@@ -187,6 +187,13 @@ class BaseBot:
         triggered when a user redeems a channel's custom channel point reward
         :param raw: the raw pubsub message
         :param data: data specific to the custom channel point reward redeemed
+        """
+
+    async def on_pubsub_bits(self, raw: 'PubSubData', data: 'PubSubBits'):
+        """
+        triggered when a user sends bits to a channel
+        :param raw: the raw pubsub message
+        :param data: data specific to the bits being sent
         """
 
     # endregion

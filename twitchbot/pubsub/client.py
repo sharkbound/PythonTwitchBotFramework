@@ -139,6 +139,7 @@ class PubSubClient:
         # checks for and runs a matching pubsub event
         (
                 self._check_for_channel_point_redemption(data)
+                or self._check_for_bits(data)
                 or self._noop()
         )
 
@@ -153,6 +154,16 @@ class PubSubClient:
             return False
 
         forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
+        return True
+
+    def _check_for_bits(self, data: 'PubSubData'):
+        from ..event_util import forward_event
+        from .bits_model import PubSubBits
+
+        if not data.is_bits:
+            return False
+
+        forward_event(Event.on_pubsub_bits, data, PubSubBits(data))
         return True
 
     async def _send_ping_if_needed(self):
