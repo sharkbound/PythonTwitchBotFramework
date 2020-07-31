@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from .point_redemption_model import PubSubPointRedemption
     from .whisper_model import PubSubWhisper
     from .bits_model import PubSubBits
+    from .pubsub_moderation_action import PubSubModerationAction
 
 __all__ = [
     'PubSubData'
@@ -17,6 +18,7 @@ __all__ = [
 
 class PubSubData:
     MESSAGE_TYPE = 'MESSAGE'
+    RESPONSE_TYPE = 'RESPONSE'
     REWARD_REDEEMED_TYPE = 'reward-redeemed'
     WHISPER_MESSAGE_TYPE = 'thread'
     BITS_MESSAGE_TYPE = 'bits_event'
@@ -31,6 +33,10 @@ class PubSubData:
     def as_whisper(self) -> 'PubSubWhisper':
         from .whisper_model import PubSubWhisper
         return PubSubWhisper(self)
+
+    def as_moderation_action(self) -> 'PubSubModerationAction':
+        from .pubsub_moderation_action import PubSubModerationAction
+        return PubSubModerationAction(self)
 
     def as_bits(self) -> 'PubSubBits':
         from .bits_model import PubSubBits
@@ -51,17 +57,41 @@ class PubSubData:
     def is_whisper(self):
         return self.is_message and self.message_dict.get('type', '').lower() == self.WHISPER_MESSAGE_TYPE.lower()
 
+    @property
+    def is_response(self):
+        return self.raw_data.get('type', '').lower() == self.RESPONSE_TYPE.lower()
+
     @cached_property
-    def is_channel_points_redeemed(self):
+    def is_moderation_action(self) -> bool:
+        return bool(self.message_data.get('moderation_action', ''))
+
+    @property
+    def is_channel_points_redeemed(self) -> bool:
         return self.is_type(self.MESSAGE_TYPE) and self.message_dict.get('type', '').lower() == self.REWARD_REDEEMED_TYPE.lower()
 
-    @cached_property
-    def is_bits(self):
+    @property
+    def is_bits(self) -> bool:
         return self.is_type(self.MESSAGE_TYPE) and self.message_dict.get('message_type', '').lower() == self.BITS_MESSAGE_TYPE.lower()
 
+    @property
+    def has_message(self):
+        return self.is_type(self.MESSAGE_TYPE) and dict_get_value(self.raw_data, 'data', 'message')
+
     @cached_property
-    def channel_point_redemption_dict(self):
+    def channel_point_redemption_dict(self) -> dict:
         return self.message_data.get('redemption', {})
+
+    @property
+    def error(self) -> str:
+        return self.raw_data.get('error', '')
+
+    @property
+    def has_error(self) -> bool:
+        return bool(self.error)
+
+    @property
+    def nonce(self) -> str:
+        return self.raw_data.get('nonce', '')
 
     @cached_property
     def topic(self) -> str:

@@ -32,7 +32,7 @@ from ..event_util import forward_event_with_results, forward_event
 from ..pubsub import PubSubClient
 
 if TYPE_CHECKING:
-    from ..pubsub import PubSubData, PubSubPointRedemption, PubSubBits
+    from ..pubsub import PubSubData, PubSubPointRedemption, PubSubBits, PubSubModerationAction
     from ..irc import Irc
 
 
@@ -194,6 +194,13 @@ class BaseBot:
         triggered when a user sends bits to a channel
         :param raw: the raw pubsub message
         :param data: data specific to the bits being sent
+        """
+
+    async def on_pubsub_moderation_action(self, raw: 'PubSubData', data: 'PubSubModerationAction'):
+        """
+        triggered when a moderator does a moderation action such as ban/unban/timeout
+        :param raw: the raw pubsub message
+        :param data: data specific to the moderation action taken
         """
 
     # endregion

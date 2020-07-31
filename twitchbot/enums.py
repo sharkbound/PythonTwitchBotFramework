@@ -65,3 +65,4 @@ class Event(NamedEnum):
     on_pubsub_received = auto()
     on_pubsub_custom_channel_point_reward = auto()
     on_pubsub_bits = auto()
+    on_pubsub_moderation_action = auto()
