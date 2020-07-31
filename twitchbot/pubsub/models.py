@@ -10,6 +10,10 @@ if TYPE_CHECKING:
     from .whisper_model import PubSubWhisper
     from .bits_model import PubSubBits
 
+__all__ = [
+    'PubSubData'
+]
+
 
 class PubSubData:
     MESSAGE_TYPE = 'MESSAGE'

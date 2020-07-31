@@ -1,5 +1,6 @@
+import warnings
 from datetime import datetime
-from typing import Dict, Tuple
+from typing import Dict, Tuple, NamedTuple, Optional
 
 from aiohttp import ClientSession, ClientResponse
 from async_timeout import timeout
@@ -9,13 +10,14 @@ from ..data import UserFollowers, UserInfo, RateLimit
 
 __all__ = ('CHANNEL_CHATTERS_URL', 'get_channel_chatters', 'get_stream_data', 'get_url', 'get_user_data', 'get_user_id',
            'STREAM_API_URL', 'USER_API_URL', 'get_user_followers', 'USER_FOLLOWERS_API_URL', 'get_headers',
-           'get_user_info', 'get_user_creation_date', 'USER_ACCOUNT_AGE_API')
+           'get_user_info', 'get_user_creation_date', 'USER_ACCOUNT_AGE_API', 'CHANNEL_INFO_API', 'get_channel_info', 'ChannelInfo')
 
 USER_API_URL = 'https://api.twitch.tv/helix/users?login={}'
 STREAM_API_URL = 'https://api.twitch.tv/helix/streams?user_login={}'
 CHANNEL_CHATTERS_URL = 'https://tmi.twitch.tv/group/user/{}/chatters'
 USER_FOLLOWERS_API_URL = 'https://api.twitch.tv/helix/users/follows?to_id={}'
 USER_ACCOUNT_AGE_API = 'https://api.twitch.tv/kraken/users/{}'
+CHANNEL_INFO_API = 'https://api.twitch.tv/helix/channels?broadcaster_id={}'
 
 user_id_cache: Dict[str, int] = {}
 
@@ -85,7 +87,7 @@ async def get_user_data(user: str, headers: dict = None) -> dict:
     return json['data'][0]
 
 
-async def get_user_id(user: str, headers: dict = None) -> int:
+async def get_user_id(user: str, headers: dict = None, verbose=True) -> int:
     headers = headers or get_headers()
     # shortcut if the this user's id was already requested
     if user in user_id_cache:
@@ -94,6 +96,8 @@ async def get_user_id(user: str, headers: dict = None) -> int:
     data = await get_user_data(user, headers)
 
     if not data:
+        if verbose:
+            warnings.warn(f'[GET_USER_ID] unable to get user_id for username "{user}"')
         return -1
 
     user_id_cache[user] = data['id']
@@ -123,3 +127,24 @@ def get_headers(use_kraken: bool = False):
         headers.update({'Authorization': f'{prefix} {oauth_key}'})
 
     return headers
+
+
+ChannelInfo = NamedTuple('ChannelInfo', (
+    ('broadcaster_id', str), ('broadcaster_name', str), ('broadcaster_language', str), ('game_id', str), ('game_name', str), ('title', str)))
+
+
+async def get_channel_info(broadcaster_name: str, headers: dict = None) -> Optional[ChannelInfo]:
+    from ..util import dict_get_value
+
+    user_id = await get_user_id(broadcaster_name, headers=headers)
+    if user_id == -1:
+        return None
+
+    _, json = await get_url(CHANNEL_INFO_API.format(user_id), headers=headers)
+    data = dict_get_value(json, 'data', 0)
+
+    if not data:
+        return None
+
+    return ChannelInfo(broadcaster_id=data['broadcaster_id'], broadcaster_name=data['broadcaster_name'],
+                       broadcaster_language=data['broadcaster_language'], game_id=data['game_id'], game_name=data['game_name'], title=data['title'])

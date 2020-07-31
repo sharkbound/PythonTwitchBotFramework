@@ -4,6 +4,9 @@ from ..cached_property import cached_property
 if TYPE_CHECKING:
     from twitchbot import PubSubData
 
+__all__ = [
+    'PubSubPointRedemption'
+]
 
 class PubSubPointRedemption:
     def __init__(self, data: 'PubSubData'):

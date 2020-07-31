@@ -5,6 +5,9 @@ if TYPE_CHECKING:
 
 from ..util import try_parse_json
 
+__all__ = [
+    'PubSubBits'
+]
 
 class PubSubBits:
     def __init__(self, raw: 'PubSubData'):

@@ -1,8 +1,11 @@
 from typing import TYPE_CHECKING
-from ..cached_property import cached_property
 
 if TYPE_CHECKING:
     from twitchbot import PubSubData
+
+__all__ = [
+    'PubSubWhisper'
+]
 
 
 class PubSubWhisper:
