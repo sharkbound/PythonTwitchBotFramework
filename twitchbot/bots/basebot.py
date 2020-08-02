@@ -348,7 +348,7 @@ class BaseBot:
         if not generate_config():
             stop_all_tasks()
             warnings.warn(
-                'failed to generate config, ether this was the first run and the oauth was not set, OR, there was a error generating the files required config files')
+                'failed to generate config, ether this was the first run and the oauth was not set, OR, there was a error generating the required config files')
             return
 
         await update_global_emotes()
