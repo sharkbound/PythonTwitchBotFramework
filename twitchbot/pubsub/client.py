@@ -22,12 +22,15 @@ class PubSubClient:
     NONCE_REQUEST_VALUE = 'NONCE'
     LISTEN_REQUEST_KEY = 'LISTEN'
     PING_SEND_INTERVAL = 60 * 4.6
+    RECONNECT_PONG_TIMEOUT = 10
 
     def __init__(self):
         self.socket: Optional[websockets.client.WebSocketClientProtocol] = None
         self.listen_count = 0
         self._last_ping_sent_time = time.time()
+        self._waiting_for_pong = False
         self._pong_received = False
+        self._previously_sent_listen_data = set()
 
     @property
     def connected(self):
@@ -55,6 +58,18 @@ class PubSubClient:
 
         return json.dumps(data)
 
+    def _mark_pong_received(self):
+        self._pong_received = True
+        self._waiting_for_pong = False
+
+    def _mark_ping_sent(self):
+        self._pong_received = False
+        self._waiting_for_pong = True
+        self._last_ping_sent_time = time.time()
+
+    def _check_needs_reconnect(self):
+        return self._waiting_for_pong and not self._pong_received and self.last_ping_time_diff > self.RECONNECT_PONG_TIMEOUT
+
     async def listen_to_channel(self, channel_name: str, topics: Iterable[str], access_token: str = '', nonce=None) -> bool:
         if not self.connected:
             self.start_loop()
@@ -77,10 +92,12 @@ class PubSubClient:
         if not topics:
             return False
 
-        await self.socket.send(
-            self.create_listen_request_data(topics=topics, access_token=access_token, nonce=nonce or channel_name)
-        )
+        listen_data = self.create_listen_request_data(topics=topics, access_token=access_token, nonce=nonce or channel_name).strip()
+        if listen_data not in self._previously_sent_listen_data:
+            self._previously_sent_listen_data.add(listen_data)
+            print(self._previously_sent_listen_data)
 
+        await self.socket.send(listen_data)
         return True
 
     @property
@@ -93,7 +110,7 @@ class PubSubClient:
 
     async def _send_ping(self):
         await self.socket.send(json.dumps({'type': 'PING'}))
-        self._last_ping_sent_time = time.time()
+        self._mark_ping_sent()
 
     async def read(self, timeout: float = 10) -> Optional[str]:
         try:
@@ -115,21 +132,49 @@ class PubSubClient:
         if not task_exist(self.TASK_NAME):
             add_task(self.TASK_NAME, self._processor_loop())
 
+    async def _reconnect(self, send_interval=.7, reconnect_interval=5) -> bool:
+        for retry in range(1, 6):
+            try:
+                warnings.warn(f'[PUBSUB_CLIENT] attempting reconnect #{retry}...')
+                await self._connect()
+                for listen_data in self._previously_sent_listen_data:
+                    await self.socket.send(listen_data)
+                    await asyncio.sleep(send_interval)
+                return True
+            except ValueError:
+                warnings.warn(f'[PUBSUB_CLIENT] reconnect #{retry} failed... trying again in {reconnect_interval} seconds...')
+                await asyncio.sleep(reconnect_interval)
+        return False
+
     async def _processor_loop(self):
         while True:
             if self.socket is not None:
+                if self._check_needs_reconnect():
+                    while True:
+                        if await self._reconnect():
+                            break
+
+                        warnings.warn('[PUBSUB_CLIENT] reconnect failed, retrying in 5 minutes')
+                        await asyncio.sleep(60 * 5)
+
                 try:
                     await self._read_and_handle()
                 except (json.JSONDecodeError, TypeError):
                     pass
 
                 await self._send_ping_if_needed()
+                if self._check_needs_reconnect():
+                    await self.socket.close()
             else:
                 await sleep(2)
 
     async def _read_and_handle(self):
         raw_resp = await self.read(timeout=10)
         data = PubSubData(json.loads(raw_resp))
+
+        if data.is_pong:
+            self._mark_pong_received()
+
         await self._trigger_events(data)
 
     async def _trigger_events(self, data: 'PubSubData'):
