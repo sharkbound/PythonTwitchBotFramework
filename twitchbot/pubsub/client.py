@@ -2,10 +2,10 @@ import asyncio
 import json
 import time
 import warnings
+import websockets
+
 from asyncio import sleep
 from typing import Optional, Iterable
-
-import websockets
 
 from ..enums import Event
 
@@ -68,7 +68,11 @@ class PubSubClient:
         self._last_ping_sent_time = time.time()
 
     def _check_needs_reconnect(self):
-        return self._waiting_for_pong and not self._pong_received and self.last_ping_time_diff > self.RECONNECT_PONG_TIMEOUT
+        return not self.connected or (
+                self._waiting_for_pong
+                and not self._pong_received
+                and self.last_ping_time_diff > self.RECONNECT_PONG_TIMEOUT
+        )
 
     async def listen_to_channel(self, channel_name: str, topics: Iterable[str], access_token: str = '', nonce=None) -> bool:
         if not self.connected:
@@ -95,7 +99,6 @@ class PubSubClient:
         listen_data = self.create_listen_request_data(topics=topics, access_token=access_token, nonce=nonce or channel_name).strip()
         if listen_data not in self._previously_sent_listen_data:
             self._previously_sent_listen_data.add(listen_data)
-            print(self._previously_sent_listen_data)
 
         await self.socket.send(listen_data)
         return True
@@ -132,23 +135,36 @@ class PubSubClient:
         if not task_exist(self.TASK_NAME):
             add_task(self.TASK_NAME, self._processor_loop())
 
-    async def _reconnect(self, send_interval=.7, reconnect_interval=5) -> bool:
-        for retry in range(1, 6):
+    async def _reconnect(self, listen_resend_interval=.7, reconnect_interval=5) -> bool:
+        import socket
+
+        for retry in range(10):
             try:
                 warnings.warn(f'[PUBSUB_CLIENT] attempting reconnect #{retry}...')
                 await self._connect()
+
+                # make sure connection is actually open
+                if not self.socket and not self.socket.open:
+                    raise ValueError
+
+                # resend pubsub listen request
                 for listen_data in self._previously_sent_listen_data:
                     await self.socket.send(listen_data)
-                    await asyncio.sleep(send_interval)
+                    await asyncio.sleep(listen_resend_interval)
+
+                # signal reconnect was successful
                 return True
-            except ValueError:
+            except (ValueError, socket.gaierror):
                 warnings.warn(f'[PUBSUB_CLIENT] reconnect #{retry} failed... trying again in {reconnect_interval} seconds...')
                 await asyncio.sleep(reconnect_interval)
+
+        # signal reconnect was unsuccessful
         return False
 
     async def _processor_loop(self):
         while True:
             if self.socket is not None:
+                # keep reconnect logic behind the socket is not None check to be sure we had a previous connection
                 if self._check_needs_reconnect():
                     while True:
                         if await self._reconnect():
@@ -161,6 +177,9 @@ class PubSubClient:
                     await self._read_and_handle()
                 except (json.JSONDecodeError, TypeError):
                     pass
+                except websockets.exceptions.ConnectionClosedError:
+                    # allow reconnect logic to try to re-establish a connection
+                    continue
 
                 await self._send_ping_if_needed()
                 if self._check_needs_reconnect():
