@@ -17,6 +17,7 @@ PRIVMSG_MAX_LINE_LENGTH = 450
 WHISPER_MAX_LINE_LENGTH = 438
 PRIVMSG_FORMAT = 'PRIVMSG #{channel} :{line}'
 
+
 class Irc:
     def __init__(self, reader, writer):
         self.reader: StreamReader = reader
@@ -94,8 +95,8 @@ class Irc:
         await trigger_mod_event(Event.on_whisper_sent, msg, user, get_nick())
         await trigger_event(Event.on_whisper_sent, msg, user, get_nick())
 
-    async def get_next_message(self):
-        return (await self.reader.readline()).decode('utf8').strip()
+    async def get_next_message(self, timeout=None):
+        return (await asyncio.wait_for(self.reader.readline(), timeout=timeout)).decode('utf8').strip()
 
     def send_pong(self):
         self.send('PONG :tmi.twitch.tv')
