@@ -166,12 +166,7 @@ class PubSubClient:
             if self.socket is not None:
                 # keep reconnect logic behind the socket is not None check to be sure we had a previous connection
                 if self._check_needs_reconnect():
-                    while True:
-                        if await self._reconnect():
-                            break
-
-                        warnings.warn('[PUBSUB_CLIENT] reconnect failed, retrying in 5 minutes')
-                        await asyncio.sleep(60 * 5)
+                    await self._reconnect_loop()
 
                 try:
                     await self._read_and_handle()
@@ -186,6 +181,14 @@ class PubSubClient:
                     await self.socket.close()
             else:
                 await sleep(2)
+
+    async def _reconnect_loop(self):
+        while True:
+            if await self._reconnect():
+                break
+
+            warnings.warn('[PUBSUB_CLIENT] reconnect failed, retrying in 5 minutes')
+            await asyncio.sleep(60 * 5)
 
     async def _read_and_handle(self):
         raw_resp = await self.read(timeout=10)
