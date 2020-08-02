@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import time
+import warnings
 from asyncio import get_event_loop
 from typing import Optional, TYPE_CHECKING
 from threading import Thread
@@ -346,6 +347,8 @@ class BaseBot:
         # check if user wants to input oauth info manually
         if not generate_config():
             stop_all_tasks()
+            warnings.warn(
+                'failed to generate config, ether this was the first run and the oauth was not set, OR, there was a error generating the files required config files')
             return
 
         await update_global_emotes()
