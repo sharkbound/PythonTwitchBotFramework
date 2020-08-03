@@ -1,17 +1,15 @@
 import asyncio
 import re
 import typing
-from asyncio import StreamWriter, StreamReader
+import websockets
 from textwrap import wrap
 
 from .shared import get_bot
-from .config import get_nick
+from .config import get_nick, get_oauth
 from .enums import Event
 from .events import trigger_event
 from .ratelimit import privmsg_ratelimit, whisper_ratelimit
-
-if typing.TYPE_CHECKING:
-    from .bots import BaseBot
+from .shared import TWITCH_IRC_WEBSOCKET_URL
 
 PRIVMSG_MAX_LINE_LENGTH = 450
 WHISPER_MAX_LINE_LENGTH = 438
@@ -19,12 +17,60 @@ PRIVMSG_FORMAT = 'PRIVMSG #{channel} :{line}'
 
 
 class Irc:
-    def __init__(self, reader, writer):
-        self.reader: StreamReader = reader
-        self.writer: StreamWriter = writer
-        self.bot: 'BaseBot' = get_bot()
+    def __init__(self):
+        self.socket: typing.Optional[websockets.WebSocketClientProtocol] = None
 
-    def send(self, msg):
+    @property
+    def connected(self):
+        return self.socket and self.socket.open
+
+    async def connect_to_twitch(self) -> bool:
+        """
+        connects to twitch and verifies is connected
+        :return: a bool to indicate if the connection was successfully
+        """
+        print(f'logging in as {get_nick()}')
+
+        await self._create_connection()
+
+        # send auth
+        await self.send_all(f'PASS {get_oauth()}', f'NICK {get_nick()}')
+
+        resp = (await self.get_next_message()).lower()
+        if 'authentication failed' in resp:
+            print(
+                '\n\n=========AUTHENTICATION FAILED=========\n\n'
+                'check that your oauth is correct and valid and that the nick in the config is correct'
+                '\nthere is a chance that oauth was good, but is not anymore\n'
+                'the oauth token can be regenerated using this website: \n\n\thttps://twitchapps.com/tmi/')
+            input('\n\npress enter to exit')
+            exit(1)
+        elif 'welcome' not in resp:
+            print(
+                f'\n\ntwitch gave a bad response to sending authentication to twitch server\nbelow is the message received from twitch:\n\n\t{resp}')
+            input('\n\npress enter to exit')
+            exit(1)
+
+        await self.send_all('CAP REQ :twitch.tv/commands',
+                            'CAP REQ :twitch.tv/tags',  # used to get metadata from irc messages
+                            'CAP REQ :twitch.tv/membership', send_interval=.1)  # used to see user joins
+
+        from .channel import channels
+        for channel in channels.values():
+            await asyncio.sleep(.2)
+            await self.join_channel(channel.name)
+
+        return True
+
+    async def _create_connection(self):
+        from socket import gaierror
+        try:
+            self.socket = await websockets.connect(TWITCH_IRC_WEBSOCKET_URL)
+            return True
+        except (ValueError, gaierror):
+            return False
+
+    async def send(self, msg):
         """
         sends a raw message with no modifications, this function is not ratelimited!
 
@@ -32,31 +78,22 @@ class Irc:
         this function is not ratelimit and intended to internal use from 'send_privmsg' and 'send_whisper'
         only use this function if you need to
         """
-        self.writer.write(f'{msg}\r\n'.encode())
+        await self.socket.send(f'{msg}\r\n')
 
-    def send_all(self, *msgs):
-        """
-        sends all messages separately with no modifications, this function is not ratelimited!
+    async def join_channel(self, channel_name: str):
+        await self.send(f'JOIN #{channel_name}')
 
-        do not call this function to send channel messages or whisper,
-        this function is not ratelimit and intended to internal use from 'send_privmsg' and 'send_whisper'
-        only use this function if you need to
+    async def send_all(self, *msgs, send_interval=.3):
         """
-        for msg in msgs:
-            self.send(msg)
-
-    async def send_all_interval(self, *msgs, delay=.2):
-        """
-        sends all messages separately with no modifications, this function is not ratelimited!
-        delays messages with the delay passed in from the `delay` argument
+        sends all messages separately with no modifications!
 
         do not call this function to send channel messages or whisper,
         this function is not ratelimit and intended to internal use from 'send_privmsg' and 'send_whisper'
         only use this function if you need to
         """
         for msg in msgs:
-            self.send(msg)
-            await asyncio.sleep(delay)
+            await self.send(msg)
+            await asyncio.sleep(send_interval)  # ensure we are not sending messages too fast
 
     async def send_privmsg(self, channel: str, msg: str):
         """sends a message to a channel"""
@@ -68,12 +105,12 @@ class Irc:
         chan = channels.get(channel) or DummyChannel(channel)
         for line in _wrap_message(msg):
             await privmsg_ratelimit(chan)
-            self.send(PRIVMSG_FORMAT.format(channel=channel, line=line))
+            await self.send(PRIVMSG_FORMAT.format(channel=channel, line=line))
 
         # exclude calls from send_whisper being sent to the bots on_privmsg_received event
         if not msg.startswith('/w'):
-            if self.bot:
-                await self.bot.on_privmsg_sent(msg, channel, get_nick())
+            if get_bot():
+                await get_bot().on_privmsg_sent(msg, channel, get_nick())
             await trigger_mod_event(Event.on_privmsg_sent, msg, channel, get_nick(), channel=channel)
             await trigger_event(Event.on_privmsg_sent, msg, channel, get_nick())
 
@@ -84,22 +121,22 @@ class Irc:
         user = user.lower()
         for line in _wrap_message(f'/w {user} {msg}'):
             await whisper_ratelimit()
-            self.send(PRIVMSG_FORMAT.format(channel=user, line=line))
+            await self.send(PRIVMSG_FORMAT.format(channel=user, line=line))
             # this sleep is necessary to make sure all whispers get sent
             # without it, consecutive whispers get dropped occasionally
             # if i find a better fix, will do it instead, but until then, this works
             await asyncio.sleep(.6)
 
-        if self.bot:
-            await self.bot.on_whisper_sent(msg, user, get_nick())
+        if get_bot():
+            await get_bot().on_whisper_sent(msg, user, get_nick())
         await trigger_mod_event(Event.on_whisper_sent, msg, user, get_nick())
         await trigger_event(Event.on_whisper_sent, msg, user, get_nick())
 
     async def get_next_message(self, timeout=None):
-        return (await asyncio.wait_for(self.reader.readline(), timeout=timeout)).decode('utf8').strip()
+        return (await asyncio.wait_for(self.socket.recv(), timeout=timeout)).strip()
 
-    def send_pong(self):
-        self.send('PONG :tmi.twitch.tv')
+    async def send_pong(self):
+        await self.send('PONG :tmi.twitch.tv')
 
 
 def _wrap_message(msg):

@@ -24,3 +24,6 @@ def set_bot(bot: 'BaseBot'):
 
 def get_pubsub() -> 'PubSubClient':
     return get_bot().pubsub
+
+
+TWITCH_IRC_WEBSOCKET_URL = 'wss://irc-ws.chat.twitch.tv:443'

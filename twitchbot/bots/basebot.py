@@ -7,11 +7,10 @@ from typing import Optional, TYPE_CHECKING
 from threading import Thread
 
 from ..poll import PollData
-from .. import util, create_irc
+from .. import util
 from ..channel import Channel, channels
-from ..command import Command, commands, CustomCommandAction, is_command_on_cooldown, get_time_since_execute, \
-    update_command_last_execute
-from ..config import cfg, get_nick, get_command_prefix
+from ..command import Command, commands, CustomCommandAction, is_command_on_cooldown, get_time_since_execute, update_command_last_execute
+from ..config import cfg, get_nick, get_command_prefix, get_oauth
 from ..config import generate_config
 from ..database import get_custom_command
 from ..disabled_commands import is_command_disabled
@@ -31,6 +30,7 @@ from ..command_whitelist import is_command_whitelisted, send_message_on_command_
 from ..poll import poll_event_processor_loop
 from ..event_util import forward_event_with_results, forward_event
 from ..pubsub import PubSubClient
+from ..irc import Irc
 
 if TYPE_CHECKING:
     from ..pubsub import PubSubData, PubSubPointRedemption, PubSubBits, PubSubModerationAction
@@ -40,7 +40,7 @@ if TYPE_CHECKING:
 # noinspection PyMethodMayBeStatic
 class BaseBot:
     def __init__(self):
-        self.irc: Optional['Irc'] = None
+        self.irc = Irc()
         self._running = False
         self.pubsub = PubSubClient()
         set_bot(self)
@@ -211,49 +211,6 @@ class BaseBot:
             chan = Channel(name, irc=self.irc)
             chan.start_update_loop()
 
-    async def _create_irc(self):
-        """
-        creates the async reader/writer (using asyncio.open_connection() if not already exist),
-        """
-        self.irc = await create_irc()
-
-    def _request_permissions(self):
-        """requests permissions from twitch to be able to gets message tags, receive whispers, ect"""
-        # enable receiving/sending whispers
-        self.irc.send('CAP REQ :twitch.tv/commands')
-
-        # enable seeing bit donations and such
-        self.irc.send('CAP REQ :twitch.tv/tags')
-
-        # enable seeing user joins
-        self.irc.send('CAP REQ :twitch.tv/membership')
-
-    async def _connect(self):
-        """connects to twitch, sends auth info, and joins the channels in the config"""
-        print(f'logging in as {get_nick()}')
-
-        util.send_auth(self.irc)
-
-        resp = (await self.irc.get_next_message()).lower()
-        if 'authentication failed' in resp:
-            print(
-                '\n\n=========AUTHENTICATION FAILED=========\n\n'
-                'check that your oauth is correct and valid and that the nick in the config is correct'
-                '\nthere is a chance that oauth was good, but is not anymore\n'
-                'the oauth token can be regenerated using this website: \n\n\thttps://twitchapps.com/tmi/')
-            input('\n\npress enter to exit')
-            exit(1)
-        elif 'welcome' not in resp:
-            print(
-                f'\n\ntwitch gave a bad response to sending authentication to twitch server\nbelow is the message received from twitch:\n\n\t{resp}')
-            input('\n\npress enter to exit')
-            exit(1)
-
-        self._request_permissions()
-
-        for chan in channels.values():
-            self.irc.send(f'JOIN #{chan.name}')
-
     async def get_command_from_msg(self, msg: Message) -> Optional[Command]:
         """
         checks if the start of the msg matches any command names
@@ -319,12 +276,12 @@ class BaseBot:
     #         if k.value in self.__class__.__dict__ and k.value.startswith('on'):
     #             setattr(self, k.value, v)
 
-    def shutdown(self):
+    async def shutdown(self):
         stop_all_tasks()
         for channel in channels:
-            self.irc.send(f'PART #{channel}')
+            await self.irc.send(f'PART #{channel}')
             time.sleep(.4)
-        self.irc.send('QUIT')
+        await self.irc.send('QUIT')
         self._running = False
 
     def run(self):
@@ -353,9 +310,8 @@ class BaseBot:
 
         await update_global_emotes()
 
-        await self._create_irc()
         self._create_channels()
-        await self._connect()
+        await self.irc.connect_to_twitch()
         await self.on_connected()
         await trigger_mod_event(Event.on_connected)
         await trigger_event(Event.on_connected)
@@ -406,7 +362,7 @@ class BaseBot:
                 forward_event(Event.on_channel_raided, msg.channel, msg.author, msg.tags.raid_viewer_count, channel=msg.channel_name)
 
             elif msg.type is MessageType.PING:
-                self.irc.send_pong()
+                await self.irc.send_pong()
 
             elif msg.type is MessageType.CHANNEL_POINTS_REDEMPTION:
                 forward_event(Event.on_channel_points_redemption, msg, msg.reward, channel=msg.channel_name)

@@ -1,6 +1,6 @@
 from twitchbot import Message, Command, CommandContext
 
-pings = 0
+pings = -1
 
 
 @Command('ping', cooldown=3)
