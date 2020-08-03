@@ -1,6 +1,6 @@
 import asyncio
 from asyncio import Future, TimeoutError
-from typing import List, Callable, Tuple, Awaitable
+from typing import List, Callable, Tuple, Awaitable, Union, Any
 
 from .message import Message
 
@@ -12,6 +12,7 @@ __all__ = [
     'wait_for_reply',
     'custom_predicate',
     'custom_async_predicate',
+    'ReplyResult',
 ]
 
 ReplyWaitType = Tuple[Future, Callable[..., Awaitable[bool]]]
@@ -81,29 +82,54 @@ def custom_async_predicate(msg: Message, custom_predicate: Callable[[Message], A
     return _custom_async_predicate
 
 
-async def wait_for_reply(predicate: Callable[[Message], Awaitable[bool]] = None, timeout=30, default=None,
-                         raise_on_timeout=False) -> Message:
-    """
-    waits for a message matching `predicate` to be received, when its received, it returns that message.
+class ReplyResult:
+    def __init__(self, data):
+        self.value = data
+        self.has_value = data is not None
 
-    if no message matching `predicate` is received by the timeout, the default will be returned.
+    @property
+    def user_replied(self) -> bool:
+        return isinstance(self.value, Message)
+
+    @property
+    def raw_data(self):
+        return
+
+    @property
+    def reply(self) -> str:
+        if isinstance(self.value, Message):
+            return self.value.content
+        return str(self.value)
+
+    def __str__(self):
+        return str(self.value)
+
+
+async def wait_for_reply(predicate: Callable[[Message], Awaitable[bool]] = None, timeout=30, default=None, raise_on_timeout=False) -> ReplyResult:
+    """
+    waits for a message matching `predicate` to be received, when its received, it returns a ReplyWaiter instance with the response.
+
+    if no message matching `predicate` is received by the timeout, a ReplyWaiter instance will be returned with the default as its value.
 
     if raise_on_timeout is True and no matching message is received, this function will raise asyncio.TimeoutError
 
-    if raise_on_timeout is False and no matching message is received, default will be returned when it times-out
+    if raise_on_timeout is False and no matching message is received, a ReplyWaiter with default as its value will be returned when it times-out
 
-    default is by default is None
-    raise_on_timeout by default is False
+    default is None by default
+
+    raise_on_timeout is False by default
     """
 
     async def _timeout_defaulter():
         try:
-            return await asyncio.wait_for(future, timeout)
+            value = await asyncio.wait_for(future, timeout)
         except TimeoutError:
             if raise_on_timeout:
                 raise
             else:
-                return default
+                value = default
+
+        return ReplyResult(value)
 
     future = asyncio.get_event_loop().create_future()
     reply_wait_queue.append((future, predicate))

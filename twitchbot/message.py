@@ -16,6 +16,7 @@ from .config import cfg
 if TYPE_CHECKING:
     from .irc import Irc
     from .bots import BaseBot
+    from .replywaiter import ReplyResult
 
 
 class Message:
@@ -264,7 +265,7 @@ class Message:
     #     raise ValueError(f'invalid message type to reply, expected PRIVMSG or WHISPER, current: {self.type}')
 
     async def wait_for_reply(self, predicate: Callable[['Message'], Awaitable[bool]] = None, timeout=30, default=None,
-                             raise_on_timeout=False) -> 'Message':
+                             raise_on_timeout=False) -> 'ReplyResult':
         """
         waits for a message matching `predicate` to be received, when its received, it returns that message.
 
