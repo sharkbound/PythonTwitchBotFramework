@@ -66,7 +66,7 @@ class Irc:
         from socket import gaierror
         try:
             self.socket = await websockets.connect(TWITCH_IRC_WEBSOCKET_URL)
-            return True
+            return self.connected
         except (ValueError, gaierror):
             return False
 
