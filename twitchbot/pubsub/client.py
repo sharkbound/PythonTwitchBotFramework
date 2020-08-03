@@ -1,11 +1,11 @@
 import asyncio
 import json
+import logging
 import time
-import warnings
-import websockets
-
 from asyncio import sleep
 from typing import Optional, Iterable
+
+import websockets
 
 from ..enums import Event
 
@@ -89,7 +89,7 @@ class PubSubClient:
 
         user_id = await get_user_id(channel_name)
         if user_id == -1:
-            warnings.warn(f'[PUBSUB-CLIENT] unable to get user id in pubsub client for channel "{channel_name}"')
+            logging.warning(f'[PUBSUB-CLIENT] unable to get user id in pubsub client for channel "{channel_name}"')
             return False
 
         topics = [f'{topic}{user_id}' for topic in topics]
@@ -140,7 +140,7 @@ class PubSubClient:
 
         for retry in range(10):
             try:
-                warnings.warn(f'[PUBSUB_CLIENT] attempting reconnect #{retry}...')
+                logging.warning(f'[PUBSUB_CLIENT] attempting reconnect #{retry}...')
                 await self._connect()
 
                 # make sure connection is actually open
@@ -155,7 +155,7 @@ class PubSubClient:
                 # signal reconnect was successful
                 return True
             except (ValueError, socket.gaierror):
-                warnings.warn(f'[PUBSUB_CLIENT] reconnect #{retry} failed... trying again in {reconnect_interval} seconds...')
+                logging.warning(f'[PUBSUB_CLIENT] reconnect #{retry} failed... trying again in {reconnect_interval} seconds...')
                 await asyncio.sleep(reconnect_interval)
 
         # signal reconnect was unsuccessful
@@ -187,7 +187,7 @@ class PubSubClient:
             if await self._reconnect():
                 break
 
-            warnings.warn('[PUBSUB_CLIENT] reconnect failed, retrying in 5 minutes')
+            logging.warning('[PUBSUB_CLIENT] reconnect failed, retrying in 5 minutes')
             await asyncio.sleep(60 * 5)
 
     async def _read_and_handle(self):
