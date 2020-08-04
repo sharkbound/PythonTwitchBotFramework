@@ -308,16 +308,30 @@ class BaseBot:
                 'failed to generate config, ether this was the first run and the oauth was not set, OR, there was a error generating the required config files')
             return
 
-        await update_global_emotes()
-
+        util.add_task('poll_event_processor', poll_event_processor_loop())
         self._create_channels()
+
+        await update_global_emotes()
         await self.irc.connect_to_twitch()
+
         await self.on_connected()
         await trigger_mod_event(Event.on_connected)
         await trigger_event(Event.on_connected)
 
-        util.add_nameless_task(poll_event_processor_loop())
+        await self._read_process_loop()
 
+        # clean up mods when the bot is exiting
+        for mod in mods.values():
+            # notify all mods of being unloaded,
+            # this is put in a try/except
+            # so that any exceptions raised from unloaded overrides will not cancel unloading the others
+            try:
+                await mod.unloaded()
+            except Exception as e:
+                print(f'\nwhen unloading mod "{mod.name}" this exception occurred:\n')
+                logging.exception(e)
+
+    async def _read_process_loop(self):
         while self._running:
             raw_msg = await self.irc.get_next_message()
 
@@ -375,14 +389,3 @@ class BaseBot:
 
             elif msg.type is MessageType.BOT_TIMED_OUT:
                 forward_event(Event.on_bot_timed_out_from_channel, msg, msg.channel, msg.timeout_seconds, channel=msg.channel_name)
-
-        # clean up mods when the bot is exiting
-        for mod in mods.values():
-            # notify all mods of being unloaded,
-            # this is put in a try/except
-            # so that any exceptions raised from unloaded overrides will not cancel unloading the others
-            try:
-                await mod.unloaded()
-            except Exception as e:
-                print(f'\nwhen unloading mod "{mod.name}" this exception occurred:\n')
-                logging.exception(e)
