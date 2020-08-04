@@ -137,26 +137,21 @@ class PubSubClient:
 
     async def _reconnect(self, listen_resend_interval=.7, reconnect_interval=5) -> bool:
         import socket
+        try:
+            await self._connect()
+            # make sure connection is actually open
+            if not self.socket and not self.socket.open:
+                raise ValueError
 
-        for retry in range(10):
-            try:
-                logging.warning(f'[PUBSUB_CLIENT] attempting reconnect #{retry}...')
-                await self._connect()
+            # resend pubsub listen request
+            for listen_data in self._previously_sent_listen_data:
+                await self.socket.send(listen_data)
+                await asyncio.sleep(listen_resend_interval)
 
-                # make sure connection is actually open
-                if not self.socket and not self.socket.open:
-                    raise ValueError
-
-                # resend pubsub listen request
-                for listen_data in self._previously_sent_listen_data:
-                    await self.socket.send(listen_data)
-                    await asyncio.sleep(listen_resend_interval)
-
-                # signal reconnect was successful
-                return True
-            except (ValueError, socket.gaierror):
-                logging.warning(f'[PUBSUB_CLIENT] reconnect #{retry} failed... trying again in {reconnect_interval} seconds...')
-                await asyncio.sleep(reconnect_interval)
+            # signal reconnect was successful
+            return True
+        except (ValueError, socket.gaierror):
+            await asyncio.sleep(reconnect_interval)
 
         # signal reconnect was unsuccessful
         return False
@@ -183,12 +178,15 @@ class PubSubClient:
                 await sleep(2)
 
     async def _reconnect_loop(self):
+        backoff = 1
         while True:
+            logging.warning(f'[PUBSUB_CLIENT] attempting reconnect...')
             if await self._reconnect():
                 break
 
-            logging.warning('[PUBSUB_CLIENT] reconnect failed, retrying in 5 minutes')
-            await asyncio.sleep(60 * 5)
+            logging.warning(f'[PUBSUB_CLIENT] reconnect failed, retrying in {backoff}')
+            await asyncio.sleep(backoff)
+            backoff <<= 1
 
     async def _read_and_handle(self):
         raw_resp = await self.read(timeout=10)

@@ -14,7 +14,6 @@ from ..config import cfg, get_nick, get_command_prefix, get_oauth
 from ..config import generate_config
 from ..database import get_custom_command
 from ..disabled_commands import is_command_disabled
-from ..emote import update_global_emotes
 from ..enums import Event
 from ..enums import MessageType, CommandContext
 from ..events import trigger_event
@@ -311,7 +310,6 @@ class BaseBot:
         util.add_task('poll_event_processor', poll_event_processor_loop())
         self._create_channels()
 
-        await update_global_emotes()
         await self.irc.connect_to_twitch()
 
         await self.on_connected()

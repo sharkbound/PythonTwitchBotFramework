@@ -1,7 +1,12 @@
 import asyncio
+import logging
 import re
 import typing
+
+import aiohttp
 import websockets
+import socket
+
 from textwrap import wrap
 
 from .shared import get_bot
@@ -15,6 +20,15 @@ PRIVMSG_MAX_LINE_LENGTH = 450
 WHISPER_MAX_LINE_LENGTH = 438
 PRIVMSG_FORMAT = 'PRIVMSG #{channel} :{line}'
 
+SOCKET_ERRORS = (
+    websockets.ConnectionClosedError,
+    websockets.ConnectionClosed,
+    socket.gaierror,
+    socket.error,
+    ValueError,
+    websockets.InvalidHandshake
+)
+
 
 class Irc:
     def __init__(self):
@@ -24,50 +38,66 @@ class Irc:
     def connected(self):
         return self.socket and self.socket.open
 
-    async def connect_to_twitch(self) -> bool:
+    async def connect_to_twitch(self):
         """
         connects to twitch and verifies is connected
-        :return: a bool to indicate if the connection was successfully
         """
         print(f'logging in as {get_nick()}')
+        backoff = 1
 
-        await self._create_connection()
+        while True:
+            try:
+                if not await self._create_connection():
+                    raise ValueError
 
-        # send auth
-        await self.send_all(f'PASS {get_oauth()}', f'NICK {get_nick()}')
+                # send auth
+                await self.send_all(f'PASS {get_oauth()}', f'NICK {get_nick()}')
 
-        resp = (await self.get_next_message()).lower()
-        if 'authentication failed' in resp:
-            print(
-                '\n\n=========AUTHENTICATION FAILED=========\n\n'
-                'check that your oauth is correct and valid and that the nick in the config is correct'
-                '\nthere is a chance that oauth was good, but is not anymore\n'
-                'the oauth token can be regenerated using this website: \n\n\thttps://twitchapps.com/tmi/')
-            input('\n\npress enter to exit')
-            exit(1)
-        elif 'welcome' not in resp:
-            print(
-                f'\n\ntwitch gave a bad response to sending authentication to twitch server\nbelow is the message received from twitch:\n\n\t{resp}')
-            input('\n\npress enter to exit')
-            exit(1)
+                resp = (await self.get_next_message()).lower()
+                if 'authentication failed' in resp:
+                    print(
+                        '\n\n=========AUTHENTICATION FAILED=========\n\n'
+                        'check that your oauth is correct and valid and that the nick in the config is correct'
+                        '\nthere is a chance that oauth was good, but is not anymore\n'
+                        'the oauth token can be regenerated using this website: \n\n\thttps://twitchapps.com/tmi/')
+                    input('\n\npress enter to exit')
+                    exit(1)
+                elif 'welcome' not in resp:
+                    print(
+                        f'\n\ntwitch gave a bad response to sending authentication to twitch server\nbelow is the message received from twitch:\n\n\t{resp}')
+                    input('\n\npress enter to exit')
+                    exit(1)
 
-        await self.send_all('CAP REQ :twitch.tv/commands',
-                            'CAP REQ :twitch.tv/tags',  # used to get metadata from irc messages
-                            'CAP REQ :twitch.tv/membership', send_interval=.1)  # used to see user joins
+                await self.send_all('CAP REQ :twitch.tv/commands',
+                                    'CAP REQ :twitch.tv/tags',  # used to get metadata from irc messages
+                                    'CAP REQ :twitch.tv/membership', send_interval=.1)  # used to see user joins
 
-        from .channel import channels
-        for channel in channels.values():
-            await asyncio.sleep(.2)
-            await self.join_channel(channel.name)
+                from .channel import channels
+                for channel in channels.values():
+                    await asyncio.sleep(.2)
+                    await self.join_channel(channel.name)
+            except SOCKET_ERRORS:
+                pass
 
-        return True
+            if not self.connected:
+                logging.warning(f'[IRC_CLIENT] failed to connect to twitch... retrying in {backoff} seconds...')
+                await asyncio.sleep(backoff)
+                backoff <<= 1
+            else:
+                break
+
+        try:
+            from .emote import update_global_emotes
+            await update_global_emotes()
+        except aiohttp.ClientConnectorError:
+            logging.warning('[EMOTES API] unable to update twitch emotes list')
 
     async def _create_connection(self):
         from socket import gaierror
         try:
             self.socket = await websockets.connect(TWITCH_IRC_WEBSOCKET_URL)
             return self.connected
-        except (ValueError, gaierror):
+        except SOCKET_ERRORS:
             return False
 
     async def send(self, msg):
@@ -133,7 +163,11 @@ class Irc:
         await trigger_event(Event.on_whisper_sent, msg, user, get_nick())
 
     async def get_next_message(self, timeout=None):
-        return (await asyncio.wait_for(self.socket.recv(), timeout=timeout)).strip()
+        try:
+            return (await asyncio.wait_for(self.socket.recv(), timeout=timeout)).strip()
+        except (websockets.ConnectionClosedError, websockets.ConnectionClosed):
+            if not self.connected:
+                await self.connect_to_twitch()
 
     async def send_pong(self):
         await self.send('PONG :tmi.twitch.tv')
