@@ -166,8 +166,9 @@ class Irc:
         try:
             return (await asyncio.wait_for(self.socket.recv(), timeout=timeout)).strip()
         except (websockets.ConnectionClosedError, websockets.ConnectionClosed):
-            if not self.connected:
+            while not self.connected:
                 await self.connect_to_twitch()
+            return await self.get_next_message()
 
     async def send_pong(self):
         await self.send('PONG :tmi.twitch.tv')
