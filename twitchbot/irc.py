@@ -26,7 +26,7 @@ SOCKET_ERRORS = (
     socket.gaierror,
     socket.error,
     ValueError,
-    websockets.InvalidHandshake
+    websockets.InvalidHandshake,
 )
 
 
