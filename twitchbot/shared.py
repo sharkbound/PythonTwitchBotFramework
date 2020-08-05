@@ -1,10 +1,22 @@
+import socket
+import websockets
 from typing import Optional, TYPE_CHECKING
 
 __all__ = [
     'get_bot',
     'set_bot',
     'get_pubsub',
+    'WEBSOCKET_ERRORS',
 ]
+
+WEBSOCKET_ERRORS = (
+    websockets.ConnectionClosedError,
+    websockets.ConnectionClosed,
+    socket.gaierror,
+    socket.error,
+    ValueError,
+    websockets.InvalidHandshake,
+)
 
 if TYPE_CHECKING:
     from .bots import BaseBot

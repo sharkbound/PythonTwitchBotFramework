@@ -14,20 +14,11 @@ from .config import get_nick, get_oauth
 from .enums import Event
 from .events import trigger_event
 from .ratelimit import privmsg_ratelimit, whisper_ratelimit
-from .shared import TWITCH_IRC_WEBSOCKET_URL
+from .shared import TWITCH_IRC_WEBSOCKET_URL, WEBSOCKET_ERRORS
 
 PRIVMSG_MAX_LINE_LENGTH = 450
 WHISPER_MAX_LINE_LENGTH = 438
 PRIVMSG_FORMAT = 'PRIVMSG #{channel} :{line}'
-
-SOCKET_ERRORS = (
-    websockets.ConnectionClosedError,
-    websockets.ConnectionClosed,
-    socket.gaierror,
-    socket.error,
-    ValueError,
-    websockets.InvalidHandshake,
-)
 
 
 class Irc:
@@ -48,7 +39,7 @@ class Irc:
         while True:
             try:
                 if not await self._create_connection():
-                    raise ValueError
+                    raise ValueError  # used to re-trigger the reconnect code
 
                 # send auth
                 await self.send_all(f'PASS {get_oauth()}', f'NICK {get_nick()}')
@@ -70,13 +61,14 @@ class Irc:
 
                 await self.send_all('CAP REQ :twitch.tv/commands',
                                     'CAP REQ :twitch.tv/tags',  # used to get metadata from irc messages
-                                    'CAP REQ :twitch.tv/membership', send_interval=.1)  # used to see user joins
+                                    'CAP REQ :twitch.tv/membership',  # used to see user joins
+                                    send_interval=.1)
 
                 from .channel import channels
                 for channel in channels.values():
                     await asyncio.sleep(.2)
                     await self.join_channel(channel.name)
-            except SOCKET_ERRORS:
+            except WEBSOCKET_ERRORS:
                 pass
 
             if not self.connected:
@@ -97,7 +89,7 @@ class Irc:
         try:
             self.socket = await websockets.connect(TWITCH_IRC_WEBSOCKET_URL)
             return self.connected
-        except SOCKET_ERRORS:
+        except WEBSOCKET_ERRORS:
             return False
 
     async def send(self, msg):
