@@ -78,3 +78,12 @@ async def cmd_reload_mod(msg: Message, *args):
         await msg.reply(f'reloaded mod "{mod}"')
     else:
         await msg.reply(f'failed to reload mod "{mod}"')
+
+
+@Command('listmods', context=CommandContext.CHANNEL, permission='listmods', help='reloads a specific module (case sensitive) from disk')
+async def cmd_list_mods(msg: Message, *args):
+    mods_str = ', '.join(
+        f'{mod.name_or_class_name()}{"(DISABLED)" if is_mod_disabled(msg.channel_name, mod.name_or_class_name()) else ""}'
+        for mod in mods.values()
+    )
+    await msg.reply(f'found mods: {mods_str}')

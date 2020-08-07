@@ -26,12 +26,20 @@ from .util import temp_syspath, get_py_files, get_file_name
 
 __all__ = ('ensure_mods_folder_exists', 'Mod', 'register_mod', 'trigger_mod_event', 'mods',
            'load_mods_from_directory', 'mod_exists', 'reload_mod', 'is_mod', 'unregister_mod',
-           'ensure_commands_folder_exists')
+           'ensure_commands_folder_exists', 'DEFAULT_MOD_NAME')
+
+DEFAULT_MOD_NAME = 'DEFAULT'
 
 
 # noinspection PyMethodMayBeStatic
 class Mod:
-    name = 'DEFAULT'
+    name = DEFAULT_MOD_NAME
+
+    @classmethod
+    def name_or_class_name(cls):
+        if cls.name == DEFAULT_MOD_NAME:
+            return cls.__name__
+        return cls.name
 
     async def loaded(self):
         """
@@ -224,10 +232,10 @@ def register_mod(mod: Mod) -> bool:
     :param mod: the mod to register
     :return: if registration was successful
     """
-    if mod.name in mods:
+    if mod.name_or_class_name() in mods:
         return False
 
-    mods[mod.name] = mod
+    mods[mod.name_or_class_name()] = mod
     get_event_loop().create_task(mod.loaded())
     return True
 
@@ -238,11 +246,11 @@ def unregister_mod(mod: Mod) -> bool:
     :param mod: mod to unregister
     :return: if it successfully unregistered it
     """
-    if mod.name not in mods:
+    if mod.name_or_class_name() not in mods:
         return False
 
     get_event_loop().create_task(mod.unloaded())
-    del mods[mod.name]
+    del mods[mod.name_or_class_name()]
     return True
 
 
@@ -262,14 +270,14 @@ async def trigger_mod_event(event: Event, *args, channel: str = '') -> list:
 
     output = []
     for mod in mods.values():
-        if channel and is_mod_disabled(channel, mod.name):
+        if channel and is_mod_disabled(channel, mod.name_or_class_name()):
             continue
 
         try:
             output.append(await getattr(mod, event.value, _missing_function)(*args))
         except Exception as e:
             print(f'\nerror has occurred while triggering a event on a mod, details:\n'
-                  f'mod: {mod.name}\n'
+                  f'mod: {mod.name_or_class_name()}\n'
                   f'event: {event}\n'
                   f'error: {type(e)}\n'
                   f'reason: {e}\n'
@@ -311,7 +319,7 @@ def load_mods_from_directory(fullpath, predicate: Callable[[str, Any], bool] = N
                 if not is_mod(obj):
                     continue
                 # create a instance of the mod subclass, then register it
-                if predicate is None or (predicate is not None and predicate(obj.name, obj)):
+                if predicate is None or (predicate is not None and predicate(obj.name_or_class_name(), obj)):
                     register_mod(obj())
 
 
@@ -333,7 +341,7 @@ def reload_mod(mod_name: str):
             # it lets us iterate over its value to check for the Mod that we want to reload
             module = __import__(getmodulename(path), locals={}, globals={})
             for item in module.__dict__.values():
-                if is_mod(item) and item.name == mod.name:
+                if is_mod(item) and item.name_or_class_name() == mod.name_or_class_name():
                     unregister_mod(mod)
                     reloaded_mod = item()
                     register_mod(reloaded_mod)
@@ -351,7 +359,7 @@ def reload_mod(mod_name: str):
                     return True
 
     except Exception as e:
-        print(f'error trying to reload Mod "{mod.name}", error type: {type(e)}, error: {e}')
+        print(f'error trying to reload Mod "{mod.name_or_class_name()}", error type: {type(e)}, error: {e}')
         print_exc()
     return False
 
