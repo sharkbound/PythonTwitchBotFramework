@@ -32,6 +32,8 @@ from .pubsub import *
 from . import builtin_commands
 from . import builtin_mods
 
+BOT_VERSION = (1, 15, 4)
+
 import os
 
 load_commands_from_directory(os.path.join(__path__[0], 'builtin_commands'))

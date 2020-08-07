@@ -41,6 +41,7 @@ class StreamInfoApi(Api):
             await self.on_successful_update()
         except Exception as e:
             if log:
-                print(f'[STREAM INFO API] failed to update stream data for {self.user}\nERROR DETAILS: {e}\nSTACKTRACE:\n{format_exc()}')
+                print(
+                    f'[STREAM INFO API] failed to update stream data for {self.user}\nERROR TYPE: {type(e)}\nERROR DETAILS: {e}\nSTACKTRACE:\n{format_exc()}')
 
             await self.on_failed_update()
