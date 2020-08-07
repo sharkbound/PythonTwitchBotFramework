@@ -1,4 +1,5 @@
 from datetime import datetime
+from traceback import format_exc
 
 from .baseapi import Api
 from .. import util
@@ -26,8 +27,8 @@ class StreamInfoApi(Api):
 
         :param log: should errors be logged?
         """
-        data = await util.get_stream_data(self.user, self.headers)
         try:
+            data = await util.get_stream_data(self.user, self.headers)
             self.viewer_count = data['viewer_count']
             self.title = data['title']
             self.game_id = data['game_id']
@@ -38,9 +39,8 @@ class StreamInfoApi(Api):
             self.tag_ids = frozenset(data['tag_ids'])
 
             await self.on_successful_update()
-        except KeyError as e:
+        except Exception as e:
             if log:
-                print(f'[STREAM INFO API] failed to update stream data for {self.user}')
-                print(f'[STREAM INFO API] key error occurred while trying to access key: {e}')
+                print(f'[STREAM INFO API] failed to update stream data for {self.user}\nERROR DETAILS: {e}\nSTACKTRACE:\n{format_exc()}')
 
             await self.on_failed_update()
