@@ -135,6 +135,7 @@ Event.on_pubsub_received : (self, raw: 'PubSubData')
 Event.on_pubsub_custom_channel_point_reward : (self, raw: 'PubSubData', data: 'PubSubPointRedemption')
 Event.on_pubsub_bits : (self, raw: 'PubSubData', data: 'PubSubBits')
 Event.on_pubsub_moderation_action : (self, raw: 'PubSubData', data: 'PubSubModerationAction')
+Event.on_pubsub_subscription : (self, raw: 'PubSubData', data: 'PubSubSubscription')
 ```
 
 if this is the first time running the bot it will generate a folder

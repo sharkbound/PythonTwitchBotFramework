@@ -12,7 +12,7 @@ from typing import Dict, Callable, Any
 
 if typing.TYPE_CHECKING:
     from .poll import PollData
-    from .pubsub import PubSubData, PubSubPointRedemption, PubSubBits, PubSubModerationAction
+    from .pubsub import PubSubData, PubSubPointRedemption, PubSubBits, PubSubModerationAction, PubSubSubscription
 
 from .channel import Channel
 from .command import Command
@@ -218,6 +218,13 @@ class Mod:
         triggered when a moderator does a moderation action such as ban/unban/timeout
         :param raw: the raw pubsub message
         :param data: data specific to the moderation action taken
+        """
+
+    async def on_pubsub_subscription(self, raw: 'PubSubData', data: 'PubSubSubscription'):
+        """
+        triggered when a user subscribes or resubscribes to a channel
+        :param raw: the raw pubsub message
+        :param data: data specific to the user subscription
         """
 
     # endregion

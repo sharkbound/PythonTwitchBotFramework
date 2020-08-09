@@ -206,6 +206,7 @@ class PubSubClient:
                 self._check_for_channel_point_redemption(data)
                 or self._check_for_bits(data)
                 or self._check_for_moderation_action(data)
+                or self._check_for_subscription(data)
                 or self._noop()
         )
 
@@ -230,6 +231,16 @@ class PubSubClient:
             return False
 
         forward_event(Event.on_pubsub_bits, data, PubSubBits(data))
+        return True
+
+    def _check_for_subscription(self, data: 'PubSubData'):
+        from ..event_util import forward_event
+        from .subscription_model import PubSubSubscription
+
+        if not data.is_subscription:
+            return False
+
+        forward_event(Event.on_pubsub_subscription, data, PubSubSubscription(data))
         return True
 
     def _check_for_moderation_action(self, data: 'PubSubData'):

@@ -32,7 +32,7 @@ from ..pubsub import PubSubClient
 from ..irc import Irc
 
 if TYPE_CHECKING:
-    from ..pubsub import PubSubData, PubSubPointRedemption, PubSubBits, PubSubModerationAction
+    from ..pubsub import PubSubData, PubSubPointRedemption, PubSubBits, PubSubModerationAction, PubSubSubscription
     from ..irc import Irc
 
 
@@ -201,6 +201,13 @@ class BaseBot:
         triggered when a moderator does a moderation action such as ban/unban/timeout
         :param raw: the raw pubsub message
         :param data: data specific to the moderation action taken
+        """
+
+    async def on_pubsub_subscription(self, raw: 'PubSubData', data: 'PubSubSubscription'):
+        """
+        triggered when a user subscribes or resubscribes to a channel
+        :param raw: the raw pubsub message
+        :param data: data specific to the user subscription
         """
 
     # endregion

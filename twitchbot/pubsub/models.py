@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from .whisper_model import PubSubWhisper
     from .bits_model import PubSubBits
     from .pubsub_moderation_action import PubSubModerationAction
+    from .subscription_model import PubSubSubscription
 
 __all__ = [
     'PubSubData'
@@ -22,6 +23,7 @@ class PubSubData:
     REWARD_REDEEMED_TYPE = 'reward-redeemed'
     WHISPER_MESSAGE_TYPE = 'thread'
     BITS_MESSAGE_TYPE = 'bits_event'
+    SUBSCRIPTION_MESSAGE_TYPE = 'channel-subscribe-events-v1'
 
     def __init__(self, raw_data: dict):
         self.raw_data: dict = raw_data
@@ -41,6 +43,10 @@ class PubSubData:
     def as_bits(self) -> 'PubSubBits':
         from .bits_model import PubSubBits
         return PubSubBits(self)
+
+    def as_subscription(self) -> 'PubSubSubscription':
+        from .subscription_model import PubSubSubscription
+        return PubSubSubscription(self)
 
     def is_type(self, type: str):
         return self.raw_data.get('type').lower() == type.lower()
@@ -72,6 +78,10 @@ class PubSubData:
     @property
     def is_bits(self) -> bool:
         return self.is_type(self.MESSAGE_TYPE) and self.message_dict.get('message_type', '').lower() == self.BITS_MESSAGE_TYPE.lower()
+
+    @property
+    def is_subscription(self) -> bool:
+        return self.is_type(self.MESSAGE_TYPE) and self.SUBSCRIPTION_MESSAGE_TYPE.lower() in self.topic.lower()
 
     @property
     def has_message(self):

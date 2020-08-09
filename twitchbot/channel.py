@@ -49,7 +49,6 @@ class Channel:
     async def update_loop(self):
         if get_client_id() != 'CLIENT_ID':
             while True:
-                # todo wrap calls to prevent errors
                 await self.chatters.update()
                 await self.stats.update()
                 self.is_mod = get_nick().lower() in self.chatters.mods
