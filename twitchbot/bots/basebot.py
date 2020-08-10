@@ -29,11 +29,11 @@ from ..command_whitelist import is_command_whitelisted, send_message_on_command_
 from ..poll import poll_event_processor_loop
 from ..event_util import forward_event_with_results, forward_event
 from ..pubsub import PubSubClient
+from ..extra_configs import logging_config
 from ..irc import Irc
 
 if TYPE_CHECKING:
     from ..pubsub import PubSubData, PubSubPointRedemption, PubSubBits, PubSubModerationAction, PubSubSubscription
-    from ..irc import Irc
 
 
 # noinspection PyMethodMayBeStatic
@@ -82,7 +82,8 @@ class BaseBot:
         """
         triggered when the bot sends a privmsg
         """
-        print(f'{sender}({channel}): {msg}')
+        if logging_config.log_privmsg_sent:
+            print(f'{sender}({channel}): {msg}')
 
     async def on_privmsg_received(self, msg: Message) -> None:
         """triggered when a privmsg is received, is not triggered if the msg is a command"""
@@ -91,7 +92,8 @@ class BaseBot:
         """
         triggered when the bot sends a whisper to someone
         """
-        print(f'{sender} -> {receiver}: {msg}')
+        if logging_config.log_whisper_sent:
+            print(f'{sender} -> {receiver}: {msg}')
 
     async def on_whisper_received(self, msg: Message):
         """
@@ -352,15 +354,18 @@ class BaseBot:
 
             if cmd and ((msg.is_whisper and cmd.context & CommandContext.WHISPER)
                         or (msg.is_privmsg and cmd.context & CommandContext.CHANNEL)):
-                msg.safe_print()
+                if logging_config.log_command_usage:
+                    msg.safe_print()
                 get_event_loop().create_task(self._run_command(msg, cmd))
 
             elif msg.type is MessageType.WHISPER:
-                msg.safe_print()
+                if logging_config.log_whisper:
+                    msg.safe_print()
                 forward_event(Event.on_whisper_received, msg, channel=msg.channel_name)
 
             elif msg.type is MessageType.PRIVMSG:
-                msg.safe_print()
+                if logging_config.log_privmsg:
+                    msg.safe_print()
                 forward_event(Event.on_privmsg_received, msg, channel=msg.channel_name)
 
             elif msg.type is MessageType.USER_JOIN:

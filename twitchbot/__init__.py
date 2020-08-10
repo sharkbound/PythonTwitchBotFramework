@@ -28,6 +28,7 @@ from .replywaiter import *
 from .command_whitelist import *
 from .poll import *
 from .event_util import *
+from .extra_configs import *
 from .pubsub import *
 from . import builtin_commands
 from . import builtin_mods
