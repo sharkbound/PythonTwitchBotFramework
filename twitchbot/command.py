@@ -51,7 +51,6 @@ class Command:
         self.prefix: str = (prefix if prefix is not None else cfg.prefix).lower()
         self.func: Callable = func
         self.name: str = name.lower()
-        self.fullname: str = self.prefix + self.name
         self.sub_cmds: Dict[str, Command] = {}
         self.parent: Optional[Command] = None
 
@@ -62,6 +61,10 @@ class Command:
             if aliases is not None:
                 for alias in aliases:
                     commands[self.prefix + alias] = self
+
+    @property
+    def fullname(self) -> str:
+        return self.prefix + self.name
 
     def parent_chain(self) -> List['Command']:
         """
@@ -109,7 +112,7 @@ class Command:
     async def has_permission_to_run_from_msg(self, origin_msg: Message):
         from .event_util import forward_event_with_results
         from .enums import Event
-        
+
         for parent in self.parent_chain():
             if (parent.permission
                     and not all(await forward_event_with_results(Event.on_permission_check, origin_msg, parent, channel=origin_msg.channel_name))):
