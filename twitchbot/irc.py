@@ -143,7 +143,7 @@ class Irc:
         user = user.lower()
         for line in _wrap_message(f'/w {user} {msg}'):
             await whisper_ratelimit()
-            await self.send(PRIVMSG_FORMAT.format(channel=user, line=line))
+            await self.send(PRIVMSG_FORMAT.format(channel=get_nick(), line=line))
             # this sleep is necessary to make sure all whispers get sent
             # without it, consecutive whispers get dropped occasionally
             # if i find a better fix, will do it instead, but until then, this works
