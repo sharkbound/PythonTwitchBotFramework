@@ -33,7 +33,7 @@ from .pubsub import *
 from . import builtin_commands
 from . import builtin_mods
 
-BOT_VERSION = (1, 15, 4)
+BOT_VERSION = (1, 15, 8)
 
 import os
 
