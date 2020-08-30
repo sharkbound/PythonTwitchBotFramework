@@ -115,7 +115,7 @@ cfg = Config(
     command_server_enabled=True,
     command_server_port=1337,
     command_server_host='localhost',
-    disable_whispers=False,
+    disable_whispers=True,
     use_command_whitelist=False,
     send_message_on_command_whitelist_deny=True,
     command_whitelist=[
@@ -210,7 +210,7 @@ def get_oauth(remove_prefix: bool = False) -> str:
 
     if remove_prefix:
         oauth = oauth.replace('oauth:', '')
-        
+
     return oauth
 
 
