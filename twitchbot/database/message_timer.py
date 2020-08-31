@@ -7,7 +7,7 @@ from ..channel import channels
 
 __all__ = ('get_message_timer', 'set_message_timer', 'message_timer_exist', 'set_message_timer_interval',
            'set_message_timer_message', 'delete_all_message_timers', 'delete_message_timer', 'set_message_timer_active',
-           'active_message_timers', 'get_all_channel_timers', 'restart_message_timer')
+           'active_message_timers', 'get_all_message_timers', 'restart_message_timer')
 
 active_message_timers: Dict[str, MessageTimer] = {}
 
@@ -21,7 +21,7 @@ def get_message_timer(channel: str, name: str) -> Optional[MessageTimer]:
     return timer_one_or_none(channel, MessageTimer.name == name)
 
 
-def get_all_channel_timers(channel: str) -> List[MessageTimer]:
+def get_all_message_timers(channel: str) -> List[MessageTimer]:
     return session.query(MessageTimer).filter(MessageTimer.channel == channel).all()
 
 

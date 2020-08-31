@@ -6,7 +6,7 @@ from twitchbot import (
     restart_message_timer,
     message_timer_exist,
     delete_message_timer,
-    get_all_channel_timers,
+    get_all_message_timers,
     get_message_timer,
     cfg,
     Message,
@@ -109,7 +109,7 @@ async def cmd_del_timer(msg: Message, *args):
 
 @Command('listtimers', help='lists all message timers for a channel')
 async def cmd_list_timers(msg: Message, *args):
-    timers = get_all_channel_timers(msg.channel_name)
+    timers = get_all_message_timers(msg.channel_name)
     active_timers = ', '.join(timer.name for timer in timers if timer.active)
     inactive_timers = ', '.join(timer.name for timer in timers if not timer.active)
 

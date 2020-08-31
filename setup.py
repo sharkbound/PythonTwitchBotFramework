@@ -8,7 +8,7 @@ with open('README.md') as f:
 
 setup(
     name='PythonTwitchBotFramework',
-    version='1.15.9', # change BOT VERSION in twitchbot/__init__.py:36 when updating this
+    version='1.15.10',  # change BOT VERSION in twitchbot/__init__.py:36 when updating this
     python_requires='>=3.6',
     packages=find_packages(),
     url='https://github.com/sharkbound/PythonTwitchBotFramework',
