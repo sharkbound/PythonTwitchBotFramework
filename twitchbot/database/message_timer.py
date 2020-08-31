@@ -25,7 +25,7 @@ def get_all_message_timers(channel: str) -> List[MessageTimer]:
     return session.query(MessageTimer).filter(MessageTimer.channel == channel).all()
 
 
-def set_message_timer(channel: str, name: str, message: str, interval: float, active=False) -> None:
+def set_message_timer(channel: str, name: str, message: str, interval: float) -> None:
     """updates or adds a MessageTimer to the database"""
     timer = get_message_timer(channel, name)
 
