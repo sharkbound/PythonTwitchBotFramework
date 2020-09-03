@@ -6,12 +6,24 @@ from .config import Config, cfg
 
 __all__ = ('perms', 'Permissions', 'generate_permission_files', 'permission_defaults')
 
+_global_perm_name = 'global'
+
+
+def _global_perm_group():
+    return {
+        'name': 'global',
+        'permissions': [],
+        'members': []
+    }
+
+
 permission_defaults = {
     'admin': {
         'name': 'admin',
         'permissions': ['*'],
         'members': [cfg.owner]
     },
+    _global_perm_name: _global_perm_group()
 }
 
 
@@ -31,14 +43,24 @@ class Permissions:
 
         self.channels[channel] = config
 
+        needs_save = False
         if channel not in config.data['admin']['members']:
             config.data['admin']['members'].append(channel)
+            needs_save = True
+
+        if _global_perm_name not in config.data:
+            config.data[_global_perm_name] = _global_perm_group()
+            needs_save = True
+
+        if needs_save:
             self.channels[channel].save()
 
     def iter_user_groups(self, channel: str, user: str):
         """yields all permission groups a user is in for a channel"""
         user = user.lower()
         yield from ((name, group) for name, group in self[channel] if user in group['members'])
+        # TODO: yield global group
+        # yield self
 
     def iter_groups(self, channel: str):
         if channel in self:
