@@ -290,6 +290,12 @@ def get_command(name: str) -> Optional[Command]:
 
 
 def set_command_permission(cmd: str, new_permission: Optional[str]) -> bool:
+    """
+    overrides a command's previous permission and sets to the new one from `new_permission`
+    :param cmd: command to override permission for
+    :param new_permission: new permission to set for `cmd`
+    :return:
+    """
     command = get_command(cmd)
     if not command:
         return False
