@@ -6,7 +6,11 @@ from twitchbot import (
     CommandContext,
     Message, get_all_custom_commands,
     InvalidArgumentsError,
-    get_command)
+    get_command,
+    is_command_disabled,
+    perms,
+    is_command_whitelisted,
+)
 
 
 # @Command('list')
@@ -20,9 +24,19 @@ from twitchbot import (
 @Command('commands', context=CommandContext.BOTH, help='lists all commands')
 async def cmd_commands(msg: Message, *args):
     custom_commands = ', '.join(map(attrgetter('name'), get_all_custom_commands(msg.channel_name)))
-    global_commands = ', '.join(map(attrgetter('fullname'), commands.values()))
+    usable_commands = [
+        c for c in commands.values()
+        if is_command_whitelisted(c.name)
+           and not is_command_disabled(msg.channel_name, c.name)
+           and perms.has_permission(msg.channel_name, msg.author, c.permission)
+    ]
+    global_commands = ', '.join(map(attrgetter('fullname'), usable_commands))
 
-    await msg.reply(whisper=True, msg=f'GLOBAL: {global_commands}')
+    if usable_commands:
+        await msg.reply(whisper=True, msg=f'COMMANDS YOU CAN USE: {global_commands}')
+    else:
+        await msg.reply(whisper=True, msg=f'{msg.mention}, you do not have permission to use any commands')
+
     if custom_commands:
         await msg.reply(whisper=True, msg=f'CUSTOM: {custom_commands}')
 

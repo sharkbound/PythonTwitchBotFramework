@@ -52,6 +52,9 @@ class Permissions:
 
     def has_permission(self, channel: str, user: str, perm: str) -> bool:
         """checks if a user has a permission"""
+        if not perm:
+            return True
+
         user, perm = user.lower(), perm.lower()
         search = {perm, '*'}
         return user == cfg.owner or any(p in search for p in self.iter_user_permissions(channel, user))
