@@ -21,7 +21,7 @@ __all__ = (
     'Command', 'commands', 'command_exist', 'load_commands_from_directory', 'DummyCommand', 'CustomCommandAction',
     'ModCommand', 'SubCommand', 'get_command', 'CUSTOM_COMMAND_PLACEHOLDERS', 'command_last_execute',
     'get_time_since_execute', 'reset_command_last_execute', 'is_command_off_cooldown', 'is_command_on_cooldown',
-    'update_command_last_execute')
+    'update_command_last_execute', 'set_command_permission')
 
 
 class Command:
@@ -287,3 +287,12 @@ def get_command(name: str) -> Optional[Command]:
     returns None if not exist, does not get custom commands
     """
     return commands.get(name) or commands.get(cfg.prefix + name)
+
+
+def set_command_permission(cmd: str, new_permission: Optional[str]) -> bool:
+    command = get_command(cmd)
+    if not command:
+        return False
+
+    command.permission = new_permission
+    return True
