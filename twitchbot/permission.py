@@ -59,8 +59,8 @@ class Permissions:
         """yields all permission groups a user is in for a channel"""
         user = user.lower()
         yield from ((name, group) for name, group in self[channel] if user in group['members'])
-        # TODO: yield global group
-        # yield self
+        global_group = self[channel][_global_perm_name]
+        yield _global_perm_name, global_group
 
     def iter_groups(self, channel: str):
         if channel in self:
@@ -171,34 +171,34 @@ class Permissions:
 
         return False
 
-    def add_member(self, channel: str, group: str, member: str):
-        group = group.lower()
-        g = self.get_group(channel, group)
+    def add_member(self, channel: str, group_name: str, member: str):
+        group_name = group_name.lower()
+        group = self.get_group(channel, group_name)
 
-        if not g:
+        if not group:
             return False
 
         member = member.lower()
 
-        if member not in g['members']:
-            g['members'].append(member)
+        if member not in group['members']:
+            group['members'].append(member)
             self[channel].save()
 
         return True
 
-    def delete_member(self, channel: str, group: str, member: str):
-        group = group.lower()
-        g = self.get_group(channel, group)
+    def delete_member(self, channel: str, group_name: str, member: str):
+        group_name = group_name.lower()
+        group = self.get_group(channel, group_name)
 
-        if not g:
+        if not group:
             return False
 
         member = member.lower()
 
-        if member not in g['members']:
+        if member not in group['members']:
             return False
 
-        g['members'].remove(member)
+        group['members'].remove(member)
         self[channel].save()
 
         return True
