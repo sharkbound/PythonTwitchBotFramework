@@ -33,6 +33,7 @@ these commands requires the caller have permission to execute them
 * [Command Console](#command-console)
 * [Mysql Support](#mysql-support)
 * [Command Whitelist](#command-whitelist)
+* [Twitch PubSub Client](#twitch-pubsub-client)
 
 # basic info
 This is a fully async twitch bot framework complete with:
@@ -528,3 +529,5 @@ whitelisted commands can be edited with the `command_whitelist` json-array in `c
 to edit the command whitelist, you can add or remove elements from the `command_whitelist` json-array, do not include the command's prefix, AKA `!command` becomes `command` in `command_whitelist`
 
 ### To reload the whitelist, restart the bot, or do `!reloadcmdwhitelist` in your the twitch chat (requires having `manage_commands` permission)
+
+# Twitch PubSub Client
