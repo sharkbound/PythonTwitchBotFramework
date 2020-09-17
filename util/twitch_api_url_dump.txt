@@ -1,0 +1,2 @@
+https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=<CLIENT_ID>&redirect_uri=<REDIRECT URI>&scope=channel_subscriptions
+https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=<CLIENT>&redirect_uri=<REDIRECT URI>&scope=chat:read+chat:edit+channel:moderate+whispers:read+whispers:edit+channel_editor
