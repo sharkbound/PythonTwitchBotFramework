@@ -85,10 +85,10 @@ class Channel:
 
     def __eq__(self, other):
         if isinstance(other, str):
-            return self.name == other.lower()
+            return self.name.lower() == other.lower()
 
         if isinstance(other, Channel):
-            return self.name == other.name
+            return self.name.lower() == other.name.lower()
 
         return False
 
