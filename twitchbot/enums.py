@@ -67,3 +67,4 @@ class Event(NamedEnum):
     on_pubsub_bits = auto()
     on_pubsub_moderation_action = auto()
     on_pubsub_subscription = auto()
+    on_bot_shutdown = auto()
