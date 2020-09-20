@@ -212,6 +212,11 @@ class BaseBot:
         :param data: data specific to the user subscription
         """
 
+    async def on_bot_shutdown(self):
+        """
+        triggered when the bot is shutdown
+        """
+
     # endregion
 
     def _create_channels(self):
@@ -285,10 +290,11 @@ class BaseBot:
     #             setattr(self, k.value, v)
 
     async def shutdown(self):
+        await forward_event_with_results(Event.on_bot_shutdown)
         stop_all_tasks()
         for channel in channels:
             await self.irc.send(f'PART #{channel}')
-            time.sleep(.4)
+            await asyncio.sleep(.4)
         await self.irc.send('QUIT')
         self._running = False
 

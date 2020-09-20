@@ -227,6 +227,11 @@ class Mod:
         :param data: data specific to the user subscription
         """
 
+    async def on_bot_shutdown(self):
+        """
+        triggered when the bot is shutdown
+        """
+
     # endregion
 
 
