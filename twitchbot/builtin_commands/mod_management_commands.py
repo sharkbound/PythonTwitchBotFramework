@@ -8,7 +8,8 @@ from twitchbot import (
     enable_mod,
     disable_mod,
     mods,
-    reload_mod)
+    reload_mod
+)
 
 MOD_MANAGE_PERMISSION = 'manage_mods'
 
