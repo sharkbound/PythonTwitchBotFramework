@@ -185,19 +185,24 @@ async def cmd_give(msg: Message, *args):
         f"@{msg.author} you gave @{args[0]} {give} {cur_name}, @{args[0]}'s balance is now {target.balance}")
 
 
-@Command('gamble', syntax='<dice_sides> <bet>',
-         help='throws a X sided die and if it rolls on 1 you get twice your bet + (bet*(6/<dice_sides>)), '
-              'if the dice sides are more than 6 you get more payout, '
-              'but it is also a lower chance to roll a 1.')
+@Command('gamble', syntax='<bet> <dice_sides>',
+         help='throws a X sided die, '
+              'if the dice sides are more than 6 you get more payout on a success X roll, '
+              'but it is also a lower chance to roll X.')
 async def cmd_gamble(msg: Message, *args):
-    if len(args) != 2:
+    if not len(args):
         raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_gamble)
 
     try:
-        sides = int(args[0])
-        bet = int(args[1])
+        bet = int(args[0])
     except ValueError:
-        raise InvalidArgumentsError(reason='invalid value for sides or bet', cmd=cmd_gamble)
+        raise InvalidArgumentsError(reason='invalid value for bet', cmd=cmd_gamble)
+
+    sides = 6
+    if len(args) == 2:
+        if not args[1].isdigit():
+            raise InvalidArgumentsError(reason='invalid value for dice_sides', cmd=cmd_gamble)
+        sides = int(args[1])
 
     if bet < 10:
         raise InvalidArgumentsError(reason='bet cannot be less then 10', cmd=cmd_gamble)
@@ -206,23 +211,27 @@ async def cmd_gamble(msg: Message, *args):
         raise InvalidArgumentsError(reason='sides cannot be less than 2', cmd=cmd_gamble)
 
     bal = get_balance_from_msg(msg)
-    cur_name = get_currency_name(msg.channel_name).name
 
+    cur_name = get_currency_name(msg.channel_name).name
     if bal.balance < bet:
         raise InvalidArgumentsError(reason=f"{msg.mention} you don't have enough {cur_name}", cmd=cmd_gamble)
 
-    n = randbelow(sides) + 1
+    def _calc_winnings(sides, roll, bet):
+        if roll == sides:
+            return int(bet * ((sides / 6) + 1.5))
+        return int(bet * (roll / sides))
 
-    if n == 1:
-        if sides >= 6:
-            bet *= 2
-        gain = bet + int(bet * (sides / 6))
+    roll = randbelow(sides) + 1
+    winnings = _calc_winnings(sides=sides, roll=roll, bet=bet)
+
+    if winnings > bet:
+        gain = winnings - bet
         bal.balance += gain
-        await msg.reply(f'you rolled {n} and won {gain} {cur_name}')
-
+        await msg.reply(f'you rolled {roll} and won {gain} {cur_name}')
     else:
-        bal.balance -= bet
-        await msg.reply(f'you rolled {n} and lost your bet of {bet} {cur_name}')
+        loss = bet - winnings
+        bal.balance -= loss
+        await msg.reply(f'you rolled {roll} and lost {loss} {cur_name}')
 
     session.commit()
 
