@@ -94,8 +94,8 @@ class ReplyResult:
 
     @property
     def is_default(self):
-        return self.default_value is not None and self.raw_value == self.default_value
-    
+        return self.raw_value == self.default_value
+
     @property
     def content(self) -> str:
         if isinstance(self.raw_value, Message):
