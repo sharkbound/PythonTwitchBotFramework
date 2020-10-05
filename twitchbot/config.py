@@ -241,7 +241,7 @@ def _is_env_key(key) -> bool:
 
 
 def _get_env_value(key) -> Optional[str]:
-    if key.lower().startswith('env_'):
+    if _is_env_key(key):
         key = key[4:]
 
     return os.environ.get(key)
