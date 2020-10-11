@@ -46,6 +46,7 @@ def stop_task(name: str) -> bool:
     task.cancel()
 
     del active_tasks[name]
+    return True
 
 
 def task_running(name: str):
