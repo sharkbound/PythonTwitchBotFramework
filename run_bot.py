@@ -1,4 +1,4 @@
-from twitchbot import BaseBot, PubSubData, PubSubSubscription
+from twitchbot import BaseBot
 
 if __name__ == '__main__':
     BaseBot().run()
