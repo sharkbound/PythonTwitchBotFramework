@@ -80,7 +80,18 @@ class Irc:
 
         try:
             from .emote import update_global_emotes
-            await update_global_emotes()
+            from traceback import format_exc
+            # give the emotes a few chances to update, if it fails any
+            for try_count in range(5):
+                try:
+                    await update_global_emotes()
+                    break
+                except Exception as e:
+                    print(f'error trying to update emotes: {e}\ntrying again...')
+                    print(f'stacktrace:\n\t{format_exc()}')
+                await asyncio.sleep(2)
+
+
         except aiohttp.ClientConnectorError:
             logging.warning('[EMOTES API] unable to update twitch emotes list')
 
