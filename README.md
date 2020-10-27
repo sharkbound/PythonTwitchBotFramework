@@ -713,4 +713,4 @@ class PubSubSubscriberMod(Mod):
 ```
 
 
-that pretty much summarized how to use oauth, if you have any more questions, or need help, do visit my discord server or subreddit (found at top of this readme)
+that pretty much summarized how to use pubsub, if you have any more questions, or need help, do visit my discord server or subreddit (found at top of this readme)
