@@ -45,6 +45,9 @@ class PubSubClient:
         """
         from twitchbot import get_oauth
 
+        # ensure the oauth: prefix is not sent to twitch with the request
+        access_token = access_token.replace('oauth:', '')
+
         data = {
             'type': self.LISTEN_REQUEST_KEY,
             'data': {
