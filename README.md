@@ -699,7 +699,6 @@ from twitchbot import PubSubTopics, Mod, get_pubsub
 
 class PubSubSubscriberMod(Mod):
     async def on_connected(self):
-        #                                                                                   IMPORTANT: make sure the oauth s 
         await get_pubsub().listen_to_channel('CHANNEL_HERE', [PubSubTopics.channel_points], access_token='PUBSUB_OAUTH_HERE')
 
     # only needed in most cases for verifying a connection
