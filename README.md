@@ -655,7 +655,7 @@ with this example
 using the utility script, you can call `generate_auth_url` to generate the authorization URL for you
 
 ```python
-print(generate_auth_url('CLIENT_ID_HERE', 'REDIRECT_URI_HERE', [PubSubTopics.channel_points]))
+print(generate_auth_url('CLIENT_ID_HERE', 'REDIRECT_URI_HERE', PubSubTopics.channel_points))
 ```
 
 the `[PubSubTopics.channel_points]` is the list of scopes to add to the authorization request url
@@ -678,8 +678,7 @@ from twitchbot import PubSubTopics, Mod, get_pubsub
 
 class PubSubSubscriberMod(Mod):
     async def on_connected(self):
-        await get_pubsub().listen_to_channel('CHANNEL_HERE', [PubSubTopics.channel_points],
-                                             access_token='PUBSUB_OAUTH_HERE')
+        await get_pubsub().listen_to_channel('CHANNEL_HERE', [PubSubTopics.channel_points], access_token='PUBSUB_OAUTH_HERE')
 
     # only needed in most cases for verifying a connection
     # this can be removed once verified
