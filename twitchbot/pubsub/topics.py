@@ -6,3 +6,4 @@ class PubSubTopics:
     channel_subscriptions = 'channel-subscribe-events-v1.'
     moderation_actions = 'chat_moderator_actions.'
     whispers = 'whispers.'
+    community_channel_points = 'community-points-channel-v1.'
