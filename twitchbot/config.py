@@ -148,15 +148,16 @@ def generate_config():
             input('\npress enter to close bot...')
             return False
 
-    if 'oauth:' not in cfg['oauth']:
+    if 'oauth:' not in get_oauth().lower():
         print('oauth must start with `oauth:` and be followed by the token itself, ex: oauth:exampletoken12')
         input('press enter to exit...')
         return False
 
-    if len(cfg['oauth']) <= 10:
-        print('oauth is too short, must be `oauth:` followed by the token itself, ex: oauth:exampletoken12')
-        input('press enter to exit...')
-        return False
+    # removed for now, leaving it if its needed later
+    # if len(cfg['oauth']) <= 10:
+    #     print('oauth is too short, must be `oauth:` followed by the token itself, ex: oauth:exampletoken12')
+    #     input('press enter to exit...')
+    #     return False
 
     # this is to fix the edge case where the user entered enters cased names / channel names
     # without this, the twitch API returns weird responses that are not easy to figure out why it is doing it
