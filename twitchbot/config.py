@@ -207,7 +207,8 @@ def get_oauth(remove_prefix: bool = False) -> str:
             print(f'could not get OAUTH from environment with key: {oauth[4:]}')
             input('\npress enter to exit...')
             exit(1)
-        return value
+
+        oauth = value
 
     if remove_prefix:
         oauth = oauth.replace('oauth:', '')
