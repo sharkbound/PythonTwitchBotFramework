@@ -144,7 +144,7 @@ class BaseBot:
         """
         triggered when a viewers redeems channel points for a reward
         """
-        print(f'{msg.author} has redeemed channel points reward "{reward}" in #{msg.channel_name}')
+        # print(f'{msg.author} has redeemed channel points reward "{reward}" in #{msg.channel_name}')
 
     async def on_user_join(self, user: str, channel: Channel):
         """
