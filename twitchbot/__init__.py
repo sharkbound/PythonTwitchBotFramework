@@ -33,7 +33,7 @@ from .pubsub import *
 from . import builtin_commands
 from . import builtin_mods
 
-BOT_VERSION = (1, 16, 13)  # keep in sync with version in setup.py:11
+BOT_VERSION = (1, 17, 0)  # keep in sync with version in setup.py:11
 
 import os
 
