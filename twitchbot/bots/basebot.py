@@ -167,7 +167,7 @@ class BaseBot:
 
     async def on_poll_started(self, channel: Channel, poll: PollData):
         """
-        triggered when a poll starts
+        triggered when a bot poll starts from !startpoll command
         :param channel: channel the poll originated in
         :param poll: the poll that was started
         """
