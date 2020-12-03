@@ -9,7 +9,7 @@ from .config import get_nick, get_client_id
 from .data import UserFollowers
 from .permission import perms
 from .shared import get_bot
-from .util import get_user_followers, get_headers
+from .util import get_user_followers, get_headers, strip_twitch_command_prefix
 
 if typing.TYPE_CHECKING:
     from .bots import BaseBot
@@ -37,10 +37,13 @@ class Channel:
     def live(self):
         return self.stats.started_at != datetime.min
 
-    async def send_message(self, msg):
+    async def send_message(self, msg: str, strip_command_prefix: bool = False):
+        if strip_command_prefix:
+            msg = strip_twitch_command_prefix(msg)
+
         await self.irc.send_privmsg(self.name, msg)
 
-    async def send_command(self, cmd):
+    async def send_command(self, cmd: str):
         await self.irc.send_privmsg(self.name, f'/{cmd}')
 
     # async def ban(self, user):

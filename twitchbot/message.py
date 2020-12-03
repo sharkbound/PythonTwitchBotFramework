@@ -12,6 +12,7 @@ from .util import split_message
 from .tags import Tags
 from .emote import emotes, Emote
 from .config import cfg
+from .util import strip_twitch_command_prefix
 
 if TYPE_CHECKING:
     from .irc import Irc
@@ -237,12 +238,15 @@ class Message:
             return self.author
         return ''
 
-    async def reply(self, msg: str = '', whisper=False):
+    async def reply(self, msg: str = '', whisper=False, strip_command_prefix: bool = True):
         if not msg:
             raise ValueError('msg is empty, msg must be a non-empty string')
 
         if not isinstance(msg, str):
             msg = str(msg)
+
+        if strip_command_prefix:
+            msg = strip_twitch_command_prefix(msg)
 
         if self.type is MessageType.PRIVMSG and (not whisper or cfg.disable_whispers):
             await self.channel.send_message(msg)
