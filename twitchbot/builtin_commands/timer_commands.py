@@ -16,6 +16,7 @@ from twitchbot import (
 
 PREFIX = cfg.prefix
 MIN_MESSAGE_TIMER_INTERVAL = 10
+TIMER_PERMISSION = 'manage_timers'
 
 
 async def _parse_interval(msg, value):
@@ -29,7 +30,7 @@ async def _parse_interval(msg, value):
         return False, 0
 
 
-@Command('addtimer', syntax='<name> <interval> <message>', help='adds a message timer')
+@Command('addtimer', syntax='<name> <interval> <message>', help='adds a message timer', permission=TIMER_PERMISSION)
 async def cmd_add_timer(msg: Message, *args):
     if len(args) < 3:
         raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_add_timer)
@@ -48,7 +49,7 @@ async def cmd_add_timer(msg: Message, *args):
     await msg.reply(f'created timer successfully')
 
 
-@Command('starttimer', syntax='<name>', help='starts a message timer')
+@Command('starttimer', syntax='<name>', help='starts a message timer', permission=TIMER_PERMISSION)
 async def cmd_start_timer(msg: Message, *args):
     if not args:
         raise InvalidArgumentsError('missing required argument', cmd=cmd_start_timer)
@@ -69,7 +70,7 @@ async def cmd_start_timer(msg: Message, *args):
         await msg.reply(f'failed to start the timer "{name}"')
 
 
-@Command('stoptimer', syntax='<name>', help='stops a message timer')
+@Command('stoptimer', syntax='<name>', help='stops a message timer', permission=TIMER_PERMISSION)
 async def cmd_stop_timer(msg: Message, *args):
     if not args:
         raise InvalidArgumentsError(reason='missing required argument', cmd=cmd_stop_timer)
@@ -90,7 +91,7 @@ async def cmd_stop_timer(msg: Message, *args):
         await msg.reply(f'failed to stop the timer "{name}"')
 
 
-@Command('deltimer', syntax='<name>', help='deletes a message timer')
+@Command('deltimer', syntax='<name>', help='deletes a message timer', permission=TIMER_PERMISSION)
 async def cmd_del_timer(msg: Message, *args):
     if not args:
         raise InvalidArgumentsError(reason='missing required argument', cmd=cmd_del_timer)
@@ -107,7 +108,7 @@ async def cmd_del_timer(msg: Message, *args):
         await msg.reply(f'failed to delete timer "{name}"')
 
 
-@Command('listtimers', help='lists all message timers for a channel')
+@Command('listtimers', help='lists all message timers for a channel', permission=TIMER_PERMISSION)
 async def cmd_list_timers(msg: Message, *args):
     timers = get_all_message_timers(msg.channel_name)
     active_timers = ', '.join(timer.name for timer in timers if timer.active)
@@ -124,7 +125,7 @@ async def cmd_list_timers(msg: Message, *args):
         await msg.reply(f'inactive timers: {inactive_timers}')
 
 
-@Command('edittimer', syntax='<name> <msg or interval> <new value>', help="edits a timer's message or interval")
+@Command('edittimer', syntax='<name> <msg or interval> <new value>', help="edits a timer's message or interval", permission=TIMER_PERMISSION)
 async def cmd_edit_timer(msg: Message, *args):
     if len(args) < 3:
         raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_edit_timer)
