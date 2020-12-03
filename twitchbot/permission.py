@@ -12,7 +12,7 @@ _global_perm_name = 'global'
 def _global_perm_group():
     return {
         'name': 'global',
-        'permissions': [],
+        'permissions': ['vote', 'listpolls'],
         'members': []
     }
 
