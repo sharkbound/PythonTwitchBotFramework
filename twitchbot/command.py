@@ -147,9 +147,9 @@ class SubCommand(Command):
 class DummyCommand(Command):
     def __init__(self, name: str, prefix: str = None, global_command: bool = True,
                  context: CommandContext = CommandContext.CHANNEL, permission: str = None, syntax: str = None,
-                 help: str = None):
+                 help: str = None, aliases: List[str] = None):
         super().__init__(name=name, prefix=prefix, func=self.exec, global_command=global_command,
-                         context=context, permission=permission, syntax=syntax, help=help)
+                         context=context, permission=permission, syntax=syntax, help=help, aliases=aliases)
 
     async def exec(self, msg: Message, *args):
         """the function called when the dummy command is executed"""
