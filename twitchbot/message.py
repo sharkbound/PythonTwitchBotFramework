@@ -238,6 +238,10 @@ class Message:
             return self.author
         return ''
 
+    async def send_command(self, msg: str = '', whisper=False):
+        msg = f'/{strip_twitch_command_prefix(msg)}'
+        await self.reply(msg=msg, whisper=whisper, strip_command_prefix=False)
+
     async def reply(self, msg: str = '', whisper=False, strip_command_prefix: bool = True):
         if not msg:
             raise ValueError('msg is empty, msg must be a non-empty string')
@@ -257,7 +261,7 @@ class Message:
 
             await self.irc.send_whisper(self.author, msg)
 
-        # used for weirder cases like NOTICE, and point redeemation, ect
+        # used for weirder cases like NOTICE, and point redemption, ect
         # exclude PRIVMSG and WHISPER since they are handled above as well
         elif self.type not in (MessageType.PRIVMSG, MessageType.WHISPER):
             # check we have a valid channel to send to
