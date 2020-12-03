@@ -41,7 +41,7 @@ async def cmd_add_custom_command(msg: Message, *args):
                                     cmd=cmd_add_custom_command)
 
     if add_custom_command(CustomCommand.create(msg.channel_name, name, resp)):
-        await msg.reply('successfully added command')
+        await msg.reply(f'successfully added command "{name}", trigger the command using "{name}" (without the quotes)')
     else:
         await msg.reply('failed to add command')
 
