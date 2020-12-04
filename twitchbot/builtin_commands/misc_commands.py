@@ -52,3 +52,20 @@ async def cmd_help(msg: Message, *args):
         raise InvalidArgumentsError(reason=f'command not found', cmd=cmd_help)
 
     await msg.reply(msg=f'help for {cmd.fullname} - syntax: {cmd.syntax} - help: {cmd.help}')
+
+
+@Command(name='findperm', syntax='<command>', help='finds a permission for a given command')
+async def cmd_find_perm(msg: Message, *args):
+    if not args:
+        raise InvalidArgumentsError(reason='missing required command parameter', cmd=cmd_find_perm)
+
+    cmd = get_command(args[0])
+    if not cmd:
+        await msg.reply(f'no command was found by "{args[0]}"')
+        return
+
+    if not cmd.permission:
+        await msg.reply(f'command "{cmd.fullname}" does not have require permission to use it')
+        return
+
+    await msg.reply(f'the permission for "{cmd.fullname}" is "{cmd.permission}"')
