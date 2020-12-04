@@ -247,7 +247,7 @@ class BaseBot:
         if not await cmd.get_sub_cmd(msg.args)[0].has_permission_to_run_from_msg(msg):
             await msg.reply(
                 whisper=True,
-                msg=f'you do not have permission to execute "{msg.content}" in #{msg.channel_name}'
+                msg=f'you do not have permission to execute "{msg.content}" in #{msg.channel_name}, do "{cfg.prefix}findperm {msg.parts[0]}" to see it\'s permission'
             )
             return
 
