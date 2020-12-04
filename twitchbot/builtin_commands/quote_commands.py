@@ -43,8 +43,9 @@ async def cmd_add_quote(msg: Message, *args):
         if get_quote_by_alias(msg.channel_name, alias) is not None:
             raise InvalidArgumentsError(reason='there is already a quote with that alias', cmd=cmd_add_quote)
 
-    if add_quote(Quote.create(channel=msg.channel_name, value=args[0], user=user, alias=alias)):
-        resp = 'successfully added quote'
+    quote = Quote.create(channel=msg.channel_name, value=args[0], user=user, alias=alias)
+    if add_quote(quote):
+        resp = f'successfully added quote #{quote.id}'
     else:
         resp = 'failed to add quote, already exist'
 
