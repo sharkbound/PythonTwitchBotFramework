@@ -26,7 +26,8 @@ async def cmd_commands(msg: Message, *args):
     custom_commands = ', '.join(map(attrgetter('name'), get_all_custom_commands(msg.channel_name)))
     usable_commands = [
         c for c in commands.values()
-        if is_command_whitelisted(c.name)
+        if not c.hidden
+           and is_command_whitelisted(c.name)
            and not is_command_disabled(msg.channel_name, c.name)
            and perms.has_permission(msg.channel_name, msg.author, c.permission)
     ]

@@ -28,19 +28,22 @@ class Command:
     def __init__(self, name: str, prefix: str = None, func: Callable = None, global_command: bool = True,
                  context: CommandContext = CommandContext.CHANNEL, permission: str = None, syntax: str = None,
                  help: str = None, aliases: List[str] = None, cooldown: int = DEFAULT_COOLDOWN,
-                 cooldown_bypass: str = DEFAULT_COOLDOWN_BYPASS):
+                 cooldown_bypass: str = DEFAULT_COOLDOWN_BYPASS, hidden: bool = False):
         """
-        :param cooldown: time between when this command when can be run, 0 means the command be run without any delay and is default value
-        :param syntax: help message for how to use the command, <> is required, () is optional
-        :param permission: permission needed to run the command in chat
-        :param help: help message for the command, used with the `help` command
         :param name: name of the command (without the prefix)
         :param prefix: prefix require before the command name (defaults the the configs prefix if None)
         :param func: the function that the commands executes
         :param global_command: should the command be registered globally?
         :param context: the context through which calling the command is allowed
+        :param permission: permission needed to run the command in chat
+        :param syntax: help message for how to use the command, <> is required, () is optional
+        :param help: help message for the command, used with the `help` command
         :param aliases: aliases for this same command, only works if global_command is True
+        :param cooldown: time between when this command when can be run, 0 means the command be run without any delay and is default value
+        :param cooldown_bypass: permission that allows those who have it to bypass the commands cooldown
+        :param hidden: hides the command from the output of the commands command
         """
+        self.hidden = hidden
         self.cooldown_bypass = cooldown_bypass
         self.cooldown: int = cooldown
         self.aliases: List[str] = aliases if aliases is not None else []
@@ -136,9 +139,9 @@ class Command:
 
 class SubCommand(Command):
     def __init__(self, parent: Command, name: str, func: Callable = None, permission: str = None, syntax: str = None,
-                 help: str = None, cooldown: int = DEFAULT_COOLDOWN, cooldown_bypass: str = DEFAULT_COOLDOWN_BYPASS):
+                 help: str = None, cooldown: int = DEFAULT_COOLDOWN, cooldown_bypass: str = DEFAULT_COOLDOWN_BYPASS, hidden: bool = False):
         super().__init__(name=name, prefix='', func=func, permission=permission, syntax=syntax, help=help,
-                         global_command=False, cooldown=cooldown, cooldown_bypass=cooldown_bypass)
+                         global_command=False, cooldown=cooldown, cooldown_bypass=cooldown_bypass, hidden=hidden)
 
         self.parent: Command = parent
         self.parent.sub_cmds[self.name] = self
@@ -147,9 +150,9 @@ class SubCommand(Command):
 class DummyCommand(Command):
     def __init__(self, name: str, prefix: str = None, global_command: bool = True,
                  context: CommandContext = CommandContext.CHANNEL, permission: str = None, syntax: str = None,
-                 help: str = None, aliases: List[str] = None):
+                 help: str = None, aliases: List[str] = None, hidden: bool = False):
         super().__init__(name=name, prefix=prefix, func=self.exec, global_command=global_command,
-                         context=context, permission=permission, syntax=syntax, help=help, aliases=aliases)
+                         context=context, permission=permission, syntax=syntax, help=help, aliases=aliases, hidden=hidden)
 
     async def exec(self, msg: Message, *args):
         """the function called when the dummy command is executed"""
@@ -190,7 +193,7 @@ CUSTOM_COMMAND_PLACEHOLDERS = (
 
 class CustomCommandAction(Command):
     def __init__(self, cmd):
-        super().__init__(cmd.name, prefix='', func=self.execute, global_command=False)
+        super().__init__(cmd.name, prefix='', func=self.execute, global_command=False, hidden=True)
         self.cmd: CustomCommand = cmd
         self.cooldown = 0
 
@@ -207,10 +210,10 @@ class CustomCommandAction(Command):
 class ModCommand(Command):
     def __init__(self, mod_name: str, name: str, prefix: str = None, func: Callable = None, global_command: bool = True,
                  context: CommandContext = CommandContext.CHANNEL, permission: str = None, syntax: str = None,
-                 help: str = None, cooldown: int = DEFAULT_COOLDOWN, cooldown_bypass: str = DEFAULT_COOLDOWN_BYPASS):
+                 help: str = None, cooldown: int = DEFAULT_COOLDOWN, cooldown_bypass: str = DEFAULT_COOLDOWN_BYPASS, hidden: bool = False):
         super().__init__(name=name, prefix=prefix, func=func, global_command=global_command, context=context,
                          permission=permission, syntax=syntax, help=help, cooldown=cooldown,
-                         cooldown_bypass=cooldown_bypass)
+                         cooldown_bypass=cooldown_bypass, hidden=hidden)
         self.mod_name = mod_name
 
     @property
