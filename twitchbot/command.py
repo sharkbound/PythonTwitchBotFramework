@@ -157,7 +157,7 @@ class DummyCommand(Command):
     async def exec(self, msg: Message, *args):
         """the function called when the dummy command is executed"""
         if self.sub_cmds:
-            await msg.reply(f'command options: {", ".join(self.sub_cmds)}')
+            await msg.reply(f'command options: {", ".join(name for name, cmd in self.sub_cmds.items() if not cmd.hidden)}')
         else:
             await msg.reply('no sub-commands were found for this command')
 
