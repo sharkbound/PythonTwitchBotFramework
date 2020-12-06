@@ -44,6 +44,8 @@ def stop_command_server():
 class _RequestType:
     SEND_PASSWORD = 'send_password'
     BAD_PASSWORD = 'bad_password'
+    DISCONNECTING = 'disconnecting'
+    LIST_CHANNELS = 'list_channels'
 
 
 async def handle_client(reader: StreamReader, writer: StreamWriter):
@@ -56,11 +58,17 @@ async def handle_client(reader: StreamReader, writer: StreamWriter):
 
     try:
         if cfg.command_server_password:
-            write_json(type=_RequestType.SEND_PASSWORD)
+            write_json(type=_RequestType.SEND_PASSWORD, data=None)
             password = await read()
             if password != cfg.command_server_password:
-                write_json(type=_RequestType.BAD_PASSWORD)
+                write_json(type=_RequestType.BAD_PASSWORD, data=None)
+                write_json(type=_RequestType.DISCONNECTING, data=None)
                 return
+
+        write_json(type=_RequestType.LIST_CHANNELS, data=[channel.name for channel in channels.values()])
+
+
+
 
 
 
