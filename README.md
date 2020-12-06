@@ -34,7 +34,7 @@ these commands requires the caller have permission to execute them
 * [Reloading Permissions](#reloading-permissions)
 * [Command Server](#command-server)
 * [Command Console](#command-console)
-* [Mysql Support](#mysql-support)
+* [Database Support](#database-support)
 * [Command Whitelist](#command-whitelist)
 * [Twitch PubSub Client](#twitch-pubsub-client)
 
@@ -215,8 +215,8 @@ so when you do `!help COMMAND_NAME`
 it will this in chat:
 
 ```
-help for "!command_name", 
-syntax: "<name>", 
+help for "!command_name",
+syntax: "<name>",
 help: "this command does a very important thing!"
 ```
 
@@ -281,7 +281,7 @@ async def cmd_say(msg, *args):
     await msg.reply(' '.join(args))
 
 
-# we pass the parent command as the first parameter   
+# we pass the parent command as the first parameter
 @SubCommand(cmd_say, 'myname')
 async def cmd_say_myname(msg, *args):
     await msg.reply(f'hello {msg.mention}!')
@@ -542,14 +542,18 @@ prompted to select a twitch channel that the bot is currently connected to.
 after choose the channel the prompt changes to `(CHANNEL_HERE):` and you are now able to send chat messages / commands
 to the choosen channel by typing your message and pressing enter
 
-# Mysql Support
+# Database Support
 
-to enabled mysql
+to enabled database
 
-* open `configs/mysql.json` (if its missing run the bot and close it, this should generate `mysql.json`)
+* open `configs/database.json` (if its missing run the bot and close it, this should generate `database.json`)
 * set `enabled` to `true`
 * fill in `address`, `username`, `password`, and `database`
-* install the mysql library (if needed) `pip install --upgrade --user mysql-connector-python`
+* install the desired database mysql library (if needed)
+* `pip install --upgrade --user mysql-connector-python`
+* or any other database supported by sqlalchemy, see the sqlalchemy [engines](https://docs.sqlalchemy.org/en/13/core/engines.html).
+* like for example postgres:
+* `pip install --upgrade --user psycopg2`
 * rerun the bot
 
 # Command Whitelist
@@ -705,9 +709,9 @@ class PubSubSubscriberMod(Mod):
     async def on_pubsub_received(self, raw: 'PubSubData'):
         # this should print any errors received from twitch
         print(raw.raw_data)
-    
-    # twitch only sends non-default channel point rewards over pubsub 
-    async def on_pubsub_custom_channel_point_reward(self, raw: 'PubSubData', data: 'PubSubPointRedemption'): 
+
+    # twitch only sends non-default channel point rewards over pubsub
+    async def on_pubsub_custom_channel_point_reward(self, raw: 'PubSubData', data: 'PubSubPointRedemption'):
         print(f'{data.user_display_name} has redeemed {data.reward_title}')
 ```
 

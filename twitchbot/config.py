@@ -5,7 +5,7 @@ from typing import Optional
 
 from .gui import show_auth_gui
 
-__all__ = ('cfg', 'Config', 'mysql_cfg', 'CONFIG_FOLDER', 'generate_config', 'get_oauth', 'get_nick', 'get_client_id',
+__all__ = ('cfg', 'Config', 'database_cfg', 'CONFIG_FOLDER', 'generate_config', 'get_oauth', 'get_nick', 'get_client_id',
            'DEFAULT_NICK', 'DEFAULT_OAUTH', 'DEFAULT_CLIENT_ID', 'is_config_valid', 'get_command_prefix')
 
 CONFIG_FOLDER = Path('configs')
@@ -124,8 +124,9 @@ cfg = Config(
     ],
 )
 
-mysql_cfg = Config(
-    CONFIG_FOLDER / 'mysql.json',
+database_cfg = Config(
+    CONFIG_FOLDER / 'database.json',
+    driver='mysql+mysqlconnector',
     enabled=False,
     address='localhost',
     port='3306',
