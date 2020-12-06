@@ -46,6 +46,7 @@ class _RequestType:
     BAD_PASSWORD = 'bad_password'
     DISCONNECTING = 'disconnecting'
     LIST_CHANNELS = 'list_channels'
+    BAD_DATA = 'bad_data'
 
 
 async def handle_client(reader: StreamReader, writer: StreamWriter):
@@ -58,14 +59,20 @@ async def handle_client(reader: StreamReader, writer: StreamWriter):
 
     try:
         if cfg.command_server_password:
-            write_json(type=_RequestType.SEND_PASSWORD, data=None)
+            write_json(type=_RequestType.SEND_PASSWORD, data={})
             password = await read()
             if password != cfg.command_server_password:
-                write_json(type=_RequestType.BAD_PASSWORD, data=None)
-                write_json(type=_RequestType.DISCONNECTING, data=None)
+                write_json(type=_RequestType.BAD_PASSWORD, data={})
+                write_json(type=_RequestType.DISCONNECTING, data={})
                 return
 
-        write_json(type=_RequestType.LIST_CHANNELS, data=[channel.name for channel in channels.values()])
+        write_json(type=_RequestType.LIST_CHANNELS, data={'channels': [channel.name for channel in channels.values()]})
+        while True:
+            try:
+                data = json.loads(await read())
+                print(f'data: {data}')
+            except (json.JSONDecodeError, TypeError):
+                write_json(type=_RequestType.BAD_DATA, data={'reason': 'response must be valid json'})
 
 
 
