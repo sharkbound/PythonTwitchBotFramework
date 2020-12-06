@@ -115,6 +115,7 @@ cfg = Config(
     command_server_enabled=True,
     command_server_port=1337,
     command_server_host='0.0.0.0',
+    command_server_password='',
     disable_whispers=True,
     use_command_whitelist=False,
     send_message_on_command_whitelist_deny=True,
