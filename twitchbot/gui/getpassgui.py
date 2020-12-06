@@ -1,7 +1,7 @@
 import webbrowser
 from collections import namedtuple
 
-__all__ = ['show_auth_gui', 'AuthInfo']
+__all__ = ('show_auth_gui', 'AuthInfo')
 
 OAUTH_GENERATOR_URL = 'https://twitchapps.com/tmi/'
 AuthInfo = namedtuple('AuthInfo', 'username oauth')
