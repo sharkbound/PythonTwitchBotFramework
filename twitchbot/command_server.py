@@ -1,3 +1,4 @@
+import json
 from asyncio import start_server, StreamReader, StreamWriter
 from traceback import format_exc
 
@@ -5,7 +6,10 @@ from .channel import channels, Channel
 from .config import cfg
 from .util import add_task, task_running, stop_task
 
-__all__ = 'start_command_server', 'stop_command_server'
+__all__ = [
+    'start_command_server',
+    'stop_command_server'
+]
 
 HOST = cfg.command_server_host
 PORT = cfg.command_server_port
@@ -37,31 +41,57 @@ def stop_command_server():
         stop_task(COMMAND_SERVER_TASK_ID)
 
 
+class _RequestType:
+    SEND_PASSWORD = 'send_password'
+    BAD_PASSWORD = 'bad_password'
+
+
 async def handle_client(reader: StreamReader, writer: StreamWriter):
     # helper function to read the next message from the client
     async def read():
         return (await reader.readline()).decode('utf8').strip()
 
+    def write_json(**data):
+        writer.write(json.dumps(data).encode())
+
     try:
-        writer.write(b'Connected to the command server!\n')
-
-        # wait for the client to select a valid channel to send messages
-        channel_name = ''
-        while channel_name not in channels:
-            connected_channels = ', '.join(channels)
-            writer.write(f'what channel do you want to join?\noptions: {connected_channels}\n'.encode())
-            channel_name = await read()
-
-        # client gave us a valid channel, now get the channel object from the cache
-        channel: Channel = channels[channel_name]
-        writer.write(b'Send `quit` to disconnect')
-
-        # now we just relay messages send
-        while True:
-            msg = await read()
-            if not msg or msg.lower() == 'quit':
+        if cfg.command_server_password:
+            write_json(type=_RequestType.SEND_PASSWORD)
+            password = await read()
+            if password != cfg.command_server_password:
+                write_json(type=_RequestType.BAD_PASSWORD)
                 return
 
-            await channel.send_message(msg)
+
+
     except ConnectionResetError:
         return
+
+# async def handle_client(reader: StreamReader, writer: StreamWriter):
+#     # helper function to read the next message from the client
+#     async def read():
+#         return (await reader.readline()).decode('utf8').strip()
+#
+#     try:
+#         writer.write(b'Connected to the command server!\n')
+#
+#         # wait for the client to select a valid channel to send messages
+#         channel_name = ''
+#         while channel_name not in channels:
+#             connected_channels = ', '.join(channels)
+#             writer.write(f'what channel do you want to join?\noptions: {connected_channels}\n'.encode())
+#             channel_name = await read()
+#
+#         # client gave us a valid channel, now get the channel object from the cache
+#         channel: Channel = channels[channel_name]
+#         writer.write(b'Send `quit` to disconnect')
+#
+#         # now we just relay messages send
+#         while True:
+#             msg = await read()
+#             if not msg or msg.lower() == 'quit':
+#                 return
+#
+#             await channel.send_message(msg)
+#     except ConnectionResetError:
+#         return
