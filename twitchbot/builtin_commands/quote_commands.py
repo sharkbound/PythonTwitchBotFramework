@@ -15,7 +15,7 @@ from twitchbot import (
 PREFIX = cfg.prefix
 
 
-@Command('addquote', syntax='"<quote text>" user=(user) alias=(alias)', help='adds a quote to the database')
+@Command('addquote', permission='add_quote', syntax='"<quote text>" user=(user) alias=(alias)', help='adds a quote to the database')
 async def cmd_add_quote(msg: Message, *args):
     if not args:
         raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_add_quote)
