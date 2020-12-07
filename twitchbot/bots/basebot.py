@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import time
 import warnings
 from asyncio import get_event_loop
 from typing import Optional, TYPE_CHECKING
@@ -313,6 +312,27 @@ class BaseBot:
         thread.start()
         return thread
 
+    def _init_bot(self):
+        from ..database import init_tables
+        init_tables()
+
+        import os
+        from ..command import load_commands_from_directory
+        from ..modloader import load_mods_from_directory, ensure_commands_folder_exists, ensure_mods_folder_exists
+        from ..command_server import start_command_server
+        from .._bot_package_path import _BOT_PACKAGE_PATH
+
+        load_commands_from_directory(os.path.join(_BOT_PACKAGE_PATH, 'builtin_commands'))
+
+        load_mods_from_directory(os.path.join(_BOT_PACKAGE_PATH, 'builtin_mods'))
+        load_mods_from_directory(os.path.abspath(cfg.mods_folder))
+
+        ensure_mods_folder_exists()
+        ensure_commands_folder_exists()
+
+        load_commands_from_directory(os.path.abspath(cfg.commands_folder))
+        start_command_server()
+
     async def mainloop(self):
         """starts the bot, connects to twitch, then starts the message event loop"""
         # check if user wants to input oauth info manually
@@ -321,6 +341,8 @@ class BaseBot:
             warnings.warn(
                 'failed to generate config, ether this was the first run and the oauth was not set, OR, there was a error generating the required config files')
             return
+
+        self._init_bot()
 
         util.add_task('poll_event_processor', poll_event_processor_loop())
         self._create_channels()
