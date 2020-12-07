@@ -14,7 +14,7 @@ class Connection:
 
     def read_json(self, size=300) -> dict:
         try:
-            return json.loads(self.read())
+            return json.loads(self.read(size))
         except (json.JSONDecoder, TypeError):
             return {}
 
