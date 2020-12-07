@@ -73,6 +73,7 @@ async def handle_client(reader: StreamReader, writer: StreamWriter):
                 print(f'data: {data}')
             except (json.JSONDecodeError, TypeError):
                 write_json(type=_RequestType.BAD_DATA, data={'reason': 'response must be valid json'})
+                continue
 
 
     except ConnectionResetError:

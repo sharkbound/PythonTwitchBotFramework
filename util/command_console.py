@@ -1,7 +1,8 @@
 from socket import socket
+import json
 
 
-class Socket:
+class Connection:
     def __init__(self, host, port):
         self.host = host
         self.port = port
@@ -11,11 +12,29 @@ class Socket:
     def read(self, size=300) -> str:
         return self.socket.recv(size).decode().strip()
 
-    def write(self, text: str):
+    def read_json(self, size=300) -> dict:
+        try:
+            return json.loads(self.read())
+        except (json.JSONDecoder, TypeError):
+            return {}
+
+    def send(self, text: str):
         self.socket.send(f'{text}\n'.encode())
+
+    def send_json(self, **kwargs):
+        self.send(json.dumps(kwargs))
 
 
 def run():
     host = input('enter command server host (leave blank for "localhost"): ').strip() or 'localhost'
     port = int(input('enter command server port (leave blank for 1337): ').strip() or 1337)
-    socket = Socket(host, port)
+    connection = Connection(host, port)
+
+    while True:
+        data = connection.read_json()
+        print(data)
+        connection.send(input())
+
+
+if __name__ == '__main__':
+    run()
