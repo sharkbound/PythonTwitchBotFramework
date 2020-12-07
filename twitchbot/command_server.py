@@ -58,10 +58,10 @@ async def handle_client(reader: StreamReader, writer: StreamWriter):
         writer.write(json.dumps(data).encode())
 
     try:
-        if cfg.command_server_password:
+        if cfg.command_server_password.strip():
             write_json(type=_RequestType.SEND_PASSWORD, data={})
             password = await read()
-            if password != cfg.command_server_password:
+            if password != cfg.command_server_password.strip():
                 write_json(type=_RequestType.BAD_PASSWORD, data={})
                 write_json(type=_RequestType.DISCONNECTING, data={})
                 return
@@ -73,10 +73,6 @@ async def handle_client(reader: StreamReader, writer: StreamWriter):
                 print(f'data: {data}')
             except (json.JSONDecodeError, TypeError):
                 write_json(type=_RequestType.BAD_DATA, data={'reason': 'response must be valid json'})
-
-
-
-
 
 
     except ConnectionResetError:
