@@ -88,6 +88,3 @@ class MessageTimer(Base):
     @classmethod
     def create(cls, channel: str, name: str, message: str, interval: float, active=False):
         return MessageTimer(name=name, channel=channel, message=message, interval=interval, active=active)
-
-
-init_tables()
