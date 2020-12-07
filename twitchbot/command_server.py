@@ -50,12 +50,14 @@ class _RequestType:
     AUTHENTICATION_SUCCESSFUL = 'authentication_successful'
     SEND_PRIVMSG = 'send_privmsg'
     CHANNEL_NOT_FOUND = 'channel_not_found'
+    SUCCESS = 'success'
 
 
 class ClientHandler:
     def __init__(self, reader: StreamReader, writer: StreamWriter):
         self.reader = reader
         self.writer = writer
+        self._running = True
 
     async def read(self):
         return (await self.reader.readline()).decode('utf8').strip()
@@ -78,6 +80,7 @@ class ClientHandler:
             return
 
         await channels[channel].send_message(data['message'])
+        self.write_json(type=_RequestType.SUCCESS, data={'type': _RequestType.SEND_PRIVMSG})
 
     async def run(self):
         try:
@@ -92,7 +95,7 @@ class ClientHandler:
             self.write_json(type=_RequestType.AUTHENTICATION_SUCCESSFUL, data={})
             self.write_json(type=_RequestType.LIST_CHANNELS, data={'channels': [channel.name for channel in channels.values()]})
 
-            while True:
+            while self._running:
                 try:
                     data = json.loads(await self.read())
                 except (json.JSONDecodeError, TypeError):
