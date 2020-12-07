@@ -33,7 +33,7 @@ def run():
     while True:
         data = connection.read_json()
         print(data)
-        connection.send(input())
+        connection.send_json(type='send_privmsg', channel='userman2', message=input())
 
 
 if __name__ == '__main__':

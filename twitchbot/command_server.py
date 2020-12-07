@@ -47,63 +47,73 @@ class _RequestType:
     DISCONNECTING = 'disconnecting'
     LIST_CHANNELS = 'list_channels'
     BAD_DATA = 'bad_data'
+    AUTHENTICATION_SUCCESSFUL = 'authentication_successful'
+    SEND_PRIVMSG = 'send_privmsg'
+    CHANNEL_NOT_FOUND = 'channel_not_found'
+
+
+class ClientHandler:
+    def __init__(self, reader: StreamReader, writer: StreamWriter):
+        self.reader = reader
+        self.writer = writer
+
+    async def read(self):
+        return (await self.reader.readline()).decode('utf8').strip()
+
+    def write_json(self, **data):
+        self.writer.write(json.dumps(data).encode())
+
+    async def handle_send_privmsg(self, data: dict):
+        if 'channel' not in data:
+            self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'data for send_privmsg is missing `channel` key'})
+            return
+
+        if 'message' not in data:
+            self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'data for send_privmsg is missing `message` key'})
+            return
+
+        channel = data['channel'].lower().strip()
+        if channel not in channels:
+            self.write_json(type=_RequestType.CHANNEL_NOT_FOUND, data={'reason': f'bot is not in requested channel `{channel}`'})
+            return
+
+        await channels[channel].send_message(data['message'])
+
+    async def run(self):
+        try:
+            if cfg.command_server_password.strip():
+                self.write_json(type=_RequestType.SEND_PASSWORD, data={})
+                password = await self.read()
+                if password != cfg.command_server_password.strip():
+                    self.write_json(type=_RequestType.BAD_PASSWORD, data={})
+                    self.write_json(type=_RequestType.DISCONNECTING, data={})
+                    return
+
+            self.write_json(type=_RequestType.AUTHENTICATION_SUCCESSFUL, data={})
+            self.write_json(type=_RequestType.LIST_CHANNELS, data={'channels': [channel.name for channel in channels.values()]})
+
+            while True:
+                try:
+                    data = json.loads(await self.read())
+                except (json.JSONDecodeError, TypeError):
+                    self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'response must be valid json'})
+                    continue
+
+                if not isinstance(data, dict):
+                    self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'data must be dictionary'})
+                    continue
+
+                if 'type' not in data:
+                    self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'data is must have the `type` key'})
+                    continue
+
+                msg_type = data['type']
+
+                if msg_type == _RequestType.SEND_PRIVMSG:
+                    await self.handle_send_privmsg(data)
+        except ConnectionResetError:
+            return
 
 
 async def handle_client(reader: StreamReader, writer: StreamWriter):
-    # helper function to read the next message from the client
-    async def read():
-        return (await reader.readline()).decode('utf8').strip()
-
-    def write_json(**data):
-        writer.write(json.dumps(data).encode())
-
-    try:
-        if cfg.command_server_password.strip():
-            write_json(type=_RequestType.SEND_PASSWORD, data={})
-            password = await read()
-            if password != cfg.command_server_password.strip():
-                write_json(type=_RequestType.BAD_PASSWORD, data={})
-                write_json(type=_RequestType.DISCONNECTING, data={})
-                return
-
-        write_json(type=_RequestType.LIST_CHANNELS, data={'channels': [channel.name for channel in channels.values()]})
-        while True:
-            try:
-                data = json.loads(await read())
-                print(f'data: {data}')
-            except (json.JSONDecodeError, TypeError):
-                write_json(type=_RequestType.BAD_DATA, data={'reason': 'response must be valid json'})
-                continue
-
-
-    except ConnectionResetError:
-        return
-
-# async def handle_client(reader: StreamReader, writer: StreamWriter):
-#     # helper function to read the next message from the client
-#     async def read():
-#         return (await reader.readline()).decode('utf8').strip()
-#
-#     try:
-#         writer.write(b'Connected to the command server!\n')
-#
-#         # wait for the client to select a valid channel to send messages
-#         channel_name = ''
-#         while channel_name not in channels:
-#             connected_channels = ', '.join(channels)
-#             writer.write(f'what channel do you want to join?\noptions: {connected_channels}\n'.encode())
-#             channel_name = await read()
-#
-#         # client gave us a valid channel, now get the channel object from the cache
-#         channel: Channel = channels[channel_name]
-#         writer.write(b'Send `quit` to disconnect')
-#
-#         # now we just relay messages send
-#         while True:
-#             msg = await read()
-#             if not msg or msg.lower() == 'quit':
-#                 return
-#
-#             await channel.send_message(msg)
-#     except ConnectionResetError:
-#         return
+    await ClientHandler(reader, writer).run()
