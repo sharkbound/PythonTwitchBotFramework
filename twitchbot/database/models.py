@@ -2,7 +2,7 @@ from asyncio import Task
 
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
-from .session import Base, init_tables
+from .session import Base
 from ..config import cfg
 from ..enums import CommandContext
 
