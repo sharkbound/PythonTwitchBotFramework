@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages
+from twitchbot import BOT_VERSION
 
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
@@ -8,7 +9,7 @@ with open('README.md') as f:
 
 setup(
     name='PythonTwitchBotFramework',
-    version='1.17.6',  # change BOT VERSION in twitchbot/__init__.py:36 when updating this
+    version='.'.join(map(str, BOT_VERSION)),  # change BOT VERSION in twitchbot/__init__.py:36 when updating this
     python_requires='>=3.6',
     packages=find_packages(),
     url='https://github.com/sharkbound/PythonTwitchBotFramework',
