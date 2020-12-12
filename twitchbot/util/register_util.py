@@ -1,14 +1,14 @@
-__all__ = ['auto_register']
+__all__ = ['auto_register_mod']
 
 
-def auto_register(obj):
+def auto_register_mod(obj):
     """
     registers the mod when the files is loaded
 
     example:
     >>> from twitchbot import Message
     >>>
-    >>> @auto_register
+    >>> @auto_register_mod
     >>> class MyMod(Mod):
     >>>     async def on_privmsg_received(self, msg: Message):
     >>>         print(f'MyMod got the message: {msg.content}')
