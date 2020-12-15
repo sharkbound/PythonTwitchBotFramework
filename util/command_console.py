@@ -61,8 +61,9 @@ class State:
 
 
 def print_help():
-    print('to select a channel to target, type /channel <channel>')
-    print('type `/help` to see this message again')
+    print('/channel <channel> : binds this console to a bot-joined channel (needed for /chat)')
+    print('/chat <msg> : sends the chat message to the channel bound to this console')
+    print('/help to see this message again')
 
 
 async def run():
