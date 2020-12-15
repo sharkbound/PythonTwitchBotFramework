@@ -1,10 +1,10 @@
 import asyncio
-import json
 import getpass
-from typing import Optional, List
+import json
+from functools import partial
+from typing import Optional, List, Coroutine
 
 import websockets
-from socket import socket
 
 
 class Connection:
@@ -44,31 +44,111 @@ class _RequestType:
     SUCCESS = 'success'
 
 
+class State:
+    def __init__(self):
+        self.bound_channel = ''
+        self.channels: List[str] = []
+        self.authenticated = False
+        self.reads_left = 0
+
+    @property
+    def waiting_for_read(self):
+        return self.reads_left > 0
+
+    @property
+    def has_bound_channel(self):
+        return bool(self.bound_channel)
+
+
+def print_help():
+    print('to select a channel to target, type /channel <channel>')
+    print('type `/help` to see this message again')
+
+
 async def run():
     host = input('enter command server host (leave blank for "localhost"): ').strip() or 'localhost'
     port = int(input('enter command server port (leave blank for 1337): ').strip() or 1337)
     connection = Connection(host, port)
-    channels: List[str] = []
+
     await connection.connect()
+    state = State()
 
     while True:
         data = await connection.read_json()
-        type = data['type']
+        if state.reads_left > 0:
+            state.reads_left -= 1
+        msg_type = data['type']
 
-        if type == _RequestType.SEND_PASSWORD:
+        if msg_type == _RequestType.SEND_PASSWORD:
             await connection.send(getpass.getpass('enter password for server >>> ').strip())
-        elif type == _RequestType.DISCONNECTING:
+        elif msg_type == _RequestType.DISCONNECTING:
             print('server terminated connection...')
             return
-        elif type == _RequestType.BAD_PASSWORD:
+        elif msg_type == _RequestType.BAD_PASSWORD:
             print('authentication failed... password did not match!')
             return
-        elif type == _RequestType.LIST_CHANNELS:
-            channels = data['data']['channels']
-            print(f'bot is in these channels: {", ".join(channels)}')
-        elif type == _RequestType.AUTHENTICATION_SUCCESSFUL:
+        elif msg_type == _RequestType.LIST_CHANNELS:
+            state.channels = data['data']['channels']
+            print(f'bot is in these channels: {", ".join(state.channels)}')
+        elif msg_type == _RequestType.AUTHENTICATION_SUCCESSFUL:
+            state.authenticated = True
+            state.reads_left += 1
             print('logged in to command server!')
-            print('to select a channel to target, type /channel <channel>')
+            print_help()
+
+        while state.authenticated and not state.waiting_for_read:
+            command = input('>> ')
+            parts = command.split()
+            command_part = parts[0].lower()
+            if command_part in client_commands:
+                await client_commands[command_part](connection, state, parts[1:])
+
+
+client_commands = {}
+
+
+def client_command(func: Coroutine = None, name: str = '', prefix: str = '/'):
+    if func is None:
+        return partial(client_command, name=name, prefix=prefix)
+
+    client_commands[prefix + name] = func
+    return func
+
+
+@client_command(name='help')
+async def c_help(connection: Connection, state: State, args: List[str]):
+    print_help()
+
+
+@client_command(name='chat')
+async def c_chat(connection: Connection, state: State, args: List[str]):
+    if not args:
+        print('you must provide a message after /chat, ex: `/chat hello chat!`')
+        return
+
+    if not state.has_bound_channel:
+        print('there is not a bound channel! use `/channel <channel>` to bind one!')
+        return
+
+    state.reads_left += 1
+    await connection.send_json(type=_RequestType.SEND_PRIVMSG, channel=state.bound_channel, message=' '.join(args))
+
+
+@client_command(name='channel')
+async def c_chat(connection: Connection, state: State, args: List[str]):
+    if not state.channels:
+        print('the bot is not currently in any channels, please have the bot join at least one than relaunch this console')
+        return
+
+    if not args:
+        print(f'the bot is currently in these channels: {", ".join(state.channels)}\ndo `/channel <channel>` to bind this channel to one')
+        return
+
+    if args[0] not in state.channels:
+        print(f'the bot is not currently in "{args[0]}"')
+        return
+
+    state.bound_channel = args[0]
 
 
 if __name__ == '__main__':
