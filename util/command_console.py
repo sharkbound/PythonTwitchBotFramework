@@ -1,40 +1,75 @@
-from socket import socket
+import asyncio
 import json
+import getpass
+from typing import Optional, List
+
+import websockets
+from socket import socket
 
 
 class Connection:
     def __init__(self, host, port):
         self.host = host
         self.port = port
-        self.socket = socket()
-        self.socket.connect((host, port))
+        self.websocket: Optional[websockets.WebSocketClientProtocol] = None
 
-    def read(self, size=300) -> str:
-        return self.socket.recv(size).decode().strip()
+    async def connect(self):
+        self.websocket = await websockets.connect(f'ws://{self.host}:{self.port}')
 
-    def read_json(self, size=300) -> dict:
+    async def read(self) -> str:
+        return (await self.websocket.recv()).strip()
+
+    async def read_json(self) -> dict:
         try:
-            return json.loads(self.read(size))
+            return json.loads(await self.read())
         except (json.JSONDecoder, TypeError):
             return {}
 
-    def send(self, text: str):
-        self.socket.send(f'{text}\n'.encode())
+    async def send(self, text: str):
+        await self.websocket.send(f'{text}')
 
-    def send_json(self, **kwargs):
-        self.send(json.dumps(kwargs))
+    async def send_json(self, **kwargs):
+        await self.send(json.dumps(kwargs))
 
 
-def run():
+class _RequestType:
+    SEND_PASSWORD = 'send_password'
+    BAD_PASSWORD = 'bad_password'
+    DISCONNECTING = 'disconnecting'
+    LIST_CHANNELS = 'list_channels'
+    BAD_DATA = 'bad_data'
+    AUTHENTICATION_SUCCESSFUL = 'authentication_successful'
+    SEND_PRIVMSG = 'send_privmsg'
+    CHANNEL_NOT_FOUND = 'channel_not_found'
+    SUCCESS = 'success'
+
+
+async def run():
     host = input('enter command server host (leave blank for "localhost"): ').strip() or 'localhost'
     port = int(input('enter command server port (leave blank for 1337): ').strip() or 1337)
     connection = Connection(host, port)
+    channels: List[str] = []
+    await connection.connect()
 
     while True:
-        data = connection.read_json()
-        print(data)
-        connection.send_json(type='send_privmsg', channel='userman2', message=input())
+        data = await connection.read_json()
+        type = data['type']
+
+        if type == _RequestType.SEND_PASSWORD:
+            await connection.send(getpass.getpass('enter password for server >>> ').strip())
+        elif type == _RequestType.DISCONNECTING:
+            print('server terminated connection...')
+            return
+        elif type == _RequestType.BAD_PASSWORD:
+            print('authentication failed... password did not match!')
+            return
+        elif type == _RequestType.LIST_CHANNELS:
+            channels = data['data']['channels']
+            print(f'bot is in these channels: {", ".join(channels)}')
+        elif type == _RequestType.AUTHENTICATION_SUCCESSFUL:
+            print('logged in to command server!')
+            print('to select a channel to target, type /channel <channel>')
 
 
 if __name__ == '__main__':
-    run()
+    asyncio.run(run())

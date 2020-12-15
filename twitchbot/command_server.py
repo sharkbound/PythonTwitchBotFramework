@@ -1,8 +1,11 @@
 import json
-from asyncio import start_server, StreamReader, StreamWriter
+from typing import Optional
+
+import websockets
+from asyncio import get_event_loop
 from traceback import format_exc
 
-from .channel import channels, Channel
+from .channel import channels
 from .config import cfg
 from .util import add_task, task_running, stop_task
 
@@ -14,19 +17,23 @@ __all__ = [
 HOST = cfg.command_server_host
 PORT = cfg.command_server_port
 ENABLED = cfg.command_server_enabled
-COMMAND_SERVER_TASK_ID = 'COMMAND_SERVER'
+websocket_server: Optional[websockets.WebSocketServer] = None
 
 
-def start_command_server():
+# COMMAND_SERVER_TASK_ID = 'COMMAND_SERVER'
+
+
+async def start_command_server():
     if not ENABLED:
         return
 
     stop_command_server()
 
-    print(f'starting command server (view host / port in config file)')
     try:
         # noinspection PyTypeChecker
-        add_task(COMMAND_SERVER_TASK_ID, start_server(handle_client, HOST, PORT))
+        global websocket_server
+        websocket_server = await websockets.serve(handle_client, HOST, PORT)
+        print(f'starting command server (view host / port in config file)')
     except Exception as e:
         print(f"\n------COMMAND SERVER------\nfailed to bind/create command server\n"
               f"this does not affect the bot, but it does mean that the command console will not work/be usable\n"
@@ -37,8 +44,8 @@ def start_command_server():
 
 
 def stop_command_server():
-    if task_running(COMMAND_SERVER_TASK_ID):
-        stop_task(COMMAND_SERVER_TASK_ID)
+    if websocket_server is not None and websocket_server.is_serving():
+        websocket_server.close()
 
 
 class _RequestType:
@@ -54,60 +61,60 @@ class _RequestType:
 
 
 class ClientHandler:
-    def __init__(self, reader: StreamReader, writer: StreamWriter):
-        self.reader = reader
-        self.writer = writer
+    def __init__(self, websocket: websockets.WebSocketServerProtocol, path: str):
+        self.path = path
+        self.websocket = websocket
         self._running = True
 
     async def read(self):
-        return (await self.reader.readline()).decode('utf8').strip()
+        return (await self.websocket.recv()).strip()
 
-    def write_json(self, **data):
-        self.writer.write(json.dumps(data).encode())
+    async def write_json(self, **data):
+        await self.websocket.send(f'{json.dumps(data)}')
 
     async def handle_send_privmsg(self, data: dict):
         if 'channel' not in data:
-            self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'data for send_privmsg is missing `channel` key'})
+            await self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'data for send_privmsg is missing `channel` key'})
             return
 
         if 'message' not in data:
-            self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'data for send_privmsg is missing `message` key'})
+            await self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'data for send_privmsg is missing `message` key'})
             return
 
         channel = data['channel'].lower().strip()
         if channel not in channels:
-            self.write_json(type=_RequestType.CHANNEL_NOT_FOUND, data={'reason': f'bot is not in requested channel `{channel}`'})
+            await self.write_json(type=_RequestType.CHANNEL_NOT_FOUND, data={'reason': f'bot is not in requested channel `{channel}`'})
             return
 
         await channels[channel].send_message(data['message'])
-        self.write_json(type=_RequestType.SUCCESS, data={'type': _RequestType.SEND_PRIVMSG})
+        await self.write_json(type=_RequestType.SUCCESS, data={'type': _RequestType.SEND_PRIVMSG})
 
     async def run(self):
         try:
             if cfg.command_server_password.strip():
-                self.write_json(type=_RequestType.SEND_PASSWORD, data={})
+                await self.write_json(type=_RequestType.SEND_PASSWORD, data={})
                 password = await self.read()
                 if password != cfg.command_server_password.strip():
-                    self.write_json(type=_RequestType.BAD_PASSWORD, data={})
-                    self.write_json(type=_RequestType.DISCONNECTING, data={})
+                    await self.write_json(type=_RequestType.BAD_PASSWORD, data={})
+                    await self.write_json(type=_RequestType.DISCONNECTING, data={})
                     return
 
-            self.write_json(type=_RequestType.AUTHENTICATION_SUCCESSFUL, data={})
-            self.write_json(type=_RequestType.LIST_CHANNELS, data={'channels': [channel.name for channel in channels.values()]})
+            await self.write_json(type=_RequestType.AUTHENTICATION_SUCCESSFUL, data={})
+            await self.write_json(type=_RequestType.LIST_CHANNELS, data={'channels': [channel.name for channel in channels.values()]})
 
             while self._running:
                 try:
                     data = json.loads(await self.read())
                 except (json.JSONDecodeError, TypeError):
-                    self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'response must be valid json'})
+                    await self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'response must be valid json'})
                     continue
 
                 if not isinstance(data, dict):
-                    self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'data must be dictionary'})
+                    await self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'data must be dictionary'})
                     continue
 
                 if 'type' not in data:
-                    self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'data is must have the `type` key'})
+                    await self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'data is must have the `type` key'})
                     continue
 
                 msg_type = data['type']
@@ -118,5 +125,5 @@ class ClientHandler:
             return
 
 
-async def handle_client(reader: StreamReader, writer: StreamWriter):
-    await ClientHandler(reader, writer).run()
+async def handle_client(websocket: websockets.WebSocketServerProtocol, path: str):
+    await ClientHandler(websocket, path).run()

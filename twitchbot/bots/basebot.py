@@ -312,7 +312,7 @@ class BaseBot:
         thread.start()
         return thread
 
-    def _init_bot(self):
+    async def _init_bot(self):
         from ..database import init_tables
         init_tables()
 
@@ -331,7 +331,7 @@ class BaseBot:
         ensure_commands_folder_exists()
 
         load_commands_from_directory(os.path.abspath(cfg.commands_folder))
-        start_command_server()
+        await start_command_server()
 
     async def mainloop(self):
         """starts the bot, connects to twitch, then starts the message event loop"""
@@ -342,7 +342,7 @@ class BaseBot:
                 'failed to generate config, ether this was the first run and the oauth was not set, OR, there was a error generating the required config files')
             return
 
-        self._init_bot()
+        await self._init_bot()
 
         util.add_task('poll_event_processor', poll_event_processor_loop())
         self._create_channels()
