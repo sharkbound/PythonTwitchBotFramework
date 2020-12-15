@@ -32,5 +32,5 @@ from .event_util import *
 from .extra_configs import *
 from .pubsub import *
 
-BOT_VERSION = (1, 18, 1)  # keep in sync with version in setup.py:11
+BOT_VERSION = (1, 19, 0)
 _set_bot_package_path(__path__[0])
