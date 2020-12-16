@@ -24,14 +24,20 @@ from twitchbot import (
 @Command('commands', context=CommandContext.BOTH, help='lists all commands')
 async def cmd_commands(msg: Message, *args):
     custom_commands = ', '.join(map(attrgetter('name'), get_all_custom_commands(msg.channel_name)))
-    usable_commands = [
-        c for c in commands.values()
-        if not c.hidden
-           and is_command_whitelisted(c.name)
-           and not is_command_disabled(msg.channel_name, c.name)
-           and perms.has_permission(msg.channel_name, msg.author, c.permission)
-    ]
-    global_commands = ', '.join(map(attrgetter('fullname'), usable_commands))
+    usable_commands = []
+    seen = set()
+    for command in commands.values():
+        if (
+                command.fullname in seen
+                or command.hidden
+                or is_command_disabled(msg.channel_name, command.name)
+                or not perms.has_permission(msg.channel_name, msg.author, command.permission)
+        ):
+            continue
+        usable_commands.append(command.fullname)
+        for alias in command.aliases:
+            usable_commands.append(command.prefix + alias)
+    global_commands = ', '.join(usable_commands)
 
     if usable_commands:
         await msg.reply(whisper=True, msg=f'COMMANDS YOU CAN USE: {global_commands}')
