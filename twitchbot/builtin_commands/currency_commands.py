@@ -51,9 +51,6 @@ async def cmd_get_currency_name(msg: Message, *ignored):
 async def cmd_get_bal(msg: Message, *args):
     if args:
         target = args[0].lstrip('@')
-
-        if target not in msg.channel.chatters:
-            raise InvalidArgumentsError(reason=f'no viewer found by the name of "{target}"', cmd=cmd_get_bal)
     else:
         target = msg.author
 
@@ -69,8 +66,6 @@ async def cmd_set_bal(msg: Message, *args):
         raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_set_bal)
     elif len(args) == 2:
         target = args[1].lstrip('@')
-        if target not in msg.channel.chatters:
-            raise InvalidArgumentsError(reason=f'no viewer found by the name of "{args[1]}"', cmd=cmd_set_bal)
     else:
         target = msg.author
 
@@ -95,9 +90,6 @@ async def cmd_add_bal(msg: Message, *args):
         raise InvalidArgumentsError('must supply both <user or all> and <amount>', cmd=cmd_add_bal)
 
     target = args[0].lower()
-    if target != 'all' and target not in msg.channel.chatters:
-        raise InvalidArgumentsError(f'cannot find any viewer named "{target}"', cmd=cmd_add_bal)
-
     try:
         amount = int(args[1])
     except ValueError:
@@ -124,9 +116,6 @@ async def cmd_sub_bal(msg: Message, *args):
         raise InvalidArgumentsError('must supply both <user or all> and <amount>', cmd=cmd_sub_bal)
 
     target = args[0].lower()
-    if target != 'all' and target not in msg.channel.chatters:
-        raise InvalidArgumentsError(f'cannot find any viewer named "{target}"', cmd=cmd_sub_bal)
-
     try:
         amount = int(args[1])
     except ValueError:
@@ -157,7 +146,7 @@ async def cmd_give(msg: Message, *args):
     if len(args) != 2:
         raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_give)
 
-    if not msg.mentions or msg.mentions[0] not in msg.channel.chatters:
+    if not msg.mentions:
         raise InvalidArgumentsError(reason=f'no viewer found by the name "{(msg.mentions or args)[0]}"')
 
     caller = get_balance_from_msg(msg)
@@ -354,9 +343,6 @@ async def cmd_duel(msg: Message, *args):
 
     if target == msg.author:
         raise InvalidArgumentsError(reason='you cannot duel yourself', cmd=cmd_duel)
-
-    if target not in msg.channel.chatters:
-        raise InvalidArgumentsError(reason=f'{msg.mention} {target} is not in this channel', cmd=cmd_duel)
 
     duel = get_duel(msg.channel_name, msg.author, target)
 
