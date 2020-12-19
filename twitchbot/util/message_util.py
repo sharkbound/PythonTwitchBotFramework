@@ -25,10 +25,10 @@ def get_message_mentions(message: Union['Message', str]):
     # try getting the attribute "content", if it fails, text is set to the passed message itself
     # which should be a string
     text = getattr(message, 'content', message)
-    mentions = tuple(RE_AT_MENTION.findall(text))
+    mentions = tuple(map(str.lower, RE_AT_MENTION.findall(text)))
 
     # checks for username mentions without the @
     if isinstance(message, Message):
-        mentions += tuple(p for p in message.parts if p in message.channel.chatters)
+        mentions += tuple(p.lower() for p in message.parts if p in message.channel.chatters)
 
     return mentions
