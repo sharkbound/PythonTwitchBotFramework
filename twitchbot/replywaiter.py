@@ -66,7 +66,10 @@ def custom_predicate(custom_predicate: Callable[[Message], bool] = None,
         if (same_channel and m.channel != m.channel) or (same_author and m.author != msg.author):
             return False
 
-        return custom_predicate(m)
+        if custom_predicate is not None:
+            return custom_predicate(m)
+
+        return True
 
     return _custom_predicate
 
@@ -77,7 +80,11 @@ def custom_async_predicate(msg: Message, custom_predicate: Callable[[Message], A
     async def _custom_async_predicate(m: Message):
         if (same_channel and m.channel != m.channel) or (same_author and m.author != msg.author):
             return False
-        return await custom_predicate(m)
+
+        if custom_predicate is not None:
+            return await custom_predicate(m)
+
+        return True
 
     return _custom_async_predicate
 
