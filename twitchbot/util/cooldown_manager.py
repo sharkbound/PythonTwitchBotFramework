@@ -40,7 +40,3 @@ class CooldownManager:
 
     def __contains__(self, item: Hashable):
         return item in self._cooldowns
-
-
-m = CooldownManager()
-m.set_cooldown(1)
