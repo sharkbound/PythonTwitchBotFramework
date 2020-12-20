@@ -28,7 +28,7 @@ class Command:
     def __init__(self, name: str, prefix: str = None, func: Callable = None, global_command: bool = True,
                  context: CommandContext = CommandContext.CHANNEL, permission: str = None, syntax: str = None,
                  help: str = None, aliases: List[str] = None, cooldown: int = DEFAULT_COOLDOWN,
-                 cooldown_bypass: str = DEFAULT_COOLDOWN_BYPASS, hidden: bool = False):
+                 cooldown_bypass: str = DEFAULT_COOLDOWN_BYPASS, hidden: bool = False, parent: 'Command' = None):
         """
         :param name: name of the command (without the prefix)
         :param prefix: prefix require before the command name (defaults the the configs prefix if None)
@@ -42,6 +42,7 @@ class Command:
         :param cooldown: time between when this command when can be run, 0 means the command be run without any delay and is default value
         :param cooldown_bypass: permission that allows those who have it to bypass the commands cooldown
         :param hidden: hides the command from the output of the commands command
+        :param parent: parent command for this command, allows for this command to be a subcommand
         """
         self.hidden = hidden
         self.cooldown_bypass = cooldown_bypass
@@ -56,6 +57,7 @@ class Command:
         self.name: str = name.lower()
         self.sub_cmds: Dict[str, Command] = {}
         self.parent: Optional[Command] = None
+        self.update_parent_command(parent)
 
         if global_command:
             commands[self.fullname] = self
@@ -64,6 +66,17 @@ class Command:
             if aliases is not None:
                 for alias in aliases:
                     commands[self.prefix + alias] = self
+
+    def update_parent_command(self, parent: 'Command' = None):
+        if parent is None:
+            if self.parent is not None and self.name in self.parent.sub_cmds:
+                del self.parent.sub_cmds[self.name]
+            self.parent = None
+        else:
+            self.parent = parent
+            if self.name in self.parent.sub_cmds:
+                del self.parent.sub_cmds[self.name]
+            parent.sub_cmds[self.name] = self
 
     @property
     def fullname(self) -> str:
@@ -141,18 +154,19 @@ class SubCommand(Command):
     def __init__(self, parent: Command, name: str, func: Callable = None, permission: str = None, syntax: str = None,
                  help: str = None, cooldown: int = DEFAULT_COOLDOWN, cooldown_bypass: str = DEFAULT_COOLDOWN_BYPASS, hidden: bool = False):
         super().__init__(name=name, prefix='', func=func, permission=permission, syntax=syntax, help=help,
-                         global_command=False, cooldown=cooldown, cooldown_bypass=cooldown_bypass, hidden=hidden)
+                         global_command=False, cooldown=cooldown, cooldown_bypass=cooldown_bypass, hidden=hidden, parent=parent)
 
-        self.parent: Command = parent
-        self.parent.sub_cmds[self.name] = self
+        # self.parent: Command = parent
+        # self.update_parent_command(parent)
+        # self.parent.sub_cmds[self.name] = self
 
 
 class DummyCommand(Command):
     def __init__(self, name: str, prefix: str = None, global_command: bool = True,
                  context: CommandContext = CommandContext.CHANNEL, permission: str = None, syntax: str = None,
-                 help: str = None, aliases: List[str] = None, hidden: bool = False):
+                 help: str = None, aliases: List[str] = None, hidden: bool = False, parent: Command = None):
         super().__init__(name=name, prefix=prefix, func=self.exec, global_command=global_command,
-                         context=context, permission=permission, syntax=syntax, help=help, aliases=aliases, hidden=hidden)
+                         context=context, permission=permission, syntax=syntax, help=help, aliases=aliases, hidden=hidden, parent=parent)
 
     async def exec(self, msg: Message, *args):
         """the function called when the dummy command is executed"""
@@ -210,10 +224,11 @@ class CustomCommandAction(Command):
 class ModCommand(Command):
     def __init__(self, mod_name: str, name: str, prefix: str = None, func: Callable = None, global_command: bool = True,
                  context: CommandContext = CommandContext.CHANNEL, permission: str = None, syntax: str = None,
-                 help: str = None, cooldown: int = DEFAULT_COOLDOWN, cooldown_bypass: str = DEFAULT_COOLDOWN_BYPASS, hidden: bool = False):
+                 help: str = None, cooldown: int = DEFAULT_COOLDOWN, cooldown_bypass: str = DEFAULT_COOLDOWN_BYPASS, hidden: bool = False,
+                 parent: Command = None):
         super().__init__(name=name, prefix=prefix, func=func, global_command=global_command, context=context,
                          permission=permission, syntax=syntax, help=help, cooldown=cooldown,
-                         cooldown_bypass=cooldown_bypass, hidden=hidden)
+                         cooldown_bypass=cooldown_bypass, hidden=hidden, parent=parent)
         self.mod_name = mod_name
 
     @property
