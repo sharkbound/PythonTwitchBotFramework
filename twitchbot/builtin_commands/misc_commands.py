@@ -21,8 +21,9 @@ from twitchbot import (
 #             msg=f'channel: {c.name}, viewers: {c.chatters.viewer_count}, is_mod: {c.is_mod}, is_live: {c.live}')
 
 
-@Command('commands', context=CommandContext.BOTH, help='lists all commands')
+@Command('commands', context=CommandContext.BOTH, help='lists all commands, add -a or -alias to list aliases')
 async def cmd_commands(msg: Message, *args):
+    include_aliases = '-a' in args or '-alias' in args
     custom_commands = ', '.join(map(attrgetter('name'), get_all_custom_commands(msg.channel_name)))
     usable_commands = []
     seen = set()
@@ -30,13 +31,17 @@ async def cmd_commands(msg: Message, *args):
         if (
                 command.fullname in seen
                 or command.hidden
+                or not is_command_whitelisted(command.name)
                 or is_command_disabled(msg.channel_name, command.name)
                 or not perms.has_permission(msg.channel_name, msg.author, command.permission)
         ):
             continue
+
+        seen.add(command.fullname)
         usable_commands.append(command.fullname)
-        for alias in command.aliases:
-            usable_commands.append(command.prefix + alias)
+        if include_aliases:
+            for alias in command.aliases:
+                usable_commands.append(command.prefix + alias)
     global_commands = ', '.join(usable_commands)
 
     if usable_commands:
