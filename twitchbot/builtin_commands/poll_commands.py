@@ -69,7 +69,11 @@ async def cmd_vote(msg: Message, *args):
 
 @Command('listpolls', help='list all active polls', permission=LIST_POLLS_PERMISSION)
 async def cmd_list_polls(msg: Message, *args):
-    await msg.reply(' '.join(f'{poll.id}) {poll.title}' for poll in get_active_channel_polls(msg.channel_name)))
+    polls = get_active_channel_polls(msg.channel_name)
+    if polls:
+        await msg.reply(" ".join(f"{poll.id}) {poll.title}" for poll in polls))
+    else:
+        await msg.reply("There are currently no active polls.")
 
 
 @Command('pollinfo', syntax='(POLL_ID)', help='views info about the poll using the passed poll id', permission=POLL_INFO_PERMISSION)
