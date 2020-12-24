@@ -34,7 +34,7 @@ these commands requires the caller have permission to execute them
 * [Reloading Permissions](#reloading-permissions)
 * [Command Server](#command-server)
 * [Command Console](#command-console)
-* [Mysql Support](#mysql-support)
+* [Database Support](#database-support)
 * [Command Whitelist](#command-whitelist)
 * [Twitch PubSub Client](#twitch-pubsub-client)
 
@@ -542,14 +542,19 @@ prompted to select a twitch channel that the bot is currently connected to.
 after choose the channel the prompt changes to `(CHANNEL_HERE):` and you are now able to send chat messages / commands
 to the choosen channel by typing your message and pressing enter
 
-# Mysql Support
+# Database Support
 
-to enabled mysql
+to enabled database support
 
-* open `configs/mysql.json` (if its missing run the bot and close it, this should generate `mysql.json`)
+* open `configs/database_config.json` (if its missing run the bot and close it, this should
+  generate `database_config.json`)
 * set `enabled` to `true`
-* fill in `address`, `username`, `password`, and `database`
-* install the mysql library (if needed) `pip install --upgrade --user mysql-connector-python`
+* fill in `address`, `port`, `username`, `password`, and `database` (you will need to edit `driver`/`database_format` if
+  you use something other than mysql or sqlite)
+* install the mysql library (if needed) FOR MYSQL INSTALL: `pip install --upgrade --user mysql-connector-python`, or any
+  other database supported by sqlalchemy, see the
+  sqlalchemy [engines](https://docs.sqlalchemy.org/en/13/core/engines.html). like for example POSTGRES:
+  `pip install --upgrade psycopg2`
 * rerun the bot
 
 # Command Whitelist
@@ -678,7 +683,8 @@ from twitchbot import PubSubTopics, Mod, get_pubsub
 
 class PubSubSubscriberMod(Mod):
     async def on_connected(self):
-        await get_pubsub().listen_to_channel('CHANNEL_HERE', [PubSubTopics.channel_points], access_token='PUBSUB_OAUTH_HERE')
+        await get_pubsub().listen_to_channel('CHANNEL_HERE', [PubSubTopics.channel_points],
+                                             access_token='PUBSUB_OAUTH_HERE')
 
     # only needed in most cases for verifying a connection
     # this can be removed once verified
@@ -698,18 +704,19 @@ from twitchbot import PubSubTopics, Mod, get_pubsub
 
 class PubSubSubscriberMod(Mod):
     async def on_connected(self):
-        await get_pubsub().listen_to_channel('CHANNEL_HERE', [PubSubTopics.channel_points], access_token='PUBSUB_OAUTH_HERE')
+        await get_pubsub().listen_to_channel('CHANNEL_HERE', [PubSubTopics.channel_points],
+                                             access_token='PUBSUB_OAUTH_HERE')
 
     # only needed in most cases for verifying a connection
     # this can be removed once verified
     async def on_pubsub_received(self, raw: 'PubSubData'):
         # this should print any errors received from twitch
         print(raw.raw_data)
-    
+
     # twitch only sends non-default channel point rewards over pubsub 
-    async def on_pubsub_custom_channel_point_reward(self, raw: 'PubSubData', data: 'PubSubPointRedemption'): 
+    async def on_pubsub_custom_channel_point_reward(self, raw: 'PubSubData', data: 'PubSubPointRedemption'):
         print(f'{data.user_display_name} has redeemed {data.reward_title}')
 ```
 
-
-that pretty much summarized how to use pubsub, if you have any more questions, or need help, do visit my discord server or subreddit (found at top of this readme)
+that pretty much summarized how to use pubsub, if you have any more questions, or need help, do visit my discord server
+or subreddit (found at top of this readme)
