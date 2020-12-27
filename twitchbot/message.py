@@ -269,9 +269,6 @@ class Message:
                 # relay the message
                 await self.channel.send_message(msg)
 
-    # else:
-    #     raise ValueError(f'invalid message type to reply, expected PRIVMSG or WHISPER, current: {self.type}')
-
     async def wait_for_reply(self, predicate: Callable[['Message'], Awaitable[bool]] = None, timeout=30, default=None,
                              raise_on_timeout=False) -> 'ReplyResult':
         """
@@ -292,6 +289,27 @@ class Message:
 
         return await wait_for_reply(predicate or same_author_predicate(self), timeout=timeout, default=default,
                                     raise_on_timeout=raise_on_timeout)
+
+    def _is_valid_arg_index(self, index: int):
+        if index >= 0:
+            return index < len(self.parts) - 1
+        # support for negative index checks
+        return -(len(self.parts) - 1) <= index <= -1
+
+    def arg_or_default(self, index: int, default: Optional[str] = None):
+        return self.args[index] if self._is_valid_arg_index(index) else default
+
+    def has_arg_index(self, index: int):
+        return self._is_valid_arg_index(index)
+
+    def safe_print(self):
+        try:
+            print(self)
+        except Exception as e:
+            err = traceback.format_exc()
+            print(err)
+            with open('printing_errors.log', 'a') as f:
+                f.write(f'\n\n{datetime.now()}:\n{err}')
 
     def __str__(self):
         if self.type is MessageType.PRIVMSG:
@@ -325,15 +343,6 @@ class Message:
             return f'{self.author} donated {self.tags.bits} bits to #{self.channel_name}'
 
         return self.raw_msg
-
-    def safe_print(self):
-        try:
-            print(self)
-        except Exception as e:
-            err = traceback.format_exc()
-            print(err)
-            with open('printing_errors.log', 'a') as f:
-                f.write(f'\n\n{datetime.now()}:\n{err}')
 
     def __getitem__(self, item):
         """
