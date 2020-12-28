@@ -177,7 +177,8 @@ async def cmd_give(msg: Message, *args):
 @Command('gamble', syntax='<bet> <dice_sides>',
          help='throws a X sided die, '
               'if the dice sides are more than 6 you get more payout on a success X roll, '
-              'but it is also a lower chance to roll X.')
+              'but it is also a lower chance to roll X.',
+         permission='gamble')
 async def cmd_gamble(msg: Message, *args):
     if not len(args):
         raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_gamble)
@@ -229,7 +230,7 @@ last_mine_time = {}
 mine_gain = 50
 
 
-@Command('mine', help='mines for currency, gives you a predefined amount (default 50)')
+@Command('mine', help='mines for currency, gives you a predefined amount (default 50)', permission='mine')
 async def cmd_mine(msg: Message, *args):
     key = (msg.author, msg.channel_name)
     diff = (datetime.now() - last_mine_time.get(key, datetime.now())).total_seconds()
