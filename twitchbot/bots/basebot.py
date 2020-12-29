@@ -323,14 +323,14 @@ class BaseBot:
         from .._bot_package_path import _BOT_PACKAGE_PATH
 
         load_commands_from_directory(os.path.join(_BOT_PACKAGE_PATH, 'builtin_commands'))
-
         load_mods_from_directory(os.path.join(_BOT_PACKAGE_PATH, 'builtin_mods'))
-        load_mods_from_directory(os.path.abspath(cfg.mods_folder))
 
         ensure_mods_folder_exists()
         ensure_commands_folder_exists()
 
+        load_mods_from_directory(os.path.abspath(cfg.mods_folder))
         load_commands_from_directory(os.path.abspath(cfg.commands_folder))
+
         await start_command_server()
 
     async def mainloop(self):
