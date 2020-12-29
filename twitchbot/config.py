@@ -1,7 +1,7 @@
 import os
 import json
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 from .gui import show_auth_gui
 
@@ -13,15 +13,18 @@ CONFIG_FOLDER = Path('configs')
 
 # noinspection PyTypeChecker
 class Config:
-    def __init__(self, file_path: Path, **defaults):
-        self.file_path = file_path
+    def __init__(self, file_path: Union[str, Path], **defaults):
+        if isinstance(file_path, str):
+            file_path = Path(file_path)
+
+        self.file_path: Path = file_path
         self.data = {}
         self.defaults = defaults
 
         self.load()
-        self._validate()
+        self._add_missing_keys()
 
-    def _validate(self):
+    def _add_missing_keys(self):
         """checks that all default keys are present"""
         for k, v in self.defaults.items():
             if k not in self.data:
@@ -73,9 +76,6 @@ class Config:
 
         with open(self.file_path, 'w') as file:
             json.dump(self.defaults, file, indent=2)
-
-    def prompt_edit_oauth(self):
-        pass
 
     def __getattr__(self, item):
         """allows for getting config values by accessing a attribute"""
