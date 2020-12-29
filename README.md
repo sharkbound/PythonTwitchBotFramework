@@ -72,10 +72,9 @@ this will start the bot.
 if you have a folder with your own custom commands you can load the .py files in it with:
 
 ```python
-from twitchbot import BaseBot, load_commands_from_directory
+from twitchbot import BaseBot
 
 if __name__ == '__main__':
-    load_commands_from_directory('PATH/TO/DIRECTORY')
     BaseBot().run()
 ```
 
