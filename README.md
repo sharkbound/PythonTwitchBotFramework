@@ -452,6 +452,14 @@ to remove a member from a group: `!delmember <group> <member>`, ex:
 to remove a permission from a group: `!delperm <group> <permission>`, ex:
 `!delperm donators slap`
 
+### tip: revoking permission for a group (aka negating permissions)
+to revoke a permission for a group, add the same permission but with a - in front of it
+
+ex: you can to prevent group B from using permission `feed` from group A. 
+
+Simply add its negated version to group B: `-feed`,  this PREVENTS group B from having the permission `feed` from group A
+
+
 ## managing permission by editing the configs
 
 find the `configs` folder the bot generated (will be in same directory as the script that run the bot)
