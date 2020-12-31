@@ -78,8 +78,14 @@ class Permissions:
             return True
 
         user, perm = user.lower(), perm.lower()
-        search = {perm, '*'}
-        return user == cfg.owner or any(p in search for p in self.iter_user_permissions(channel, user))
+        if user == cfg.owner:
+            return True
+
+        all_perms = frozenset(self.iter_user_permissions(channel, user))
+        return (
+                '*' in all_perms
+                or (perm in all_perms and f'-{perm}' not in all_perms)
+        )
 
     def get_group(self, channel: str, group: str) -> Optional[dict]:
         """gets a permission group by the name passed in, returns None if not found"""
