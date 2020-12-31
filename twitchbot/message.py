@@ -13,6 +13,7 @@ from .tags import Tags
 from .emote import emotes, Emote
 from .config import cfg
 from .util import strip_twitch_command_prefix
+from .cached_property import cached_property
 
 if TYPE_CHECKING:
     from .irc import Irc
@@ -47,26 +48,26 @@ class Message:
     def _normalize(self, s: str):
         return s.strip().casefold()
 
-    @property
-    def normalized_parts(self) -> FrozenSet[str]:
+    @cached_property
+    def normalized_parts(self) -> Tuple[str]:
         """
         parts of the message,
         but they are are stripped of any leading or trailing whitespace
         and converted to lowercase
         """
-        return frozenset(map(self._normalize, self.parts))
+        return tuple(map(self._normalize, self.parts))
 
-    @property
-    def normalized_args(self) -> FrozenSet[str]:
+    @cached_property
+    def normalized_args(self) -> Tuple[str]:
         """
         parts of the message starting at index 1,
         but they are are stripped of any leading or trailing whitespace
         and converted to lowercase
         """
-        return frozenset(map(self._normalize, islice(self.parts, 1, None)))
+        return tuple(map(self._normalize, islice(self.parts, 1, None)))
 
     @property
-    def normalized_content(self):
+    def normalized_content(self) -> str:
         """
         lowercase()'d and strip()'d version of msg.content
         """
