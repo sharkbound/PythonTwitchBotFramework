@@ -16,7 +16,7 @@ from ..disabled_commands import is_command_disabled
 from ..enums import Event
 from ..enums import MessageType, CommandContext
 from ..events import trigger_event
-from ..exceptions import InvalidArgumentsError
+from ..exceptions import InvalidArgumentsError, BotNotRunningError
 from ..message import Message
 from ..modloader import Mod
 from ..modloader import mods
@@ -368,7 +368,10 @@ class BaseBot:
 
     async def _read_process_loop(self):
         while self._running:
-            raw_msg = await self.irc.get_next_message()
+            try:
+                raw_msg = await self.irc.get_next_message()
+            except BotNotRunningError:
+                return
 
             if not raw_msg:
                 continue

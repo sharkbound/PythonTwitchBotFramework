@@ -3,6 +3,15 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .command import Command
 
+__all__ = [
+    'BotNotRunningError',
+    'InvalidArgumentsError',
+    'BadTwitchAPIResponse',
+]
+
+
+class BotNotRunningError(Exception): pass
+
 
 class InvalidArgumentsError(Exception):
     """

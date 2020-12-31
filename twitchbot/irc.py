@@ -33,6 +33,7 @@ class Irc:
         """
         connects to twitch and verifies is connected
         """
+
         print(f'logging in as {get_nick()}')
         backoff = 1
 
@@ -78,6 +79,9 @@ class Irc:
             else:
                 break
 
+        await self._update_global_emotes()
+
+    async def _update_global_emotes(self):
         try:
             from .emote import update_global_emotes
             from traceback import format_exc
@@ -161,9 +165,24 @@ class Irc:
         await trigger_event(Event.on_whisper_sent, msg, user, get_nick())
 
     async def get_next_message(self, timeout=None):
+        """
+        reads the next message from the irc connection
+
+        if timeout is provided it will error with `asyncio.TimeoutError` if no message is received before the timeout seconds
+
+        if the not is not running it will error with `BotNotRunningError`
+
+        :param timeout: seconds as a float that will raise
+        :return: whitespace and newline stripped message as a string received from irc connection
+        :raises: asyncio.TimeoutError, BotShutdownError
+        """
         try:
             return (await asyncio.wait_for(self.socket.recv(), timeout=timeout)).strip()
         except (websockets.ConnectionClosedError, websockets.ConnectionClosed):
+            if not get_bot()._running:
+                from .exceptions import BotNotRunningError
+                raise BotNotRunningError()
+
             while not self.connected:
                 await self.connect_to_twitch()
             return await self.get_next_message()
