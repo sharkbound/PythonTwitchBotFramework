@@ -669,7 +669,7 @@ with this example
 using the utility script, you can call `generate_auth_url` to generate the authorization URL for you
 
 ```python
-print(generate_auth_url('CLIENT_ID_HERE', 'REDIRECT_URI_HERE', PubSubTopics.channel_points))
+print(generate_auth_url('CLIENT_ID_HERE', 'REDIRECT_URI_HERE', PubSubTopics.community_channel_points))
 ```
 
 ### Required OAuth Scopes for PubSub topics
