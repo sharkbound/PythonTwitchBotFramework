@@ -211,6 +211,7 @@ class PubSubClient:
                 or self._check_for_moderation_action(data)
                 or self._check_for_subscription(data)
                 or self._check_for_twitch_poll_update(data)
+                or self._check_for_user_follow(data)
                 or self._noop()
         )
 
@@ -265,6 +266,16 @@ class PubSubClient:
             return False
 
         forward_event(Event.on_pubsub_twitch_poll_update, data, PubSubPollData(data))
+        return True
+
+    def _check_for_user_follow(self, data: 'PubSubData'):
+        from ..event_util import forward_event
+        from .pubsub_follow import PubSubFollow
+
+        if not data.is_user_follow:
+            return False
+
+        forward_event(Event.on_pubsub_user_follow, data, PubSubFollow(data))
         return True
 
     async def _send_ping_if_needed(self):

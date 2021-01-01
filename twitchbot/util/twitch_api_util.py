@@ -10,7 +10,8 @@ from ..data import UserFollowers, UserInfo, RateLimit
 
 __all__ = ('CHANNEL_CHATTERS_URL', 'get_channel_chatters', 'get_stream_data', 'get_url', 'get_user_data', 'get_user_id',
            'STREAM_API_URL', 'USER_API_URL', 'get_user_followers', 'USER_FOLLOWERS_API_URL', 'get_headers',
-           'get_user_info', 'get_user_creation_date', 'USER_ACCOUNT_AGE_API', 'CHANNEL_INFO_API', 'get_channel_info', 'ChannelInfo')
+           'get_user_info', 'get_user_creation_date', 'USER_ACCOUNT_AGE_API', 'CHANNEL_INFO_API', 'get_channel_info', 'ChannelInfo',
+           'get_channel_name_from_user_id')
 
 USER_API_URL = 'https://api.twitch.tv/helix/users?login={}'
 STREAM_API_URL = 'https://api.twitch.tv/helix/streams?user_login={}'
@@ -129,16 +130,26 @@ def get_headers(use_kraken: bool = False):
     return headers
 
 
-ChannelInfo = NamedTuple('ChannelInfo', (
-    ('broadcaster_id', str), ('broadcaster_name', str), ('broadcaster_language', str), ('game_id', str), ('game_name', str), ('title', str)))
+ChannelInfo = NamedTuple(
+    'ChannelInfo', (
+        ('broadcaster_id', str),
+        ('broadcaster_name', str),
+        ('broadcaster_language', str),
+        ('game_id', str),
+        ('game_name', str),
+        ('title', str))
+)
 
 
-async def get_channel_info(broadcaster_name: str, headers: dict = None) -> Optional[ChannelInfo]:
+async def get_channel_info(broadcaster_name_or_id: str, headers: dict = None) -> Optional[ChannelInfo]:
     from ..util import dict_get_value
 
-    user_id = await get_user_id(broadcaster_name, headers=headers)
-    if user_id == -1:
-        return None
+    if not broadcaster_name_or_id.strip().isnumeric():
+        user_id = await get_user_id(broadcaster_name_or_id, headers=headers)
+        if user_id == -1:
+            return None
+    else:
+        user_id = broadcaster_name_or_id
 
     _, json = await get_url(CHANNEL_INFO_API.format(user_id), headers=headers)
     data = dict_get_value(json, 'data', 0)
@@ -148,3 +159,22 @@ async def get_channel_info(broadcaster_name: str, headers: dict = None) -> Optio
 
     return ChannelInfo(broadcaster_id=data['broadcaster_id'], broadcaster_name=data['broadcaster_name'],
                        broadcaster_language=data['broadcaster_language'], game_id=data['game_id'], game_name=data['game_name'], title=data['title'])
+
+
+_channel_id_to_name_cache = {}
+
+
+async def get_channel_name_from_user_id(user_id: str, headers: dict = None) -> str:
+    user_id = user_id.strip()
+
+    if user_id in _channel_id_to_name_cache:
+        return _channel_id_to_name_cache[user_id]
+
+    headers = headers or get_headers()
+    channel_info = await get_channel_info(user_id, headers=headers)
+
+    if not channel_info:
+        return ''
+
+    _channel_id_to_name_cache[user_id] = channel_info.broadcaster_name
+    return channel_info.broadcaster_name

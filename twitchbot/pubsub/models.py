@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from .pubsub_moderation_action import PubSubModerationAction
     from .subscription_model import PubSubSubscription
     from .pubsub_poll_update import PubSubPollData
+    from .pubsub_follow import PubSubFollow
 
 __all__ = [
     'PubSubData'
@@ -53,6 +54,10 @@ class PubSubData:
         from .pubsub_poll_update import PubSubPollData
         return PubSubPollData(self)
 
+    def as_user_follow(self) -> 'PubSubFollow':
+        from .pubsub_follow import PubSubFollow
+        return PubSubFollow(self)
+
     def is_type(self, type: str):
         return self.raw_data.get('type').lower() == type.lower()
 
@@ -91,6 +96,10 @@ class PubSubData:
     @property
     def is_twitch_poll_update(self) -> bool:
         return 'poll_' in self.message_dict.get('type', '').lower()
+
+    @property
+    def is_user_follow(self) -> bool:
+        return 'following.' in dict_get_value(self.raw_data, 'data.topic', default='')
 
     @property
     def has_message(self):

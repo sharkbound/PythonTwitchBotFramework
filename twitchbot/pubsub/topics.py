@@ -8,4 +8,4 @@ class PubSubTopics:
     whispers = 'whispers.'
     community_channel_points = 'community-points-channel-v1.'
     twitch_poll_updates = 'polls.'
-    # following = 'following.'
+    follows = 'following.'

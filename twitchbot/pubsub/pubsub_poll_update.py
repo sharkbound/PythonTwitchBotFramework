@@ -1,8 +1,9 @@
-from typing import Tuple, Union, List
+from typing import Tuple, Union, List, Optional
 
 from .models import PubSubData
-from .. import cached_property
 from .twitch_poll_vote_choice import TwitchPollVoteChoice
+from .. import cached_property, get_channel_name_from_user_id
+from ..channel import Channel, channels
 
 __all__ = [
     'PubSubPollData'
@@ -87,3 +88,7 @@ class PubSubPollData:
     @property
     def remaining_milliseconds(self):
         return self.poll_data_dict.get('remaining_duration_milliseconds', 0)
+
+    async def get_channel(self) -> Optional['Channel']:
+        name = (await get_channel_name_from_user_id(self.poll_owner_id) or '').strip().lower()
+        return channels.get(name)

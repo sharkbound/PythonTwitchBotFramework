@@ -150,6 +150,7 @@ Event.on_pubsub_bits: (self, raw: 'PubSubData', data: 'PubSubBits')
 Event.on_pubsub_moderation_action: (self, raw: 'PubSubData', data: 'PubSubModerationAction')
 Event.on_pubsub_subscription: (self, raw: 'PubSubData', data: 'PubSubSubscription')
 Event.on_pubsub_twitch_poll_update: (self, raw: 'PubSubData', poll: 'PubSubPollData')
+Event.on_pubsub_user_follow: (self, raw: 'PubSubData', data: 'PubSubFollow')
 Event.on_bot_shutdown: (self)
 ```
 

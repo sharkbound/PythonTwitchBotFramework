@@ -12,7 +12,7 @@ from typing import Dict, Callable, Any
 
 if typing.TYPE_CHECKING:
     from .poll import PollData
-    from .pubsub import PubSubData, PubSubPointRedemption, PubSubBits, PubSubModerationAction, PubSubSubscription, PubSubPollData
+    from .pubsub import PubSubData, PubSubPointRedemption, PubSubBits, PubSubModerationAction, PubSubSubscription, PubSubPollData, PubSubFollow
 
 from .channel import Channel
 from .command import Command
@@ -231,6 +231,13 @@ class Mod:
         triggered when a user subscribes or resubscribes to a channel
         :param raw: the raw pubsub message
         :param data: data specific to the user subscription
+        """
+
+    async def on_pubsub_user_follow(self, raw: 'PubSubData', data: 'PubSubFollow'):
+        """
+        triggered when a user follows a channel that is listened to by the bot's pubsub client
+        :param raw: the raw pubsub message
+        :param data: data specific to the user follow
         """
 
     async def on_bot_shutdown(self):
