@@ -37,4 +37,6 @@ def validate_oauth(token: str) -> dict:
     return requests.get(VALIDATE_URL, headers={'Authorization': f'OAuth {token}'}).json()
 
 
-print(generate_auth_url('client', 'https://twitchapps.com/tmi/', 'channel_editor'))
+def revoke_oauth_token(client_id: str, oauth: str):
+    oauth = oauth.replace('oauth:', '')
+    return requests.post(f'https://id.twitch.tv/oauth2/revoke?client_id={client_id}&token={oauth}')
