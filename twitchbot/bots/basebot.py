@@ -32,7 +32,7 @@ from ..extra_configs import logging_config
 from ..irc import Irc
 
 if TYPE_CHECKING:
-    from ..pubsub import PubSubData, PubSubPointRedemption, PubSubBits, PubSubModerationAction, PubSubSubscription
+    from ..pubsub import PubSubData, PubSubPointRedemption, PubSubBits, PubSubModerationAction, PubSubSubscription, PubSubPollData
 
 
 # noinspection PyMethodMayBeStatic
@@ -209,6 +209,12 @@ class BaseBot:
         triggered when a user subscribes or resubscribes to a channel
         :param raw: the raw pubsub message
         :param data: data specific to the user subscription
+        """
+
+    async def on_pubsub_twitch_poll_update(self, raw: 'PubSubData', poll: 'PubSubPollData'):
+        """
+        triggered when a poll is start/updated/completed on a channel
+        :param poll: the poll that the triggered the event
         """
 
     async def on_bot_shutdown(self):

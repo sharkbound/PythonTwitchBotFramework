@@ -7,3 +7,5 @@ class PubSubTopics:
     moderation_actions = 'chat_moderator_actions.'
     whispers = 'whispers.'
     community_channel_points = 'community-points-channel-v1.'
+    twitch_poll_updates = 'polls.'
+    # following = 'following.'

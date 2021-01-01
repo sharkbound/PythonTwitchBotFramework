@@ -149,6 +149,7 @@ Event.on_pubsub_custom_channel_point_reward: (self, raw: 'PubSubData', data: 'Pu
 Event.on_pubsub_bits: (self, raw: 'PubSubData', data: 'PubSubBits')
 Event.on_pubsub_moderation_action: (self, raw: 'PubSubData', data: 'PubSubModerationAction')
 Event.on_pubsub_subscription: (self, raw: 'PubSubData', data: 'PubSubSubscription')
+Event.on_pubsub_twitch_poll_update: (self, raw: 'PubSubData', poll: 'PubSubPollData')
 Event.on_bot_shutdown: (self)
 ```
 
@@ -453,12 +454,12 @@ to remove a permission from a group: `!delperm <group> <permission>`, ex:
 `!delperm donators slap`
 
 ### tip: revoking permission for a group (aka negating permissions)
+
 to revoke a permission for a group, add the same permission but with a - in front of it
 
-ex: you can to prevent group B from using permission `feed` from group A. 
+ex: you can to prevent group B from using permission `feed` from group A.
 
-Simply add its negated version to group B: `-feed`,  this PREVENTS group B from having the permission `feed` from group A
-
+Simply add its negated version to group B: `-feed`, this PREVENTS group B from having the permission `feed` from group A
 
 ## managing permission by editing the configs
 

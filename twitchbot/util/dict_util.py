@@ -1,4 +1,5 @@
 import json
+import re
 from typing import Any
 
 __all__ = [
@@ -22,6 +23,9 @@ def dict_has_keys(data: dict, *keys) -> bool:
 
 
 def dict_get_value(data: dict, *keys, default: Any = None) -> Any:
+    if len(keys) == 1:
+        keys = re.split(r'[./]', keys[0])
+
     for key in keys:
         try:
             data = data[key]

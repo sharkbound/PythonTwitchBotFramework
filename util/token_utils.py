@@ -35,3 +35,6 @@ def join_scopes(*scopes):
 
 def validate_oauth(token: str) -> dict:
     return requests.get(VALIDATE_URL, headers={'Authorization': f'OAuth {token}'}).json()
+
+
+print(generate_auth_url('client', 'https://twitchapps.com/tmi/', 'channel_editor'))

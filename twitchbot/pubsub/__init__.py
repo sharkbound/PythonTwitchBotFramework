@@ -6,3 +6,5 @@ from .whisper_model import PubSubWhisper
 from .subscription_model import PubSubSubscription
 from .pubsub_moderation_action import PubSubModerationAction
 from .subscription_model import PubSubSubscription
+from .pubsub_poll_update import *
+from .twitch_poll_vote_choice import *

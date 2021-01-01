@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from .bits_model import PubSubBits
     from .pubsub_moderation_action import PubSubModerationAction
     from .subscription_model import PubSubSubscription
+    from .pubsub_poll_update import PubSubPollData
 
 __all__ = [
     'PubSubData'
@@ -48,6 +49,10 @@ class PubSubData:
         from .subscription_model import PubSubSubscription
         return PubSubSubscription(self)
 
+    def as_twitch_poll_update(self) -> 'PubSubPollData':
+        from .pubsub_poll_update import PubSubPollData
+        return PubSubPollData(self)
+
     def is_type(self, type: str):
         return self.raw_data.get('type').lower() == type.lower()
 
@@ -82,6 +87,10 @@ class PubSubData:
     @property
     def is_subscription(self) -> bool:
         return self.is_type(self.MESSAGE_TYPE) and self.SUBSCRIPTION_MESSAGE_TYPE.lower() in self.topic.lower()
+
+    @property
+    def is_twitch_poll_update(self) -> bool:
+        return 'poll_' in self.message_dict.get('type', '').lower()
 
     @property
     def has_message(self):

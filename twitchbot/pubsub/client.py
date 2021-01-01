@@ -210,6 +210,7 @@ class PubSubClient:
                 or self._check_for_bits(data)
                 or self._check_for_moderation_action(data)
                 or self._check_for_subscription(data)
+                or self._check_for_twitch_poll_update(data)
                 or self._noop()
         )
 
@@ -254,6 +255,16 @@ class PubSubClient:
             return False
 
         forward_event(Event.on_pubsub_moderation_action, data, PubSubModerationAction(data))
+        return True
+
+    def _check_for_twitch_poll_update(self, data: 'PubSubData'):
+        from ..event_util import forward_event
+        from .pubsub_poll_update import PubSubPollData
+
+        if not data.is_twitch_poll_update:
+            return False
+
+        forward_event(Event.on_pubsub_twitch_poll_update, data, PubSubPollData(data))
         return True
 
     async def _send_ping_if_needed(self):

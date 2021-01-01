@@ -12,7 +12,7 @@ from typing import Dict, Callable, Any
 
 if typing.TYPE_CHECKING:
     from .poll import PollData
-    from .pubsub import PubSubData, PubSubPointRedemption, PubSubBits, PubSubModerationAction, PubSubSubscription
+    from .pubsub import PubSubData, PubSubPointRedemption, PubSubBits, PubSubModerationAction, PubSubSubscription, PubSubPollData
 
 from .channel import Channel
 from .command import Command
@@ -218,6 +218,12 @@ class Mod:
         triggered when a moderator does a moderation action such as ban/unban/timeout
         :param raw: the raw pubsub message
         :param data: data specific to the moderation action taken
+        """
+
+    async def on_pubsub_twitch_poll_update(self, raw: 'PubSubData', poll: 'PubSubPollData'):
+        """
+        triggered when a poll is start/updated/completed on a channel
+        :param poll: the poll that the triggered the event
         """
 
     async def on_pubsub_subscription(self, raw: 'PubSubData', data: 'PubSubSubscription'):
