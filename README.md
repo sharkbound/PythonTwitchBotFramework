@@ -672,6 +672,20 @@ using the utility script, you can call `generate_auth_url` to generate the autho
 print(generate_auth_url('CLIENT_ID_HERE', 'REDIRECT_URI_HERE', PubSubTopics.channel_points))
 ```
 
+### Required OAuth Scopes for PubSub topics
+
+```
+followers                     -> channel_editor
+polls                         -> channel_editor
+bits                          -> bits:read
+bits badge notification       -> bits:read
+channel points                -> channel:read:redemptions
+community channel points      -> (not sure, seems to be included in the irc oauth)
+channel subscriptions         -> channel_subscriptions
+chat (aka moderation actions) -> channel:moderate
+whispers                      -> whispers:read
+```
+
 the `[PubSubTopics.channel_points]` is the list of scopes to add to the authorization request url
 
 after the URL is printed, copy it and visit/send the url to owner of the channel that you want pubsub access to
