@@ -233,8 +233,7 @@ class BaseBot:
 
     def _create_channels(self):
         for name in cfg.channels:
-            chan = Channel(name, irc=self.irc)
-            chan.start_update_loop()
+            Channel(name, irc=self.irc, register_globally=True)
 
     async def get_command_from_msg(self, msg: Message) -> Optional[Command]:
         """
@@ -312,7 +311,6 @@ class BaseBot:
 
     def run(self):
         """runs/starts the bot, this is a blocking function that starts the mainloop"""
-        self._running = True
         try:
             loop = get_event_loop()
         except RuntimeError as _:
@@ -348,7 +346,8 @@ class BaseBot:
 
     async def mainloop(self):
         """starts the bot, connects to twitch, then starts the message event loop"""
-        # check if user wants to input oauth info manually
+        self._running = True
+
         if not generate_config():
             stop_all_tasks()
             warnings.warn(
