@@ -42,6 +42,7 @@ class _RequestType:
     SEND_PRIVMSG = 'send_privmsg'
     CHANNEL_NOT_FOUND = 'channel_not_found'
     SUCCESS = 'success'
+    RUN_COMMAND = 'run_command'
 
 
 class State:
@@ -63,6 +64,7 @@ class State:
 def print_help():
     print('/channel <channel> : binds this console to a bot-joined channel (needed for /chat)')
     print('/chat <msg> : sends the chat message to the channel bound to this console')
+    print('/sendcmd <commands> [args...]: tells the bot run a command')
     print('/help to see this message again')
 
 
@@ -100,6 +102,11 @@ async def run():
         while state.authenticated and not state.waiting_for_read:
             command = input('>> ')
             parts = command.split()
+
+            if not parts:
+                print_help()
+                continue
+
             command_part = parts[0].lower()
             if command_part in client_commands:
                 await client_commands[command_part](connection, state, parts[1:])
@@ -119,6 +126,20 @@ def client_command(func: Coroutine = None, name: str = '', prefix: str = '/'):
 @client_command(name='help')
 async def c_help(connection: Connection, state: State, args: List[str]):
     print_help()
+
+
+@client_command(name='sendcmd')
+async def c_help(connection: Connection, state: State, args: List[str]):
+    if not state.has_bound_channel:
+        print('there is not a bound channel! use `/channel <channel>` to bind one!')
+        return
+
+    if not args:
+        print('you must provide a command to run to /sendcmd, ex: /sendcmd help')
+        return
+
+    state.reads_left += 1
+    await connection.send_json(type=_RequestType.RUN_COMMAND, channel=state.bound_channel, command=args[0], args=args[1:])
 
 
 @client_command(name='chat')
