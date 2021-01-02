@@ -8,9 +8,12 @@ class ChannelViewUpdaterMod(Mod):
     TASK_NAME = 'channelviewerupdateloop'
 
     async def channel_update_loop(self):
-        await asyncio.sleep(3)  # gives time for channels to populate
         while True:
-            for channel in channels.values():
+            while not channels:
+                await asyncio.sleep(3)
+
+            # convert channels.values() to a tuple to be sure it will be resize while iterating over it
+            for channel in tuple(channels.values()):
                 await channel.chatters.update()
                 await channel.stats.update()
                 channel.is_mod = get_nick().lower() in channel.chatters.mods
