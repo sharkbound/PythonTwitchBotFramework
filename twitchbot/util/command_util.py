@@ -1,6 +1,6 @@
 import re
 from asyncio import get_event_loop
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, Type
 
 if TYPE_CHECKING:
     from ..message import Message
@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 __all__ = ['run_command', 'strip_twitch_command_prefix', 'RE_TWITCH_COMMAND_PREFIX']
 
 
-async def run_command(name: str, msg: 'Message', args: List[str] = None, blocking: bool = True):
+async def run_command(name: str, msg: 'Message', args: List[str] = None, blocking: bool = True, msg_class: Type['Message'] = None):
     """
     runs a command from another command, can be used for chaining command pragmatically,
     the base message passed to this function MUST be a WHISPER or PRIVMSG for this to work
@@ -39,7 +39,7 @@ async def run_command(name: str, msg: 'Message', args: List[str] = None, blockin
     text = raw[:raw.index(':', raw.index(':') + 1) + 1]
     # create a new message from the formatted new raw text, this is needed to ensure everything flows as intended
     # here the base message data is used, then we replace the context with our own command and arguments
-    new_msg = Message(f"{text}{cmd.fullname} {' '.join(args)}", irc=msg.irc, bot=msg.bot)
+    new_msg = (Message if msg_class is None else msg_class)(f"{text}{cmd.fullname} {' '.join(args)}", irc=msg.irc, bot=msg.bot)
 
     if blocking:
         await cmd.execute(new_msg)
