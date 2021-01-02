@@ -1,5 +1,5 @@
 import json
-from typing import Optional
+from typing import Optional, Callable, Awaitable
 
 import websockets
 from asyncio import get_event_loop
@@ -11,7 +11,8 @@ from .util import add_task, task_running, stop_task
 
 __all__ = [
     'start_command_server',
-    'stop_command_server'
+    'stop_command_server',
+    'SilentMessage'
 ]
 
 HOST = cfg.command_server_host
@@ -61,6 +62,19 @@ class _RequestType:
     RUN_COMMAND = 'run_command'
 
 
+from .message import Message
+
+
+class SilentMessage(Message):
+    async def reply(self, msg: str = '', whisper=False, strip_command_prefix: bool = True):
+        print(f'COMMAND SERVER [SILENT RUN OUTPUT]: {msg}')
+
+    # noinspection PyUnresolvedReferences
+    async def wait_for_reply(self, predicate: Callable[['Message'], Awaitable[bool]] = None, timeout=30, default=None,
+                             raise_on_timeout=False) -> 'ReplyResult':
+        raise RuntimeError(f'cannot call wait_for_reply() on {self.__class__}')
+
+
 class ClientHandler:
     def __init__(self, websocket: websockets.WebSocketServerProtocol, path: str):
         self.path = path
@@ -95,7 +109,14 @@ class ClientHandler:
         from .irc import create_fake_privmsg
 
         try:
-            await run_command(data['command'], create_fake_privmsg(data['channel'], ''), list(data['args']), blocking=True)
+            msg_class = SilentMessage if data.get('silent', False) else None
+            await run_command(
+                name=data['command'],
+                msg=create_fake_privmsg(data['channel'], ''),
+                args=list(data['args']),
+                blocking=True,
+                msg_class=msg_class
+            )
         except Exception as e:
             print(
                 f'COMMAND SERVER [FAILED TO RUN COMMAND]: attempt to run command "{data["command"]}" with args {data["args"]} raised a error. details:\n\t'
