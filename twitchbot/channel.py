@@ -59,16 +59,13 @@ class Channel:
                 self.is_vip = get_nick().lower() in self.chatters.vips
                 await asyncio.sleep(120)  # update viewers every 2 minutes
 
-    def start_update_loop(self):
-        asyncio.get_event_loop().create_task(self.update_loop())
-
     async def ban(self, user: str, reason: str = ''):
         """purges a user's messages then permabans them from the channel"""
         await self.send_command(f'ban {user} {reason}')
 
     async def timeout(self, user: str, duration: int = 600):
         """
-        purges a user's messages then timeout out (makes them unable to chat)
+        purges a user's messages then times out the user (makes them unable to chat)
         for the specified duration (default 600 seconds)
         """
         await self.send_command(f'timeout {user} {duration}')
