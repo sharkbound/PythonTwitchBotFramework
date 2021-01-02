@@ -2,7 +2,7 @@ import asyncio
 import logging
 import re
 import typing
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Type
 
 import aiohttp
 import websockets
@@ -32,10 +32,13 @@ if TYPE_CHECKING:
     from .message import Message
 
 
-# :userman2!userman2@userman2.tmi.twitch.tv PRIVMSG #userman2 :hello!
-def create_fake_privmsg(channel: str, content: str) -> 'Message':
+# :name!name@name.tmi.twitch.tv PRIVMSG #name :hello!
+def create_fake_privmsg(channel: str, content: str, msg_class: Type['Message'] = None) -> 'Message':
     from .config import cfg
-    from .message import Message
+    if msg_class is None:
+        from .message import Message
+    else:
+        Message = msg_class
 
     bot = get_bot()
     name = cfg.nick
