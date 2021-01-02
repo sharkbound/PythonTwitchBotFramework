@@ -12,7 +12,7 @@ class ChannelViewUpdaterMod(Mod):
             while not channels:
                 await asyncio.sleep(3)
 
-            # convert channels.values() to a tuple to be sure it will be resize while iterating over it
+            # convert channels.values() to a tuple to be sure it will not resize while iterating over it
             for channel in tuple(channels.values()):
                 await channel.chatters.update()
                 await channel.stats.update()
