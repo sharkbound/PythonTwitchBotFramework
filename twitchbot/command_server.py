@@ -58,6 +58,7 @@ class _RequestType:
     SEND_PRIVMSG = 'send_privmsg'
     CHANNEL_NOT_FOUND = 'channel_not_found'
     SUCCESS = 'success'
+    RUN_COMMAND = 'run_command'
 
 
 class ClientHandler:
@@ -88,6 +89,37 @@ class ClientHandler:
 
         await channels[channel].send_message(data['message'])
         await self.write_json(type=_RequestType.SUCCESS, data={'type': _RequestType.SEND_PRIVMSG})
+
+    async def _guard_run_cmd(self, data: dict):
+        from .util import run_command
+        from .irc import create_fake_privmsg
+
+        try:
+            await run_command(data['command'], create_fake_privmsg(data['channel'], ''), list(data['args']), blocking=True)
+        except Exception as e:
+            print(
+                f'COMMAND SERVER [FAILED TO RUN COMMAND]: attempt to run command "{data["command"]}" with args {data["args"]} raised a error. details:\n\t'
+                f'{e.__class__.__name__}: {e}')
+
+    async def handle_run_command(self, data: dict):
+        if 'channel' not in data:
+            await self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'data for run_command is missing `channel` key'})
+            return
+
+        if 'command' not in data:
+            await self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'data for run_command is missing `command` key'})
+            return
+
+        if 'args' not in data:
+            await self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'data for run_command is missing `args` key'})
+            return
+
+        if not isinstance(data['args'], list):
+            await self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'key `args` must be a list for `run_command`'})
+            return
+
+        get_event_loop().create_task(self._guard_run_cmd(data))
+        await self.write_json(type=_RequestType.SUCCESS, data={'type': _RequestType.RUN_COMMAND})
 
     async def run(self):
         try:
@@ -121,6 +153,8 @@ class ClientHandler:
 
                 if msg_type == _RequestType.SEND_PRIVMSG:
                     await self.handle_send_privmsg(data)
+                elif msg_type == _RequestType.RUN_COMMAND:
+                    await self.handle_run_command(data)
         except ConnectionResetError:
             return
 

@@ -2,10 +2,18 @@ import asyncio
 import logging
 import re
 import typing
+from typing import TYPE_CHECKING
 
 import aiohttp
 import websockets
-import socket
+
+__all__ = [
+    'Irc',
+    'PRIVMSG_MAX_LINE_LENGTH',
+    'WHISPER_MAX_LINE_LENGTH',
+    'PRIVMSG_FORMAT',
+    'create_fake_privmsg',
+]
 
 from textwrap import wrap
 
@@ -19,6 +27,19 @@ from .shared import TWITCH_IRC_WEBSOCKET_URL, WEBSOCKET_ERRORS
 PRIVMSG_MAX_LINE_LENGTH = 450
 WHISPER_MAX_LINE_LENGTH = 438
 PRIVMSG_FORMAT = 'PRIVMSG #{channel} :{line}'
+
+if TYPE_CHECKING:
+    from .message import Message
+
+
+# :userman2!userman2@userman2.tmi.twitch.tv PRIVMSG #userman2 :hello!
+def create_fake_privmsg(channel: str, content: str) -> 'Message':
+    from .config import cfg
+    from .message import Message
+
+    bot = get_bot()
+    name = cfg.nick
+    return Message(f':{name}!{name}@{name}.tmi.twitch.tv PRIVMSG #{channel.strip("#")} :{content}', bot.irc, bot)
 
 
 class Irc:
