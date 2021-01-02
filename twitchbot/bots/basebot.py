@@ -309,13 +309,19 @@ class BaseBot:
         await self.irc.send('QUIT')
         self._running = False
 
+    def _get_event_loop(self):
+        try:
+            return get_event_loop()
+        except RuntimeError:
+            return asyncio.new_event_loop()
+
     def run(self):
         """runs/starts the bot, this is a blocking function that starts the mainloop"""
-        try:
-            loop = get_event_loop()
-        except RuntimeError as _:
-            loop = asyncio.new_event_loop()
-        loop.run_until_complete(self.mainloop())
+        self._get_event_loop().run_until_complete(self.mainloop())
+
+    def run_in_async_task(self):
+        """runs the bot in a separate asyncio task to allow other async bot/systems to run along side it"""
+        self._get_event_loop().create_task(self.mainloop())
 
     def run_threaded(self) -> Thread:
         """runs/starts the bot in its own thread, this is a NON-BLOCKING function that starts the mainloop"""
