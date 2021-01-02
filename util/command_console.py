@@ -84,15 +84,18 @@ async def run():
 
         if msg_type == _RequestType.SEND_PASSWORD:
             await connection.send(getpass.getpass('enter password for server >>> ').strip())
+
         elif msg_type == _RequestType.DISCONNECTING:
             print('server terminated connection...')
             return
+
         elif msg_type == _RequestType.BAD_PASSWORD:
             print('authentication failed... password did not match!')
             return
+
         elif msg_type == _RequestType.LIST_CHANNELS:
-            state.channels = data['data']['channels']
-            print(f'bot is in these channels: {", ".join(state.channels)}')
+            await update_state_channels(data, state)
+
         elif msg_type == _RequestType.AUTHENTICATION_SUCCESSFUL:
             state.authenticated = True
             state.reads_left += 1
@@ -112,6 +115,15 @@ async def run():
                 await client_commands[command_part](connection, state, parts[1:])
 
 
+async def update_state_channels(data, state):
+    state.channels = data['data']['channels']
+    if len(state.channels) == 1:
+        state.bound_channel = state.channels[0]
+        print(f'bound console to channel "{state.bound_channel}"')
+    else:
+        print(f'bot is in these channels: {", ".join(state.channels)}')
+
+
 client_commands = {}
 
 
@@ -129,7 +141,7 @@ async def c_help(connection: Connection, state: State, args: List[str]):
 
 
 @client_command(name='sendcmd')
-async def c_help(connection: Connection, state: State, args: List[str]):
+async def c_sendcmd(connection: Connection, state: State, args: List[str]):
     if not state.has_bound_channel:
         print('there is not a bound channel! use `/channel <channel>` to bind one!')
         return
@@ -139,7 +151,7 @@ async def c_help(connection: Connection, state: State, args: List[str]):
         return
 
     state.reads_left += 1
-    await connection.send_json(type=_RequestType.RUN_COMMAND, channel=state.bound_channel, command=args[0], args=args[1:])
+    await connection.send_json(type=_RequestType.RUN_COMMAND, channel=state.bound_channel, command=args[0], args=args[1:], silent=True)
 
 
 @client_command(name='chat')
@@ -157,7 +169,7 @@ async def c_chat(connection: Connection, state: State, args: List[str]):
 
 
 @client_command(name='channel')
-async def c_chat(connection: Connection, state: State, args: List[str]):
+async def c_channel(connection: Connection, state: State, args: List[str]):
     if not state.channels:
         print('the bot is not currently in any channels, please have the bot join at least one than relaunch this console')
         return
