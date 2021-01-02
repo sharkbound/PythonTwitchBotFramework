@@ -50,13 +50,14 @@ class Channel:
     #     await self.send_command(f'ban {user}')
 
     async def update_loop(self):
+        from .config import cfg
         if get_client_id() != 'CLIENT_ID':
             while True:
                 await self.chatters.update()
                 await self.stats.update()
                 self.is_mod = get_nick().lower() in self.chatters.mods
                 self.is_vip = get_nick().lower() in self.chatters.vips
-                await asyncio.sleep(60)
+                await asyncio.sleep(120)  # update viewers every 2 minutes
 
     def start_update_loop(self):
         asyncio.get_event_loop().create_task(self.update_loop())
