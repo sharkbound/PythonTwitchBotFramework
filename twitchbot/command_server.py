@@ -167,7 +167,7 @@ class ClientHandler:
                     continue
 
                 if 'type' not in data:
-                    await self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'data is must have the `type` key'})
+                    await self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'data is missing key `type`'})
                     continue
 
                 msg_type = data['type']
