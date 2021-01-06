@@ -9,7 +9,7 @@ from .config import get_nick, get_client_id
 from .data import UserFollowers
 from .permission import perms
 from .shared import get_bot
-from .util import get_user_followers, get_headers, strip_twitch_command_prefix
+from .util import get_user_followers, get_headers, strip_twitch_command_prefix, normalize_string
 
 if typing.TYPE_CHECKING:
     from .bots import BaseBot
@@ -19,7 +19,7 @@ if typing.TYPE_CHECKING:
 class Channel:
     def __init__(self, name, irc: 'Irc', register_globally=True):
         self.irc: 'Irc' = irc
-        self.name: str = name
+        self.name: str = normalize_string(name)
         self.chatters: Chatters = Chatters(self.name)
         self.is_vip: bool = False
         self.is_mod: bool = False
