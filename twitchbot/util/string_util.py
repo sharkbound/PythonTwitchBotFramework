@@ -4,4 +4,7 @@ __all__ = [
 
 
 def normalize_string(string: str) -> str:
-    return string.strip().lower()
+    """
+    removes trailing or leading whitespace, then converts it to lowercase
+    """
+    return string.strip().casefold()
