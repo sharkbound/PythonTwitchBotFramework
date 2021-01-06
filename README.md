@@ -61,7 +61,7 @@ wiki [HERE](https://github.com/sharkbound/PythonTwitchBotFramework/wiki/Builtin_
 the minimum code to get the bot running is this:
 
 ```python
-from twitchbot.bots import BaseBot
+from twitchbot import BaseBot
 
 if __name__ == '__main__':
     BaseBot().run()
