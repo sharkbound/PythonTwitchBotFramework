@@ -1,7 +1,7 @@
 import traceback
 from datetime import datetime
 from itertools import islice
-from typing import List, Tuple, TYPE_CHECKING, Optional, Callable, Awaitable, FrozenSet
+from typing import List, Tuple, TYPE_CHECKING, Optional, Callable, Awaitable, FrozenSet, Union
 
 from twitchbot import get_bot
 from .util import get_message_mentions
@@ -12,7 +12,7 @@ from .util import split_message
 from .tags import Tags
 from .emote import emotes, Emote
 from .config import cfg
-from .util import strip_twitch_command_prefix
+from .util import strip_twitch_command_prefix, normalize_string
 from .cached_property import cached_property
 
 if TYPE_CHECKING:
@@ -47,6 +47,30 @@ class Message:
 
     def _normalize(self, s: str):
         return s.strip().casefold()
+
+    def _get_author(self, author: Union[str, 'Message', 'Channel']):
+        if isinstance(author, Message):
+            return author.author
+        if isinstance(author, Channel):
+            return author.name
+        if author is None:
+            return ''
+        return normalize_string(author)
+
+    def is_same_author(self, author: Union[str, 'Message', 'Channel']):
+        return self.author is not None and self.author == self._get_author(author)
+
+    def is_same_channel(self, author: Union[str, 'Message', 'Channel']):
+        return self.author is not None and self.author == self._get_author(author)
+
+    def is_same_author_and_channel(self, msg_or_channel: Union['Message', 'Channel']):
+        return (msg_or_channel is not None
+                and self.author is not None
+                and self.channel is not None
+                and self.author == self._get_author(msg_or_channel)
+                and self.channel_name == (msg_or_channel.channel_name
+                                          if isinstance(msg_or_channel, Message)
+                                          else msg_or_channel.name))
 
     @cached_property
     def normalized_parts(self) -> Tuple[str]:
@@ -270,7 +294,9 @@ class Message:
                 # relay the message
                 await self.channel.send_message(msg)
 
-    async def wait_for_reply(self, predicate: Callable[['Message'], Awaitable[bool]] = None, timeout=30, default=None,
+    TYPE_CALLABLE_PREDICATE = Union[Callable[['Message'], Awaitable[bool]], Callable[['Message'], bool]]
+
+    async def wait_for_reply(self, predicate: TYPE_CALLABLE_PREDICATE = None, timeout=30, default=None,
                              raise_on_timeout=False) -> 'ReplyResult':
         """
         waits for a message matching `predicate` to be received, when its received, it returns that message.
