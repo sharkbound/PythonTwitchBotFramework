@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 from asyncio import Future, TimeoutError
 from typing import List, Callable, Tuple, Awaitable, Union, Any
 
@@ -113,7 +114,10 @@ class ReplyResult:
         return str(self.raw_value)
 
 
-async def wait_for_reply(predicate: Callable[[Message], Awaitable[bool]] = None, timeout=30, default=None, raise_on_timeout=False) -> ReplyResult:
+TYPE_CALLABLE_PREDICATE = Union[Callable[['Message'], Awaitable[bool]], Callable[['Message'], bool]]
+
+
+async def wait_for_reply(predicate: TYPE_CALLABLE_PREDICATE = None, timeout=30, default=None, raise_on_timeout=False) -> ReplyResult:
     """
     waits for a message matching `predicate` to be received, when its received, it returns a ReplyResult instance with the response.
 
@@ -138,6 +142,14 @@ async def wait_for_reply(predicate: Callable[[Message], Awaitable[bool]] = None,
                 value = default
 
         return ReplyResult(value, default=default)
+
+    # ensures that the predicate is a coroutine (aka awaitable)
+    if not inspect.iscoroutinefunction(predicate):
+        # predicate=predicate is needed because python closure variable are late binding
+        async def _async_predicate_wrapper(msg, predicate=predicate):
+            return predicate(msg)
+
+        predicate = _async_predicate_wrapper
 
     future = asyncio.get_event_loop().create_future()
     reply_wait_queue.append((future, predicate))
