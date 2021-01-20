@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 
 
 # :name!name@name.tmi.twitch.tv PRIVMSG #name :hello!
-def create_fake_privmsg(channel: str, content: str, msg_class: Type['Message'] = None) -> 'Message':
+def create_fake_privmsg(channel: str, content: str = '', msg_class: Type['Message'] = None) -> 'Message':
     from .config import cfg
     if msg_class is None:
         from .message import Message
