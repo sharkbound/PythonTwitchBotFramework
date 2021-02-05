@@ -1,5 +1,8 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 from ..cached_property import cached_property
+
+from ..channel import channels, Channel
+from ..util import get_channel_name_from_user_id
 
 if TYPE_CHECKING:
     from twitchbot import PubSubData
@@ -132,3 +135,6 @@ class PubSubPointRedemption:
     @property
     def user_input(self) -> str:
         return self.redemption_dict.get('user_input', '')
+
+    async def get_channel(self) -> Optional[Channel]:
+        return channels.get(str(await get_channel_name_from_user_id(self.channel_id)).lower())
