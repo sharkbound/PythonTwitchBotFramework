@@ -4,7 +4,7 @@ import json
 
 import click
 import websockets
-from urwid import AsyncioEventLoop, Edit, Filler, Frame, MainLoop, Text, connect_signal
+from urwid import AsyncioEventLoop, Edit, ExitMainLoop, Filler, Frame, MainLoop, Text, connect_signal
 COMMAND_READ, PASSWORD_READ = 0, 1
 
 SEND_PASSWORD = 'send_password'
@@ -101,9 +101,9 @@ def run(host, port):
         ws = await websockets.connect(f'ws://{host}:{port}')
         while True:
             try:
-                msg = json.loads(await p.recv())
+                msg = json.loads(await ws.recv())
                 if msg['type'] == SEND_PASSWORD:
-                    p.send(await prompt_for_password("Server password:"))
+                    loop.create_task(ws.send(await prompt_for_password("Server password:")))
                 elif msg['type'] == DISCONNECTING:
                     write('server terminated connection...')
                     ws = None
@@ -116,14 +116,17 @@ def run(host, port):
 
             except Exception as e:
                 write(f'Error: {e}')
+                raise
 
     def print_help():
         write('/channel <channel> : binds this console to a bot-joined channel (needed for /chat)')
         write('/chat <msg> : sends the chat message to the channel bound to this console')
         write('/sendcmd <commands> [args...]: tells the bot run a command')
+        write('/quit: exit console')
         write('/help to see this message again')
 
     def cmd_dispatch(command):
+        write(f"dispatching {repr(command)}")
         nonlocal bound_channel
         if not ws:
             write('Not connected')
@@ -134,6 +137,8 @@ def run(host, port):
             print_help()
 
         command_part = parts[0].lower()
+        if command_part[0] == '/':
+            command_part = command_part[1:]
         args = parts[1:]
         if command_part == 'help':
             print_help()
@@ -143,7 +148,7 @@ def run(host, port):
             elif not args:
                     write('you must provide a command to run to /sendcmd, ex: /sendcmd help')
             else:
-                return ws.send(
+                loop.create_task(ws.send(
                     json.dumps(
                         {
                             'type': RUN_COMMAND,
@@ -153,12 +158,12 @@ def run(host, port):
                             'silent': True,
                         }
                     )
-                )
+                ))
         elif command_part == 'chat':
             if not bound_channel:
                 write('there is not a bound channel! use `/channel <channel>` to bind one!')
             else:
-                return ws.send(
+                loop.create_task(ws.send(
                     json.dumps(
                         {
                             'type': SEND_PRIVMSG,
@@ -166,7 +171,7 @@ def run(host, port):
                             'message': ' '.join(args),
                         }
                     )
-                )
+                ))
 
         elif command_part == 'channel':
             if not channels:
@@ -177,9 +182,14 @@ def run(host, port):
                 write(f'the bot is not currently in "{args[0]}"')
             else:
                 bound_channel = args[0]
+        elif command_part == 'quit':
+            raise ExitMainLoop()
 
+        else:
+            write(f"Unrecognized command {repr(command_part)}")
     event_loop.alarm(0, lambda: loop.create_task(ws_dispatch()))
-    MainLoop(widget, event_loop=event_loop, unhandled_input=accept_input).run()
+    mainloop = MainLoop(widget, event_loop=event_loop, unhandled_input=accept_input)
+    mainloop.run()
 
 
 
