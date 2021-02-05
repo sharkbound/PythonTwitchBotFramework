@@ -8,6 +8,7 @@ __all__ = [
     'PubSubPointRedemption'
 ]
 
+
 class PubSubPointRedemption:
     def __init__(self, data: 'PubSubData'):
         self.data: 'PubSubData' = data
@@ -123,3 +124,11 @@ class PubSubPointRedemption:
     @property
     def reward_max_per_stream(self) -> int:
         return self.reward_dict.get('max_per_stream', {}).get('max_per_stream', 0)
+
+    @property
+    def redemption_dict(self) -> dict:
+        return self.data.message_data.get('redemption', {})
+
+    @property
+    def user_input(self) -> str:
+        return self.redemption_dict.get('user_input', '')
