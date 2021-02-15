@@ -684,6 +684,7 @@ community channel points      -> (not sure, seems to be included in the irc oaut
 channel subscriptions         -> channel_subscriptions
 chat (aka moderation actions) -> channel:moderate
 whispers                      -> whispers:read
+channel subscriptions         -> channel_subscriptions
 ```
 
 the `[PubSubTopics.channel_points]` is the list of scopes to add to the authorization request url
