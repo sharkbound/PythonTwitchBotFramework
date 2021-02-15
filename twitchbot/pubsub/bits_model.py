@@ -1,13 +1,15 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from .models import PubSubData
 
-from ..util import try_parse_json
+from ..util import try_parse_json, get_channel_name_from_user_id
+from ..channel import channels, Channel
 
 __all__ = [
     'PubSubBits'
 ]
+
 
 class PubSubBits:
     def __init__(self, raw: 'PubSubData'):
@@ -68,3 +70,7 @@ class PubSubBits:
     @property
     def message_id(self) -> str:
         return self.data.message_dict.get('message_id', '')
+
+    async def get_channel(self) -> Optional[Channel]:
+        name = (await get_channel_name_from_user_id(self.channel_id) or '').strip().lower()
+        return channels.get(name)

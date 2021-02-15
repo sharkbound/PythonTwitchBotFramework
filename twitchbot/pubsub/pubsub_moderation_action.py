@@ -1,7 +1,10 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from .models import PubSubData
+
+from ..util import get_channel_name_from_user_id
+from ..channel import channels, Channel
 
 __all__ = [
     'PubSubModerationAction'
@@ -51,3 +54,7 @@ class PubSubModerationAction:
     @property
     def from_automod(self) -> bool:
         return self.data.from_automod
+
+    async def get_channel(self) -> Optional[Channel]:
+        name = (await get_channel_name_from_user_id(self.topic.split('.', 1)[-1]) or '').strip().lower()
+        return channels.get(name)

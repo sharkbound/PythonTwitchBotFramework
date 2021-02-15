@@ -1,8 +1,11 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 from ..cached_property import cached_property
 
 if TYPE_CHECKING:
     from .models import PubSubData
+
+from ..util import get_channel_name_from_user_id
+from ..channel import channels, Channel
 
 __all__ = [
     'PubSubSubscription'
@@ -76,3 +79,7 @@ class PubSubSubscription:
     @property
     def user_name(self) -> str:
         return self.data.message_dict.get('user_name', '')
+
+    async def get_channel(self) -> Optional[Channel]:
+        name = (await get_channel_name_from_user_id(self.channel_id) or '').strip().lower()
+        return channels.get(name)
