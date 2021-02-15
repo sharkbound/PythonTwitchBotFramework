@@ -649,7 +649,7 @@ after you authorize it, copy the oauth access token and paste it into the bot's 
 
 this ensures that API calls still work.
 
-## Step 2: creating the pubsub oauth access token
+## Step 3: creating the pubsub oauth access token
 
 this oauth token is responsible for actually allowing the bot to access oauth topics on a specific channel
 
