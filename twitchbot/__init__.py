@@ -32,5 +32,5 @@ from .event_util import *
 from .extra_configs import *
 from .pubsub import *
 
-BOT_VERSION = (2, 1, 10)
+BOT_VERSION = (2, 1, 11)
 _set_bot_package_path(__path__[0])
