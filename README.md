@@ -152,6 +152,7 @@ Event.on_pubsub_subscription: (self, raw: 'PubSubData', data: 'PubSubSubscriptio
 Event.on_pubsub_twitch_poll_update: (self, raw: 'PubSubData', poll: 'PubSubPollData')
 Event.on_pubsub_user_follow: (self, raw: 'PubSubData', data: 'PubSubFollow')
 Event.on_bot_shutdown: (self)
+Event.on_after_database_init(self)  # used for triggering database operations after the bot starts
 ```
 
 if this is the first time running the bot it will generate a folder named `configs`.
@@ -675,6 +676,9 @@ print(generate_auth_url('CLIENT_ID_HERE', 'REDIRECT_URI_HERE', Scopes.PUBSUB_CHA
 ### Required OAuth Scopes for PubSub topics
 
 ```
+|____________________________|______________________________|
+|            TOPIC           |      REQUIRED OAUTH SCOPE    |
+|____________________________|______________________________|
 followers                     -> channel_editor
 polls                         -> channel_editor
 bits                          -> bits:read

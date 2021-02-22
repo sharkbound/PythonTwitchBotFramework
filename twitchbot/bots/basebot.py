@@ -229,6 +229,12 @@ class BaseBot:
         triggered when the bot is shutdown
         """
 
+    async def on_after_database_init(self):
+        """
+        triggered AFTER the bot creates all defined tables in the database
+        this event should be used when you need to do database operations as soon as possible on bot startup
+        """
+
     # endregion
 
     def _create_channels(self):
@@ -330,9 +336,6 @@ class BaseBot:
         return thread
 
     async def _init_bot(self):
-        from ..database import init_tables
-        init_tables()
-
         import os
         from ..command import load_commands_from_directory
         from ..modloader import load_mods_from_directory, ensure_commands_folder_exists, ensure_mods_folder_exists
@@ -347,6 +350,10 @@ class BaseBot:
 
         load_mods_from_directory(os.path.abspath(cfg.mods_folder))
         load_commands_from_directory(os.path.abspath(cfg.commands_folder))
+
+        from ..database import init_tables
+        init_tables()
+        forward_event(Event.on_after_database_init)
 
         await start_command_server()
 

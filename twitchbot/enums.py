@@ -70,3 +70,4 @@ class Event(NamedEnum):
     on_pubsub_twitch_poll_update = auto()
     on_pubsub_user_follow = auto()
     on_bot_shutdown = auto()
+    on_after_database_init = auto()

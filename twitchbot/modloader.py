@@ -245,6 +245,12 @@ class Mod:
         triggered when the bot is shutdown
         """
 
+    async def on_after_database_init(self):
+        """
+        triggered AFTER the bot creates all defined tables in the database
+        this event should be used when you need to do database operations as soon as possible on bot startup
+        """
+
     # endregion
 
 
