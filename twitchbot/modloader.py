@@ -12,7 +12,8 @@ from typing import Dict, Callable, Any
 
 if typing.TYPE_CHECKING:
     from .poll import PollData
-    from .pubsub import PubSubData, PubSubPointRedemption, PubSubBits, PubSubModerationAction, PubSubSubscription, PubSubPollData, PubSubFollow
+    from .pubsub import PubSubData, PubSubPointRedemption, PubSubBits, PubSubModerationAction, PubSubSubscription, \
+        PubSubPollData, PubSubFollow
 
 from .channel import Channel
 from .command import Command
@@ -34,6 +35,7 @@ DEFAULT_MOD_NAME = 'DEFAULT'
 # noinspection PyMethodMayBeStatic
 class Mod:
     name = DEFAULT_MOD_NAME
+    requires: typing.Collection[str] = []
 
     @classmethod
     def name_or_class_name(cls):
@@ -341,6 +343,16 @@ def load_mods_from_directory(fullpath, predicate: Callable[[str, Any], bool] = N
     if log:
         print('loading mods from:', fullpath)
 
+    for obj in iter_mods_from_directory(fullpath, predicate):
+        if predicate is None or (predicate is not None and predicate(obj.name_or_class_name(), obj)):
+            register_mod(obj())
+
+
+def iter_mods_from_directory(fullpath, predicate: Callable[[str, Any], bool] = None):
+    """
+    loads all mods from the given directory, only .py files are loaded
+    :param fullpath: the path to search for mods to load
+    """
     with temp_syspath(fullpath):
         for file in get_py_files(fullpath):
             # we need to import the module to get its attributes
@@ -349,9 +361,8 @@ def load_mods_from_directory(fullpath, predicate: Callable[[str, Any], bool] = N
                 # verify the obj is a class, is a subclass of Mod, and is not Mod class itself
                 if not is_mod(obj):
                     continue
-                # create a instance of the mod subclass, then register it
                 if predicate is None or (predicate is not None and predicate(obj.name_or_class_name(), obj)):
-                    register_mod(obj())
+                    yield obj
 
 
 def reload_mod(mod_name: str):
