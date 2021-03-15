@@ -385,7 +385,7 @@ def show_mod_dependencies_error(dependency_map, fullpath):
 
 def iter_mods_from_directory(fullpath, predicate: Callable[[str, Any], bool] = None):
     """
-    loads all mods from the given directory, only .py files are loaded
+    iterates through all mod classes from the given directory, only .py files are loaded
     :param fullpath: the path to search for mods to load
     """
     with temp_syspath(fullpath):
