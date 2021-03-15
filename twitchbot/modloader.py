@@ -354,19 +354,12 @@ def load_mods_from_directory(fullpath, predicate: Callable[[str, Any], bool] = N
         loadable_mods = [mod for mod, deps in dependency_map.values() if not deps or all(dep in mods for dep in deps)]
 
         if not loadable_mods and dependency_map:
-            # cannot use \n\t in f-string code blocks, so use a lambda instead
             show_mod_dependencies_error(dependency_map, fullpath)
             return
 
         for mod in loadable_mods:
             register_mod(mod())
             del dependency_map[mod.name_or_class_name()]
-
-        # for mod in mods:
-    #     register_mod(mod())
-    # for obj in iter_mods_from_directory(fullpath, predicate):
-    #     if predicate is None or (predicate is not None and predicate(obj.name_or_class_name(), obj)):
-    #         register_mod(obj())
 
 
 def show_mod_dependencies_error(dependency_map, fullpath):
