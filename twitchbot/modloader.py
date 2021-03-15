@@ -35,7 +35,7 @@ DEFAULT_MOD_NAME = 'DEFAULT'
 # noinspection PyMethodMayBeStatic
 class Mod:
     name = DEFAULT_MOD_NAME
-    requires: typing.Collection[str] = []
+    depends_on: typing.Collection[str] = ()
 
     @classmethod
     def name_or_class_name(cls):
@@ -343,9 +343,51 @@ def load_mods_from_directory(fullpath, predicate: Callable[[str, Any], bool] = N
     if log:
         print('loading mods from:', fullpath)
 
-    for obj in iter_mods_from_directory(fullpath, predicate):
-        if predicate is None or (predicate is not None and predicate(obj.name_or_class_name(), obj)):
-            register_mod(obj())
+    found_mods = [
+        mod
+        for mod in iter_mods_from_directory(fullpath, predicate)
+        if predicate is None or (predicate is not None and predicate(mod.name_or_class_name(), mod))
+    ]
+
+    dependency_map = {mod.name_or_class_name(): (mod, tuple(mod.depends_on)) for mod in found_mods}
+    while dependency_map:
+        loadable_mods = [mod for mod, deps in dependency_map.values() if not deps or all(dep in mods for dep in deps)]
+
+        if not loadable_mods and dependency_map:
+            # cannot use \n\t in f-string code blocks, so use a lambda instead
+            show_mod_dependencies_error(dependency_map, fullpath)
+            return
+
+        for mod in loadable_mods:
+            register_mod(mod())
+            del dependency_map[mod.name_or_class_name()]
+
+        # for mod in mods:
+    #     register_mod(mod())
+    # for obj in iter_mods_from_directory(fullpath, predicate):
+    #     if predicate is None or (predicate is not None and predicate(obj.name_or_class_name(), obj)):
+    #         register_mod(obj())
+
+
+def show_mod_dependencies_error(dependency_map, fullpath):
+    gentabs = lambda count: '\n' + '\t' * count
+    all_deps = [dep for _, deps in dependency_map.values() for dep in deps]
+    all_missing_deps = set(dep for dep in all_deps if dep not in mods and dep not in dependency_map)
+    print(f'\n{"MOD DEPENDENCY ERROR":=^50}')
+    print(f'Mod directory that was trying to load: {fullpath}\n')
+    print(
+        f'Cannot load mods:\n\t{gentabs(1).join(dependency_map)}\n\nBecause of missing mod dependencies:\n\t{gentabs(1).join(all_missing_deps)}')
+    mods_missing_deps = []
+    for mod, deps in dependency_map.values():
+        missing = set(deps) & all_missing_deps
+        if not missing:
+            continue
+        mods_missing_deps.append(
+            f'{mod.name_or_class_name()} is missing these mod dependencies:\n\t\t{gentabs(2).join(missing)}\n')
+    missing_deps_breakdown = '\n\t'.join(mods_missing_deps)
+    print(f'\nBreakdown of missing mod dependencies:\n\t{missing_deps_breakdown}')
+    print('=' * 50 + '\n')
+    return
 
 
 def iter_mods_from_directory(fullpath, predicate: Callable[[str, Any], bool] = None):
