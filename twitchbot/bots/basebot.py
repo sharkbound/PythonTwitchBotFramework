@@ -269,9 +269,11 @@ class BaseBot:
             return
 
         elif not isinstance(cmd, CustomCommandAction) and is_command_disabled(msg.channel_name, cmd.fullname):
-            return await msg.reply(f'{cmd.fullname} is disabled for this channel')
+            if cfg.send_message_on_disabled_command_use:
+                await msg.reply(f'{cmd.fullname} is disabled for this channel')
+            return
 
-        # also check if the command is whitelisted, (if its not a custom command)
+            # also check if the command is whitelisted, (if its not a custom command)
         if not isinstance(cmd, CustomCommandAction) and not is_command_whitelisted(cmd.name):
             if send_message_on_command_whitelist_deny():
                 await msg.reply(f'{msg.mention} "{cmd.fullname}" is not enabled in the command whitelist')
