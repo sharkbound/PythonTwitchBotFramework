@@ -12,7 +12,6 @@ class StreamInfoApi(Api):
         self.viewer_count: int = 0
         self.title: str = ''
         self.game_id: int = 0
-        self.community_ids: frozenset = frozenset()
         self.started_at: datetime = datetime.min
         self.user_id: int = 0
         self.tag_ids: frozenset = frozenset()
@@ -32,7 +31,7 @@ class StreamInfoApi(Api):
             self.viewer_count = data['viewer_count']
             self.title = data['title']
             self.game_id = data['game_id']
-            self.community_ids = frozenset(data['community_ids'])
+            # self.community_ids = frozenset(data['community_ids'])
             #                                                      2018-05-17T16:47:46Z
             self.started_at = datetime.strptime(data['started_at'], '%Y-%m-%dT%H:%M:%SZ')
             self.user_id = data['user_id']
