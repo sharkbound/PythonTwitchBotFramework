@@ -23,6 +23,7 @@ from .enums import Event
 from .events import trigger_event
 from .ratelimit import privmsg_ratelimit, whisper_ratelimit
 from .shared import TWITCH_IRC_WEBSOCKET_URL, WEBSOCKET_ERRORS
+from .util import _check_token, get_oauth_token_info
 
 PRIVMSG_MAX_LINE_LENGTH = 450
 WHISPER_MAX_LINE_LENGTH = 438
@@ -55,11 +56,15 @@ class Irc:
 
     async def connect_to_twitch(self):
         """
-        connects to twitch and verifies is connected
+        connects to twitch and verifies the connection
         """
 
-        print(f'logging in as {get_nick()}')
         backoff = 1
+
+        try:
+            _check_token(await get_oauth_token_info(get_oauth(remove_prefix=True)))
+        except Exception as e:
+            print(f'failed to validate oauth token: {e}')
 
         while True:
             try:

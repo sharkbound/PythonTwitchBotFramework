@@ -30,6 +30,7 @@ from ..event_util import forward_event_with_results, forward_event
 from ..pubsub import PubSubClient
 from ..extra_configs import logging_config
 from ..irc import Irc
+from ..util import get_oauth_token_info, _check_token
 
 if TYPE_CHECKING:
     from ..pubsub import PubSubData, PubSubPointRedemption, PubSubBits, PubSubModerationAction, PubSubSubscription, PubSubPollData, PubSubFollow
@@ -362,6 +363,9 @@ class BaseBot:
     async def mainloop(self):
         """starts the bot, connects to twitch, then starts the message event loop"""
         self._running = True
+
+        print('connecting to twitch...')
+        _check_token(await get_oauth_token_info(get_oauth(remove_prefix=True)))
 
         if not generate_config():
             stop_all_tasks()
