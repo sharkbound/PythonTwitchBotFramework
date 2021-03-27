@@ -203,12 +203,8 @@ def _print_quit(msg):
 
 
 def _check_token(info: OauthTokenInfo):
-    if not info.login:
-        _print_quit(f'\nfailed to login to chat, irc oauth token is INVALID ("oauth" in the config)\n'
-                    f'twitch returned status code ({info.status}) and error message ({info.error_message})')
-
-    if info.expires_in <= 0:
-        _print_quit(f'\nfailed to login to chat, irc oauth token is EXPIRED ("oauth" in the config)\n'
+    if not info.login or info.status != -1:
+        _print_quit(f'\nfailed to login to chat, irc oauth token is INVALID/EXPIRED ("oauth" in the config)\n'
                     f'twitch returned status code ({info.status}) and error message ({info.error_message})')
 
     if get_client_id() != DEFAULT_CLIENT_ID and info.client_id != get_client_id():
