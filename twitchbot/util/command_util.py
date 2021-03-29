@@ -36,6 +36,8 @@ async def run_command(name: str, msg: 'Message', args: List[str] = None, blockin
     args = [f'"{arg}"' if ' ' in arg else arg for arg in (args or [])]
     raw = msg.raw_msg
     # get the original info line from the twitch message, then append our new arguments to it to be parsed
+    # the consecutive raw.index(':') is used to skip the first two ':' in the original message
+    # we want to preserve all metadata/info prior to the last : before the actual message contents
     text = raw[:raw.index(':', raw.index(':') + 1) + 1]
     # create a new message from the formatted new raw text, this is needed to ensure everything flows as intended
     # here the base message data is used, then we replace the context with our own command and arguments
