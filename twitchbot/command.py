@@ -26,7 +26,7 @@ __all__ = (
 
 class Command:
     def __init__(self, name: str, prefix: str = None, func: Callable = None, global_command: bool = True,
-                 context: CommandContext = CommandContext.CHANNEL, permission: str = None, syntax: str = None,
+                 context: CommandContext = CommandContext.DEFAULT_COMMAND_CONTEXT, permission: str = None, syntax: str = None,
                  help: str = None, aliases: List[str] = None, cooldown: int = DEFAULT_COOLDOWN,
                  cooldown_bypass: str = DEFAULT_COOLDOWN_BYPASS, hidden: bool = False, parent: 'Command' = None):
         """
@@ -163,7 +163,7 @@ class SubCommand(Command):
 
 class DummyCommand(Command):
     def __init__(self, name: str, prefix: str = None, global_command: bool = True,
-                 context: CommandContext = CommandContext.CHANNEL, permission: str = None, syntax: str = None,
+                 context: CommandContext = CommandContext.DEFAULT_COMMAND_CONTEXT, permission: str = None, syntax: str = None,
                  help: str = None, aliases: List[str] = None, hidden: bool = False, parent: Command = None):
         super().__init__(name=name, prefix=prefix, func=self.exec, global_command=global_command,
                          context=context, permission=permission, syntax=syntax, help=help, aliases=aliases, hidden=hidden, parent=parent)
@@ -223,7 +223,7 @@ class CustomCommandAction(Command):
 
 class ModCommand(Command):
     def __init__(self, mod_name: str, name: str, prefix: str = None, func: Callable = None, global_command: bool = True,
-                 context: CommandContext = CommandContext.CHANNEL, permission: str = None, syntax: str = None,
+                 context: CommandContext = CommandContext.DEFAULT_COMMAND_CONTEXT, permission: str = None, syntax: str = None,
                  help: str = None, cooldown: int = DEFAULT_COOLDOWN, cooldown_bypass: str = DEFAULT_COOLDOWN_BYPASS, hidden: bool = False,
                  parent: Command = None):
         super().__init__(name=name, prefix=prefix, func=func, global_command=global_command, context=context,
