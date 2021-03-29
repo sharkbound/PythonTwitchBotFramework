@@ -37,7 +37,10 @@ class MessageType(NamedEnum):
 class CommandContext(IntFlag):
     CHANNEL = auto()
     WHISPER = auto()
+    CONSOLE = auto()
     BOTH = CHANNEL | WHISPER
+    ALL = CHANNEL | WHISPER | CONSOLE
+    DEFAULT_COMMAND_CONTEXT = CHANNEL | CONSOLE
 
 
 class Event(NamedEnum):
