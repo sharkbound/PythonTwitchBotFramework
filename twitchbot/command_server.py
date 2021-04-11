@@ -178,7 +178,8 @@ class ClientHandler:
                     await self.handle_run_command(data)
         except ConnectionResetError:
             return
-
+        except websockets.exceptions.ConnectionClosedOK:
+            pass
 
 async def handle_client(websocket: websockets.WebSocketServerProtocol, path: str):
     await ClientHandler(websocket, path).run()
