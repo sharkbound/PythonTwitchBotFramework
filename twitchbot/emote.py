@@ -16,10 +16,10 @@ emotes: Dict[str, Emote] = {}
 
 async def update_global_emotes():
     _, data = await get_url(GLOBAL_EMOTE_API)
-    emotes.clear()
 
-    if not 'emotes' in data:
+    if not data or 'emotes' not in data:
         return
 
+    emotes.clear()
     for emote in data['emotes']:
         emotes[emote['code']] = Emote(int(emote['id']), emote['code'], emote['emoticon_set'])
