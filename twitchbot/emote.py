@@ -18,5 +18,8 @@ async def update_global_emotes():
     _, data = await get_url(GLOBAL_EMOTE_API)
     emotes.clear()
 
+    if not 'emotes' in data:
+        return
+
     for emote in data['emotes']:
         emotes[emote['code']] = Emote(int(emote['id']), emote['code'], emote['emoticon_set'])
