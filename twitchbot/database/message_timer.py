@@ -1,3 +1,4 @@
+import time
 from asyncio import sleep, ensure_future
 from typing import Optional, Dict, List
 
@@ -159,9 +160,15 @@ def _stop_message_timer(channel: str, name: str) -> bool:
 
 
 async def _message_timer_say_loop(channel, timer):
+    from ..config import message_timer_cfg
     while True:
+        channel_last_message_time_diff = max(0, abs(channel.last_privmsg_time - time.time()))
         await sleep(timer.interval)
-        await channel.send_message(timer.message)
+        if (
+                message_timer_cfg.no_chat_message_auto_disable_seconds <= 0
+                or channel_last_message_time_diff <= message_timer_cfg.no_chat_message_auto_disable_seconds
+        ):
+            await channel.send_message(timer.message)
 
 
 def _key(channel, name):
