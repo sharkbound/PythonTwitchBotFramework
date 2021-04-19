@@ -1,4 +1,5 @@
 import asyncio
+import time
 import typing
 from datetime import datetime
 from typing import Dict
@@ -25,6 +26,8 @@ class Channel:
         self.is_mod: bool = False
         self.stats: StreamInfoApi = StreamInfoApi(get_client_id(), self.name)
         self.bot: 'BaseBot' = get_bot()
+        # epoch time of the last PRIVMSG message received on this channel
+        self.last_privmsg_time: float = time.time()
 
         if register_globally:
             channels[self.name.lower()] = self
