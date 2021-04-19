@@ -6,7 +6,7 @@ from typing import Optional, Union
 from .gui import show_auth_gui
 
 __all__ = ('cfg', 'Config', 'database_cfg', 'CONFIG_FOLDER', 'generate_config', 'get_oauth', 'get_nick', 'get_client_id',
-           'DEFAULT_NICK', 'DEFAULT_OAUTH', 'DEFAULT_CLIENT_ID', 'is_config_valid', 'get_command_prefix')
+           'DEFAULT_NICK', 'DEFAULT_OAUTH', 'DEFAULT_CLIENT_ID', 'is_config_valid', 'get_command_prefix', 'message_timer_cfg')
 
 CONFIG_FOLDER = Path('configs')
 
@@ -124,6 +124,11 @@ cfg = Config(
         'help', 'commands', 'reloadcmdwhitelist', 'reloadmod', 'reloadperms', 'disablemod', 'enablemod', 'disablecmdglobal', 'disablecmd',
         'enablecmdglobal', 'enablecmd', 'addcmd', 'delcmd', 'updatecmd', 'cmd'
     ],
+)
+
+message_timer_cfg = Config(
+    file_path=CONFIG_FOLDER / 'message_timer_options.json',
+    no_chat_message_auto_disable_seconds=300,
 )
 
 database_cfg = Config(
