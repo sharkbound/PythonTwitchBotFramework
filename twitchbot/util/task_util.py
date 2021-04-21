@@ -7,6 +7,10 @@ active_tasks: Dict[str, Task] = {}
 
 
 def add_task(name: str, coro: Coroutine):
+    # stop any task matching the name name
+    # this ensures that there are not duplicated "floating" tasks that should not be there
+    if task_running(name):
+        stop_task(name)
     active_tasks[name.lower()] = ensure_future(coro)
 
 
@@ -43,14 +47,23 @@ def stop_task(name: str) -> bool:
         return False
 
     task = get_task(name)
-    task.cancel()
+
+    try:
+        if not task.done() and not task.cancelled():
+            task.cancel()
+    except Exception as e:
+        print(f'[STOP_TASK] failed to cancel task with name "{name}", error: ({type(e)}) -> {e}')
 
     del active_tasks[name]
     return True
 
 
 def task_running(name: str):
-    return task_exist(name) and not get_task(name).done()
+    task = get_task(name)
+    if task is None:
+        return False
+    # check that nether done() or cancelled() is True
+    return not task.done() and not task.cancelled()
 
 
 async def _remove_done_tasks():
