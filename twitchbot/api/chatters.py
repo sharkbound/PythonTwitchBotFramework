@@ -1,3 +1,4 @@
+import traceback
 from dataclasses import dataclass
 
 from ..exceptions import BadTwitchAPIResponse
@@ -45,9 +46,13 @@ class Chatters:
             self.global_mods = frozenset(chatters[GLOBAL_MODS])
             self.viewers = frozenset(chatters[VIEWERS])
             self.viewer_count = json[CHATTER_COUNT]
-            self.all_viewers = self.vips | self.mods | self.staff | self.admins | self.global_mods | self.viewers | {self.channel}
+            self.all_viewers = self.vips | self.mods | self.staff | self.admins | self.global_mods | self.viewers | {
+                self.channel}
         except Exception as e:
-            print(f'\nCHATTERS API ERROR\njson received: {json}\n{e}\nEND CHATTERS API ERROR\n')
+            print(f'\nCHATTERS API ERROR\n')
+            print(f'json received: {json}\nexception ({type(e)}): {e}\n')
+            print(f'stack trace:\n{traceback.format_exc()}')
+            print('END CHATTERS API ERROR\n')
 
     def __contains__(self, item):
         return item.lower() in self.all_viewers
