@@ -16,7 +16,7 @@ class Quote(Base):
     user = Column(String(255))
     channel = Column(String(255), nullable=False)
     alias = Column(String(255))
-    value = Column(String(255), nullable=False)
+    value = Column(String(520), nullable=False)
 
     @classmethod
     def create(cls, channel: str, value: str, user: str = None, alias: str = None):
@@ -29,7 +29,7 @@ class CustomCommand(Base):
     id = Column(Integer, primary_key=True, nullable=False)
     name = Column(String(255), nullable=False)
     channel = Column(String(255), nullable=False)
-    response = Column(String(255), nullable=False)
+    response = Column(String(520), nullable=False)
     context = CommandContext.CHANNEL
     permission = None
 
@@ -76,7 +76,7 @@ class MessageTimer(Base):
     id = Column(Integer, nullable=False, primary_key=True)
     name = Column(String(255), nullable=False)
     channel = Column(String(255), nullable=False)
-    message = Column(String(255), nullable=False)
+    message = Column(String(520), nullable=False)
     interval = Column(Float, nullable=False)
     active = Column(Boolean, nullable=False, default=False)
     task: Task = None
