@@ -4,7 +4,7 @@ import os
 
 from ..config import database_cfg
 
-__all__ = ('Base', 'engine', 'session', 'DB_FILENAME', 'init_tables')
+__all__ = ('Base', 'engine', 'get_database_session', 'DB_FILENAME', 'init_tables', 'session')
 
 
 def _try_get_env(value: str):
@@ -31,7 +31,8 @@ try:
                                address=_try_get_env(database_cfg.address),
                                port=_try_get_env(database_cfg.port),
                                database=_try_get_env(database_cfg.database)
-                           ))
+                           ),
+                           pool_recycle=3600)
 except (ImportError, ModuleNotFoundError):
     print(
         f'Could not find library for database driver "{database_cfg.driver}", please install the necessary driver.\n'
@@ -41,7 +42,15 @@ except (ImportError, ModuleNotFoundError):
 
 # noinspection PyUnboundLocalVariable
 Session = orm.sessionmaker(bind=engine)
+# get_database_session() should be favored here
 session = orm.scoped_session(Session)
+
+
+def get_database_session():
+    # mainly here for future usage, mainly for issues regarding connection maintaining.
+    # as of now i am trying out pool_recycle=3600 (60 minutes) to see if it solves the issue
+    global session
+    return session
 
 
 def init_tables():
