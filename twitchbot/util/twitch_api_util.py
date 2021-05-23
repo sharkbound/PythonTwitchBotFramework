@@ -1,9 +1,10 @@
 import warnings
 from collections import namedtuple
 from datetime import datetime
+from json import JSONDecodeError
 from typing import Dict, Tuple, NamedTuple, Optional
 
-from aiohttp import ClientSession, ClientResponse
+from aiohttp import ClientSession, ClientResponse, ContentTypeError
 from async_timeout import timeout
 
 from ..config import get_client_id, get_oauth, DEFAULT_CLIENT_ID
@@ -12,7 +13,7 @@ from ..data import UserFollowers, UserInfo, RateLimit
 __all__ = ('CHANNEL_CHATTERS_URL', 'get_channel_chatters', 'get_stream_data', 'get_url', 'get_user_data', 'get_user_id',
            'STREAM_API_URL', 'USER_API_URL', 'get_user_followers', 'USER_FOLLOWERS_API_URL', 'get_headers',
            'get_user_info', 'get_user_creation_date', 'USER_ACCOUNT_AGE_API', 'CHANNEL_INFO_API', 'get_channel_info', 'ChannelInfo',
-           'get_channel_name_from_user_id', 'OauthTokenInfo', 'get_oauth_token_info', '_check_token')
+           'get_channel_name_from_user_id', 'OauthTokenInfo', 'get_oauth_token_info', '_check_token', 'post_url')
 
 USER_API_URL = 'https://api.twitch.tv/helix/users?login={}'
 STREAM_API_URL = 'https://api.twitch.tv/helix/streams?user_login={}'
@@ -29,7 +30,22 @@ async def get_url(url: str, headers: dict = None) -> Tuple[ClientResponse, dict]
     async with ClientSession(headers=headers) as session:
         async with timeout(10):
             async with session.get(url) as resp:
-                return resp, await resp.json()
+                return await _extract_response_and_json_from_request(resp)
+
+
+async def post_url(url: str, headers: dict = None) -> Tuple[ClientResponse, dict]:
+    headers = headers or get_headers()
+    async with ClientSession(headers=headers) as session:
+        async with timeout(10):
+            async with session.post(url) as resp:
+                return await _extract_response_and_json_from_request(resp)
+
+
+async def _extract_response_and_json_from_request(resp):
+    try:
+        return resp, await resp.json()
+    except (ContentTypeError, JSONDecodeError, TypeError):
+        return resp, {}
 
 
 async def get_user_info(user: str) -> UserInfo:
