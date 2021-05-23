@@ -1,7 +1,7 @@
 from pathlib import Path
 
+from .command import get_command
 from .config import Config
-from .command import get_command, command_exist
 
 
 def is_command_disabled(channel: str, cmd: str):
