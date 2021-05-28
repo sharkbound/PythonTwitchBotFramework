@@ -253,6 +253,10 @@ class Message:
 
     @property
     def mention(self):
+        return f'@{self.tags.display_name}' if self.tags.display_name else self.mention_normalized
+
+    @property
+    def mention_normalized(self):
         return f'@{self.author}' if self.author else ''
 
     @property
