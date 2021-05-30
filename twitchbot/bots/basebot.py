@@ -280,8 +280,9 @@ class BaseBot:
                 await msg.reply(f'{msg.mention} "{cmd.fullname}" is not enabled in the command whitelist')
             return
 
-        has_cooldown_bypass_permission = perms.has_permission(msg.channel_name, msg.author, cmd.cooldown_bypass)
-        if (not has_cooldown_bypass_permission
+        has_cooldown_bypass_permission = cfg.enable_cooldown_bypass_permissions and perms.has_permission(msg.channel_name, msg.author,
+                                                                                                         cmd.cooldown_bypass)
+        if ((not has_cooldown_bypass_permission)
                 and is_command_on_cooldown(msg.channel_name, cmd.fullname, cmd.cooldown)):
             return await msg.reply(
                 f'{cmd.fullname} is on cooldown, seconds left: {cmd.cooldown - get_time_since_execute(msg.channel_name, cmd.fullname)}')

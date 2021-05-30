@@ -124,6 +124,7 @@ cfg = Config(
         'help', 'commands', 'reloadcmdwhitelist', 'reloadmod', 'reloadperms', 'disablemod', 'enablemod', 'disablecmdglobal', 'disablecmd',
         'enablecmdglobal', 'enablecmd', 'addcmd', 'delcmd', 'updatecmd', 'cmd'
     ],
+    enable_cooldown_bypass_permissions=True,
 )
 
 message_timer_cfg = Config(
