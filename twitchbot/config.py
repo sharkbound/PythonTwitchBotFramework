@@ -2,7 +2,6 @@ import os
 import json
 from pathlib import Path
 from typing import Optional, Union
-
 from .gui import show_auth_gui
 
 __all__ = ('cfg', 'Config', 'database_cfg', 'CONFIG_FOLDER', 'generate_config', 'get_oauth', 'get_nick', 'get_client_id',
@@ -193,9 +192,10 @@ def get_nick() -> str:
 
     if the the NICK matches the pattern `ENV_KEY_HERE` it will get `KEY_HERE` from os.environ, else it just grabs it from the cfg
     """
+    from .util import get_env_value, is_env_key
     nick = cfg.nick
-    if _is_env_key(nick):
-        value = _get_env_value(nick)
+    if is_env_key(nick):
+        value = get_env_value(nick)
         if value is None:
             print(f'could not get NICK from environment with key: {nick[4:]}')
             input('\npress enter to exit...')
@@ -211,9 +211,10 @@ def get_oauth(remove_prefix: bool = False) -> str:
 
     if the the OAUTH matches the pattern `ENV_KEY_HERE` it will get `KEY_HERE` from os.environ, else it just grabs it from the cfg
     """
+    from .util import get_env_value, is_env_key
     oauth: str = cfg.oauth
-    if _is_env_key(oauth):
-        value = _get_env_value(oauth)
+    if is_env_key(oauth):
+        value = get_env_value(oauth)
         if value is None:
             print(f'could not get OAUTH from environment with key: {oauth[4:]}')
             input('\npress enter to exit...')
@@ -234,9 +235,10 @@ def get_client_id() -> str:
 
     if the the CLIENT_ID matches the pattern `ENV_KEY_HERE` it will get `KEY_HERE` from os.environ, else it just grabs it from the cfg
     """
+    from .util import get_env_value, is_env_key
     client_id = cfg.client_id
-    if _is_env_key(client_id):
-        value = _get_env_value(client_id)
+    if is_env_key(client_id):
+        value = get_env_value(client_id)
         if value is None:
             print(f'could not get CLIENT_ID from environment with key: {client_id[4:]}')
             input('\npress enter to exit...')
@@ -247,14 +249,3 @@ def get_client_id() -> str:
 
 def get_command_prefix() -> str:
     return cfg.prefix
-
-
-def _is_env_key(key) -> bool:
-    return key.lower().startswith('env_')
-
-
-def _get_env_value(key) -> Optional[str]:
-    if _is_env_key(key):
-        key = key[4:]
-
-    return os.environ.get(key)
