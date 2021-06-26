@@ -28,14 +28,14 @@ class StreamInfoApi(Api):
         """
         try:
             data = await util.get_stream_data(self.user, self.headers)
-            self.viewer_count = data['viewer_count']
-            self.title = data['title']
-            self.game_id = data['game_id']
+            self.viewer_count = data.get('viewer_count', 0)
+            self.title = data.get('title', '')
+            self.game_id = data.get('game_id', 0)
             # self.community_ids = frozenset(data['community_ids'])
             #                                                      2018-05-17T16:47:46Z
-            self.started_at = datetime.strptime(data['started_at'], '%Y-%m-%dT%H:%M:%SZ')
-            self.user_id = data['user_id']
-            self.tag_ids = frozenset(data['tag_ids'])
+            self.started_at = datetime.strptime(data['started_at'], '%Y-%m-%dT%H:%M:%SZ') if 'started_at' in data else datetime.min
+            self.user_id = data.get('user_id', 0)
+            self.tag_ids = frozenset(data.get('tag_ids', {}))
 
             await self.on_successful_update()
         except Exception as e:
