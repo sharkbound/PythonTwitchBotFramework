@@ -26,7 +26,7 @@ user_id_cache: Dict[str, int] = {}
 
 
 async def get_url(url: str, headers: dict = None) -> Tuple[ClientResponse, dict]:
-    headers = headers if headers and len(headers) == 2 else get_headers()
+    headers = headers if headers is not None else get_headers()
     async with ClientSession(headers=headers) as session:
         async with timeout(10):
             async with session.get(url) as resp:
@@ -34,7 +34,7 @@ async def get_url(url: str, headers: dict = None) -> Tuple[ClientResponse, dict]
 
 
 async def post_url(url: str, headers: dict = None) -> Tuple[ClientResponse, dict]:
-    headers = headers if headers and len(headers) == 2 else get_headers()
+    headers = headers if headers is not None else get_headers()
     async with ClientSession(headers=headers) as session:
         async with timeout(10):
             async with session.post(url) as resp:
