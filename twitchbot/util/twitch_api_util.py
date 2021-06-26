@@ -1,3 +1,4 @@
+import logging
 import warnings
 from collections import namedtuple
 from datetime import datetime
@@ -41,6 +42,10 @@ async def post_url(url: str, headers: dict = None) -> Tuple[ClientResponse, dict
                 return await _extract_response_and_json_from_request(resp)
 
 
+def _check_headers_has_auth(headers: dict) -> bool:
+    return CLIENT_ID_KEY in headers and AUTHORIZATION_KEY in headers
+
+
 async def _extract_response_and_json_from_request(resp):
     try:
         return resp, await resp.json()
@@ -49,7 +54,12 @@ async def _extract_response_and_json_from_request(resp):
 
 
 async def get_user_info(user: str) -> UserInfo:
-    _, json = await get_url(USER_API_URL.format(user), get_headers())
+    headers = get_headers()
+    if not _check_headers_has_auth(headers):
+        warnings.warn('[GET_USER_INFO] headers for the twitch api request are missing authorization')
+        return UserInfo(-1, '', '', '', '', '', '', '', -1)
+
+    _, json = await get_url(USER_API_URL.format(user), headers)
 
     if 'error' in json or not json.get('data', None):
         return UserInfo(-1, '', '', '', '', '', '', '', -1)
@@ -69,8 +79,12 @@ async def get_user_info(user: str) -> UserInfo:
 
 
 async def get_user_creation_date(user: str) -> datetime:
-    _, json = await get_url(USER_ACCOUNT_AGE_API.format(user), get_headers(use_kraken=True))
+    headers = get_headers(use_kraken=True)
+    if not _check_headers_has_auth(headers):
+        warnings.warn('[GET_USER_CREATION_DATE] headers for the twitch api request are missing authorization')
+        return datetime.min()
 
+    _, json = await get_url(USER_ACCOUNT_AGE_API.format(user), headers)
     if 'created_at' not in json:
         return datetime.min()
     #                                            2012-09-03T01:30:56Z
@@ -78,10 +92,14 @@ async def get_user_creation_date(user: str) -> datetime:
 
 
 async def get_user_followers(user: str, headers: dict = None) -> UserFollowers:
-    headers = headers if headers and len(headers) == 2 else get_headers()
+    headers = headers if headers is not None else get_headers()
+    if not _check_headers_has_auth(headers):
+        warnings.warn('[GET_USER_FOLLOWERS] headers for the twitch api request are missing authorization')
+        return UserFollowers(-1, '', -1, '', -1, [])
+
     user_id = await get_user_id(user, headers)
-    _, json = await get_url(USER_FOLLOWERS_API_URL.format(user_id), get_headers())
-    ratelimit = RateLimit.from_headers(_.headers)
+    _, json = await get_url(USER_FOLLOWERS_API_URL.format(user_id), headers)
+    # ratelimit = RateLimit.from_headers(_.headers)
 
     # covers invalid user id, or some other API error, such as invalid client-id
     if not json or json.get('status', -1) == 400:
@@ -96,9 +114,12 @@ async def get_user_followers(user: str, headers: dict = None) -> UserFollowers:
 
 
 async def get_user_data(user: str, headers: dict = None) -> dict:
-    headers = headers if headers and len(headers) == 2 else get_headers()
-    _, json = await get_url(USER_API_URL.format(user), headers)
+    headers = headers if headers is not None else get_headers()
+    if not _check_headers_has_auth(headers):
+        warnings.warn('[GET_USER_DATA] headers for the twitch api request are missing authorization')
+        return {}
 
+    _, json = await get_url(USER_API_URL.format(user), headers)
     if not json.get('data'):
         return {}
 
@@ -106,10 +127,14 @@ async def get_user_data(user: str, headers: dict = None) -> dict:
 
 
 async def get_user_id(user: str, headers: dict = None, verbose=True) -> int:
-    headers = headers if headers and len(headers) == 2 else get_headers()
     # shortcut if the this user's id was already requested
     if user in user_id_cache:
         return user_id_cache[user]
+
+    headers = headers if headers is not None else get_headers()
+    if not _check_headers_has_auth(headers):
+        warnings.warn('[GET_USER_DATA] headers for the twitch api request are missing authorization')
+        return -1
 
     data = await get_user_data(user, headers)
 
@@ -123,7 +148,11 @@ async def get_user_id(user: str, headers: dict = None, verbose=True) -> int:
 
 
 async def get_stream_data(user_id: str, headers: dict = None) -> dict:
-    headers = headers if headers and len(headers) == 2 else get_headers()
+    headers = headers if headers is not None else get_headers()
+    if not _check_headers_has_auth(headers):
+        warnings.warn('[GET_STREAM_DATA] headers for the twitch api request are missing authorization')
+        return {}
+
     _, json = await get_url(STREAM_API_URL.format(user_id), headers)
 
     if not json.get('data'):
@@ -132,17 +161,26 @@ async def get_stream_data(user_id: str, headers: dict = None) -> dict:
     return json['data'][0]
 
 
-async def get_channel_chatters(channel: str) -> dict:
+async def get_channel_chatters(channel: str, headers: dict = None) -> dict:
+    headers = headers if headers is not None else get_headers()
+    if not _check_headers_has_auth(headers):
+        warnings.warn('[GET_CHANNEL_CHATTERS] headers for the twitch api request are missing authorization')
+        return {}
+
     _, data = await get_url(CHANNEL_CHATTERS_URL.format(channel))
     return data
+
+
+CLIENT_ID_KEY = 'Client-ID'
+AUTHORIZATION_KEY = 'Authorization'
 
 
 def get_headers(use_kraken: bool = False):
     prefix = 'Bearer' if not use_kraken else 'OAuth'
     oauth_key = get_oauth(remove_prefix=True)
-    headers = {'Client-ID': get_client_id()}
+    headers = {CLIENT_ID_KEY: get_client_id()}
     if oauth_key:
-        headers.update({'Authorization': f'{prefix} {oauth_key}'})
+        headers.update({AUTHORIZATION_KEY: f'{prefix} {oauth_key}'})
 
     return headers
 
@@ -160,6 +198,11 @@ ChannelInfo = NamedTuple(
 
 async def get_channel_info(broadcaster_name_or_id: str, headers: dict = None) -> Optional[ChannelInfo]:
     from ..util import dict_get_value
+
+    headers = headers if headers is not None else get_headers()
+    if not _check_headers_has_auth(headers):
+        warnings.warn('[GET_CHANNEL_INFO] headers for the twitch api request are missing authorization')
+        return None
 
     if not broadcaster_name_or_id.strip().isnumeric():
         user_id = await get_user_id(broadcaster_name_or_id, headers=headers)
@@ -187,7 +230,11 @@ async def get_channel_name_from_user_id(user_id: str, headers: dict = None) -> s
     if user_id in _channel_id_to_name_cache:
         return _channel_id_to_name_cache[user_id]
 
-    headers = headers if headers and len(headers) == 2 else get_headers()
+    headers = headers if headers is not None else get_headers()
+    if not _check_headers_has_auth(headers):
+        warnings.warn('[GET_CHANNEL_NAME_FROM_USER_ID] headers for the twitch api request are missing authorization')
+        return ''
+
     channel_info = await get_channel_info(user_id, headers=headers)
 
     if not channel_info:

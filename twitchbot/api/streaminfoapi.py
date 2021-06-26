@@ -27,7 +27,7 @@ class StreamInfoApi(Api):
         :param log: should errors be logged?
         """
         try:
-            data = await util.get_stream_data(self.user, self.headers)
+            data = await util.get_stream_data(self.user)
             self.viewer_count = data.get('viewer_count', 0)
             self.title = data.get('title', '')
             self.game_id = data.get('game_id', 0)
