@@ -11,7 +11,7 @@ __all__ = [
 from asyncio import sleep
 from collections import defaultdict, Counter
 from datetime import datetime
-from typing import List, DefaultDict, Optional, Tuple, Set, Any
+from typing import List, DefaultDict, Optional, Tuple, Set, Any, Dict
 
 from ..channel import Channel
 
@@ -29,7 +29,7 @@ class PollData:
         self.choices_normalized: List[str] = list(map(self._format, choices))
         self.channel: Channel = channel
         self.votes: Counter[int, int] = Counter()
-        self.voters: Set[str] = set()
+        self.voter_choices: Dict[str, int] = {}
         self.owner = owner
         self.title = title
         self.start_time = datetime.now()
@@ -73,14 +73,18 @@ class PollData:
             self.choices_normalized.remove(normalized)
 
     def has_already_voted(self, username: str):
-        return username.lower().strip() in self.voters
+        return username.lower().strip() in self.voter_choices
 
     def add_vote(self, voter: str, choice_id: int) -> bool:
         if not self.is_valid_vote(choice_id):
             return False
 
+        voter_key = voter.lower().strip()
+        if voter_key in self.voter_choices:
+            self.votes[self.voter_choices[voter_key]] -= 1
+
+        self.voter_choices[voter_key] = choice_id
         self.votes[choice_id] += 1
-        self.voters.add(voter.lower().strip())
         return True
 
     def format_poll_results(self, reverse: bool = True):

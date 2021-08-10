@@ -61,9 +61,6 @@ async def cmd_vote(msg: Message, *args):
         await msg.reply(f'{choice} is not a valid choice id for poll#{poll.id}, choices are: {poll.formatted_choices()}')
         return
 
-    if poll.has_already_voted(msg.author):
-        return
-
     poll.add_vote(msg.author, choice)
 
 
