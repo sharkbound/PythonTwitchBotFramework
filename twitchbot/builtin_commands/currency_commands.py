@@ -1,5 +1,6 @@
 import os
 from datetime import datetime, timedelta
+from itertools import count
 from secrets import randbelow
 from typing import Dict
 
@@ -271,8 +272,9 @@ async def cmd_top(msg: Message, *args):
                .limit(30))  # limit(30) is used to allow for some padding in-case a large number of names are filtered
 
     b: Balance
+    counter = count(1)
     valid_matches = [
-                        f'{i}: {b.user} => {b.balance}' for i, b in enumerate(results, 1)
+                        f'{next(counter)}: {b.user} => {b.balance}' for i, b in enumerate(results, 1)
                         if b.user.lower() not in cfg_ignored_top_usernames.ignored_usernames
                     ][:10]
     message = ' | '.join(valid_matches)
