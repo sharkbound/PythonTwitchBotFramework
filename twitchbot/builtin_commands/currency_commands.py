@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta
 from secrets import randbelow
 from typing import Dict
@@ -24,7 +25,10 @@ from twitchbot import (
     add_balance_to_all,
     Balance,
     subtract_balance_from_all,
-    get_nick)
+    get_nick,
+    Config,
+    CONFIG_FOLDER
+)
 
 PREFIX = cfg.prefix
 MANAGE_CURRENCY_PERMISSION = 'manage_currency'
@@ -249,16 +253,29 @@ async def cmd_mine(msg: Message, *args):
         await msg.reply(f'you cannot mine again for {int(abs(diff))} seconds', whisper=True)
 
 
+cfg_ignored_top_usernames = Config(file_path=CONFIG_FOLDER / 'command_configs' / 'command_top_config.json', ignored_usernames=[])
+
+
+@Command('topreloadignored', permission='topreloadignored', help='reloads the config file for top\'s ignored usernames')
+async def cmd_top_reload_ignored(msg: Message, *args):
+    cfg_ignored_top_usernames.load()
+    await msg.reply('successfully reloaded top\'s ignored list!')
+
+
 @Command('top', help="lists the top 10 balance holders")
 async def cmd_top(msg: Message, *args):
     results = (session.query(Balance)
                .filter(Balance.channel == msg.channel_name, Balance.user != msg.channel_name,
                        Balance.user != get_nick().lower())
                .order_by(Balance.balance.desc())
-               .limit(10))
+               .limit(30))  # limit(30) is used to allow for some padding in-case a large number of names are filtered
 
     b: Balance
-    message = ' | '.join(f'{i}: {b.user} => {b.balance}' for i, b in enumerate(results, 1))
+    valid_matches = [
+                        f'{i}: {b.user} => {b.balance}' for i, b in enumerate(results, 1)
+                        if b.user.lower() not in cfg_ignored_top_usernames.ignored_usernames
+                    ][:10]
+    message = ' | '.join(valid_matches)
 
     await msg.reply(message or 'no users found')
 
