@@ -16,7 +16,6 @@ from .database import *
 from .bots import *
 from .api import *
 from .events import *
-from .loyalty_ticker import *
 from .disabled_commands import *
 from .duel import *
 from .command_server import start_command_server, SilentMessage, stop_command_server
