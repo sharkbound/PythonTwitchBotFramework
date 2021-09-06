@@ -84,25 +84,34 @@ class ClientHandler:
     async def read(self):
         return (await self.websocket.recv()).strip()
 
+    async def write_json_preserve_custom_data(self, *, original_data, **kwargs):
+        await self.write_json(
+            **kwargs,
+            custom_data=original_data.get('custom_data')
+        )
+
     async def write_json(self, **data):
         await self.websocket.send(f'{json.dumps(data)}')
 
     async def handle_send_privmsg(self, data: dict):
         if 'channel' not in data:
-            await self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'data for send_privmsg is missing `channel` key'})
+            await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.BAD_DATA,
+                                                       data={'reason': 'data for send_privmsg is missing `channel` key'})
             return
 
         if 'message' not in data:
-            await self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'data for send_privmsg is missing `message` key'})
+            await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.BAD_DATA,
+                                                       data={'reason': 'data for send_privmsg is missing `message` key'})
             return
 
         channel = data['channel'].lower().strip()
         if channel not in channels:
-            await self.write_json(type=_RequestType.CHANNEL_NOT_FOUND, data={'reason': f'bot is not in requested channel `{channel}`'})
+            await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.CHANNEL_NOT_FOUND,
+                                                       data={'reason': f'bot is not in requested channel `{channel}`'})
             return
 
         await channels[channel].send_message(data['message'])
-        await self.write_json(type=_RequestType.SUCCESS, data={'type': _RequestType.SEND_PRIVMSG})
+        await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.SUCCESS, data={'type': _RequestType.SEND_PRIVMSG})
 
     async def _guard_run_cmd(self, data: dict):
         from .util import run_command
@@ -124,23 +133,27 @@ class ClientHandler:
 
     async def handle_run_command(self, data: dict):
         if 'channel' not in data:
-            await self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'data for run_command is missing `channel` key'})
+            await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.BAD_DATA,
+                                                       data={'reason': 'data for run_command is missing `channel` key'})
             return
 
         if 'command' not in data:
-            await self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'data for run_command is missing `command` key'})
+            await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.BAD_DATA,
+                                                       data={'reason': 'data for run_command is missing `command` key'})
             return
 
         if 'args' not in data:
-            await self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'data for run_command is missing `args` key'})
+            await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.BAD_DATA,
+                                                       data={'reason': 'data for run_command is missing `args` key'})
             return
 
         if not isinstance(data['args'], list):
-            await self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'key `args` must be a list for `run_command`'})
+            await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.BAD_DATA,
+                                                       data={'reason': 'key `args` must be a list for `run_command`'})
             return
 
         get_event_loop().create_task(self._guard_run_cmd(data))
-        await self.write_json(type=_RequestType.SUCCESS, data={'type': _RequestType.RUN_COMMAND})
+        await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.SUCCESS, data={'type': _RequestType.RUN_COMMAND})
 
     async def run(self):
         try:
@@ -162,12 +175,15 @@ class ClientHandler:
                     await self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'response must be valid json'})
                     continue
 
+                custom_data = data.get('custom_data', None)
                 if not isinstance(data, dict):
-                    await self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'data must be dictionary'})
+                    await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.BAD_DATA,
+                                                               data={'reason': 'data must be dictionary'})
                     continue
 
                 if 'type' not in data:
-                    await self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'data is missing key `type`'})
+                    await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.BAD_DATA,
+                                                               data={'reason': 'data is missing key `type`'})
                     continue
 
                 msg_type = data['type']
@@ -180,6 +196,7 @@ class ClientHandler:
             return
         except websockets.exceptions.ConnectionClosedOK:
             pass
+
 
 async def handle_client(websocket: websockets.WebSocketServerProtocol, path: str):
     await ClientHandler(websocket, path).run()
