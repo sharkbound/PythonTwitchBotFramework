@@ -5,6 +5,7 @@
 * add option to pass channels, oauth, username, client_id directly to BaseBot to bypass config
 * change IRC to not reference global state (like channels) to allow for the above change
 * class commands (like mods, except has a execute(...) method), has name and such as class variables
+* (half done) add option to allow for using twitch's reply system for comments in msg.reply(...) method
 
 # DONE
 
