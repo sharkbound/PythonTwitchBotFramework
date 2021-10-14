@@ -31,7 +31,7 @@ class Message:
         self.raw_msg: str = msg
         self.receiver: Optional[str] = None
         self.irc: 'Irc' = irc
-        self.tags: Optional[Tags] = None
+        self.tags: 'Tags' = Tags('')
         self.emotes: List[Emote] = []
         self.mentions: Tuple[str] = ()
         self.system_message: Optional[str] = None

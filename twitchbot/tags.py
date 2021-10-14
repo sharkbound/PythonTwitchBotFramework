@@ -4,6 +4,7 @@ import warnings
 class Tags:
     def __init__(self, tags: str):
         self.all_tags = {name.strip().replace(' ', ''): value for name, value in _split_tags(tags)}
+
         self.badges: dict = _parse_badges(self.all_tags.get('badges'))
         self.color: str = self.all_tags.get('color')
         self.display_name: str = self.all_tags.get('display-name')
@@ -11,18 +12,26 @@ class Tags:
         self.id: str = self.all_tags.get('id')
         self.mod: int = _try_parse_int(self.all_tags.get('mod'))
         self.room_id: int = _try_parse_int(self.all_tags.get('room-id'))
+
         self.subscriber: int = _try_parse_int(self.all_tags.get('subscriber'))
         self.tmi_sent_ts: int = _try_parse_int(self.all_tags.get('tmi-sent-ts'))
         self.user_id: int = _try_parse_int(self.all_tags.get('user-id'))
         self.user_type: int = self.all_tags.get('user-type')
         self.bits: int = _try_parse_int(self.all_tags.get('bits'))
-        self.bits_leader: int = self.all_tags.get('bits-leader')
+        self.bits_leader: int = self.all_tags.get('bits-leader', None)
         self.broadcaster: int = self.badges.get('broadcaster', 0)
-        self.msg_id: str = self.all_tags.get('msg-id')
+        self.msg_id: str = self.all_tags.get('msg-id', '')
         self.raid_viewer_count: int = _try_parse_int(self.all_tags.get('msg-param-viewerCount'))
+
         self.resub_months: int = 0
         self.sub_plan: int = 0
         self.sub_recipient: str = self.all_tags.get('msg-param-recipient-display-name')
+
+        self.reply_parent_display_name: str = self.all_tags.get('reply-parent-display-name')
+        self.reply_parent_msg_body: str = self.all_tags.get('reply-parent-msg-body')
+        self.reply_parent_msg_id: str = self.all_tags.get('reply-parent-msg-id')
+        self.reply_parent_user_id: str = self.all_tags.get('reply-parent-user-id')
+        self.reply_parent_user_login: str = self.all_tags.get('reply-parent-user-login')
 
         # twitch sends months in different tags based on event, find the actual amount of months here
         if self.all_tags.get('msg-param-cumulative-months') is not None:
