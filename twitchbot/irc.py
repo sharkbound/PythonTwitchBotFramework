@@ -156,17 +156,19 @@ class Irc:
             await self.send(msg)
             await asyncio.sleep(send_interval)  # ensure we are not sending messages too fast
 
-    async def send_privmsg(self, channel: str, msg: str):
+    async def send_privmsg(self, channel: str, msg: str, _twitch_prefix: str = None):
         """sends a message to a channel"""
         # import it locally to avoid circular import
         from .channel import channels, DummyChannel
         from .modloader import trigger_mod_event
 
+        _twitch_prefix = _twitch_prefix or ''
+
         channel = channel.lower()
         chan = channels.get(channel) or DummyChannel(channel)
         for line in _wrap_message(msg):
             await privmsg_ratelimit(chan)
-            await self.send(PRIVMSG_FORMAT.format(channel=channel, line=line))
+            await self.send(_twitch_prefix + PRIVMSG_FORMAT.format(channel=channel, line=line))
 
         # exclude calls from send_whisper being sent to the bots on_privmsg_received event
         if not msg.startswith('/w'):

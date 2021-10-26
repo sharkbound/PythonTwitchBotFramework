@@ -40,11 +40,11 @@ class Channel:
     def live(self):
         return self.stats.started_at != datetime.min
 
-    async def send_message(self, msg: str, strip_command_prefix: bool = False):
+    async def send_message(self, msg: str, strip_command_prefix: bool = False, _twitch_prefix: str = None):
         if strip_command_prefix:
             msg = strip_twitch_command_prefix(msg)
 
-        await self.irc.send_privmsg(self.name, msg)
+        await self.irc.send_privmsg(self.name, msg, _twitch_prefix=_twitch_prefix)
 
     async def send_command(self, cmd: str):
         await self.irc.send_privmsg(self.name, f'/{cmd}')

@@ -20,6 +20,8 @@ if TYPE_CHECKING:
     from .bots import BaseBot
     from .replywaiter import ReplyResult
 
+_TWITCH_REPLY_SPACE_REPLACEMENT = r'\s'
+
 
 class Message:
     def __init__(self, msg, irc=None, bot=None):
@@ -267,13 +269,20 @@ class Message:
             return self.author
         return ''
 
+    @property
+    def has_required_tags_for_twitch_reply(self):
+        tags = self.tags
+        return tags is not None and all((tags.display_name, self.content is not None, tags.id, tags.user_id, self.author))
+
     async def send_command(self, msg: str = '', whisper=False):
         msg = f'/{strip_twitch_command_prefix(msg)}'
         await self.reply(msg=msg, whisper=whisper, strip_command_prefix=False)
 
-    async def reply(self, msg: str = '', whisper=False, strip_command_prefix: bool = True):
+    async def reply(self, msg: str = '', whisper=False, strip_command_prefix: bool = True, as_twitch_reply: bool = False):
         if not msg:
             raise ValueError('msg is empty, msg must be a non-empty string')
+
+        twitch_message_prefix = None
 
         if not isinstance(msg, str):
             msg = str(msg)
@@ -281,8 +290,15 @@ class Message:
         if strip_command_prefix:
             msg = strip_twitch_command_prefix(msg)
 
+        if self.is_privmsg and as_twitch_reply and self.has_required_tags_for_twitch_reply:
+            twitch_message_prefix = (f'@reply-parent-display-name={self.tags.display_name};'
+                                     f'reply-parent-msg-body={self.content.replace(" ", _TWITCH_REPLY_SPACE_REPLACEMENT)};'
+                                     f'reply-parent-msg-id={self.tags.id};'
+                                     f'reply-parent-user-id={self.tags.user_id};'
+                                     f'reply-parent-user-login={self.author}: ')
+
         if self.type is MessageType.PRIVMSG and (not whisper or cfg.disable_whispers):
-            await self.channel.send_message(msg)
+            await self.channel.send_message(msg, _twitch_prefix=twitch_message_prefix)
 
         elif self.type is MessageType.WHISPER or (whisper and self.type is MessageType.PRIVMSG):
             if self.irc is None:
