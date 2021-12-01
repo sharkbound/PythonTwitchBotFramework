@@ -175,8 +175,9 @@ async def cmd_give(msg: Message, *args):
 
     session.commit()
 
+    target_user = args[0].strip('@')
     await msg.reply(
-        f"@{msg.author} you gave @{args[0]} {give} {cur_name}, @{args[0]}'s balance is now {target.balance}")
+        f"@{msg.author} you gave @{target_user} {give} {cur_name}, @{target_user}'s balance is now {target.balance}")
 
 
 @Command('gamble', syntax='<bet> <dice_sides>',
