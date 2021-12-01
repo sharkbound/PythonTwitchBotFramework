@@ -100,6 +100,10 @@ class Message:
         return self._normalize(self.content)
 
     @property
+    def normalized_author(self):
+        return self._normalize(self.author or '')
+
+    @property
     def args(self) -> List[str]:
         """
         parts of the message starting at index 1
