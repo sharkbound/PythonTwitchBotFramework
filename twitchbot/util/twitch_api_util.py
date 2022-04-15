@@ -13,7 +13,7 @@ from ..data import UserFollowers, UserInfo, RateLimit
 
 __all__ = ('CHANNEL_CHATTERS_URL', 'get_channel_chatters', 'get_stream_data', 'get_url', 'get_user_data', 'get_user_id',
            'STREAM_API_URL', 'USER_API_URL', 'get_user_followers', 'USER_FOLLOWERS_API_URL', 'get_headers',
-           'get_user_info', 'get_user_creation_date', 'USER_ACCOUNT_AGE_API', 'CHANNEL_INFO_API', 'get_channel_info', 'ChannelInfo',
+           'get_user_info', 'USER_ACCOUNT_AGE_API', 'CHANNEL_INFO_API', 'get_channel_info', 'ChannelInfo',
            'get_channel_name_from_user_id', 'OauthTokenInfo', 'get_oauth_token_info', '_check_token', 'post_url')
 
 USER_API_URL = 'https://api.twitch.tv/helix/users?login={}'
@@ -76,19 +76,6 @@ async def get_user_info(user: str) -> UserInfo:
         offline_image_url=data['offline_image_url'],
         view_count=data['view_count']
     )
-
-
-async def get_user_creation_date(user: str) -> datetime:
-    headers = get_headers(use_kraken=True)
-    if not _check_headers_has_auth(headers):
-        warnings.warn('[GET_USER_CREATION_DATE] headers for the twitch api request are missing authorization')
-        return datetime.min()
-
-    _, json = await get_url(USER_ACCOUNT_AGE_API.format(user), headers)
-    if 'created_at' not in json:
-        return datetime.min()
-    #                                            2012-09-03T01:30:56Z
-    return datetime.strptime(json['created_at'], '%Y-%m-%dT%H:%M:%SZ')
 
 
 async def get_user_followers(user: str, headers: dict = None) -> UserFollowers:
