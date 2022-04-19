@@ -52,13 +52,17 @@ def subtract_balance(channel: str, user: str, value: int):
     session.commit()
 
 
-def get_balance(channel: str, user: str) -> Balance:
+
+def get_balance(channel: str, user: str, create_if_missing=True) -> Optional[Balance]:
     """gets the balance of the user for the specified channel"""
 
     user = user.lower()
     bal = session.query(Balance).filter(Balance.channel == channel, Balance.user == user).one_or_none()
 
     if bal is None:
+        if not create_if_missing:
+            return None
+
         bal = Balance.create(channel, user)
         session.add(bal)
         session.commit()
