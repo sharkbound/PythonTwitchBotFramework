@@ -131,7 +131,7 @@ async def cmd_sub_bal(msg: Message, *args):
 
     currency = get_currency_name(msg.channel_name).name
 
-    if get_balance_from_msg(msg).balance < amount:
+    if get_balance(msg.channel_name, msg.author, create_if_missing=True).balance < amount:
         raise InvalidArgumentsError(f'{target} does not have {currency} to subtract {amount} {currency} from',
                                     cmd=cmd_sub_bal)
 
