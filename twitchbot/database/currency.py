@@ -45,12 +45,21 @@ def add_balance(channel: str, user: str, value: int, commit=True):
         session.commit()
 
 
-def subtract_balance(channel: str, user: str, value: int):
+def subtract_balance(channel: str, user: str, value: int, commit=True) -> SubtractBalanceResult:
     """subtracts balance to a user in the specified channel"""
 
-    get_balance(channel, user.lower()).balance -= value
-    session.commit()
+    balance = get_balance(channel, user.lower(), create_if_missing=False)
+    if balance is None:
+        return SubtractBalanceResult.BALANCE_DOES_NOT_EXISTS
 
+    if balance.balance < value:
+        return SubtractBalanceResult.NOT_ENOUGH_BALANCE
+
+    balance.balance -= value
+    if commit:
+        session.commit()
+
+    return SubtractBalanceResult.SUCCESS
 
 
 def get_balance(channel: str, user: str, create_if_missing=True) -> Optional[Balance]:
