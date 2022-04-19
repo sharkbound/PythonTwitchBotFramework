@@ -26,7 +26,7 @@ def add_balance_to_all(channel: str, value: int):
 
 def subtract_balance_from_all(channel: str, value: int):
     session.query(Balance) \
-        .filter(Balance.channel == channel) \
+        .filter(Balance.channel == channel, Balance.balance >= value) \
         .update({Balance.balance: Balance.balance - value})
     session.commit()
 
