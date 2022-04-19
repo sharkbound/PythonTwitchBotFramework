@@ -28,7 +28,8 @@ from twitchbot import (
     subtract_balance_from_all,
     get_nick,
     Config,
-    CONFIG_FOLDER
+    CONFIG_FOLDER,
+    SubtractBalanceResult
 )
 
 PREFIX = cfg.prefix
@@ -131,18 +132,19 @@ async def cmd_sub_bal(msg: Message, *args):
 
     currency = get_currency_name(msg.channel_name).name
 
-    if get_balance(msg.channel_name, msg.author, create_if_missing=True).balance < amount:
-        raise InvalidArgumentsError(f'{target} does not have {currency} to subtract {amount} {currency} from',
-                                    cmd=cmd_sub_bal)
-
     if target == 'all':
         subtract_balance_from_all(msg.channel_name, amount)
         await msg.reply(f"subtracted {amount} {currency} from everyone's balance")
-    else:
-        subtract_balance(msg.channel_name, target, amount)
+        return
+
+    result = subtract_balance(msg.channel_name, target, amount)
+    if result is SubtractBalanceResult.BALANCE_DOES_NOT_EXISTS:
+        raise InvalidArgumentsError(f'{target} does not exist in the database', cmd=cmd_sub_bal)
+    elif result is SubtractBalanceResult.NOT_ENOUGH_BALANCE:
+        raise InvalidArgumentsError(f'{target} does not have {currency} to subtract {amount} {currency} from', cmd=cmd_sub_bal)
+    elif result is SubtractBalanceResult.SUCCESS:
         await msg.reply(
-            f'subtracted {amount} {currency} from {target}, '
-            f'their total is now {get_balance(msg.channel_name, target).balance} {currency}')
+            f'subtracted {amount} {currency} from {target}, their total is now {get_balance(msg.channel_name, target).balance} {currency}')
 
 
 @Command('give', syntax='<target> <amount>',
