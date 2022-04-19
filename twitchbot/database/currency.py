@@ -1,6 +1,7 @@
-from typing import Dict, Tuple
+from typing import Dict, Optional
 from .models import Balance, CurrencyName
 from .session import session
+from ..enums import SubtractBalanceResult
 
 __all__ = [
     'get_balance',
@@ -40,7 +41,7 @@ def set_balance(channel: str, user: str, value: int):
 def add_balance(channel: str, user: str, value: int, commit=True):
     """adds balance to a user in the specified channel"""
 
-    get_balance(channel, user.lower()).balance += value
+    get_balance(channel, user.lower(), create_if_missing=True).balance += value
     if commit:
         session.commit()
 
