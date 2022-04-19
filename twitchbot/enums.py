@@ -1,6 +1,6 @@
 from enum import Enum, IntFlag, auto
 
-__all__ = ('Event', 'CommandContext', 'MessageType', 'UserType')
+__all__ = ('Event', 'CommandContext', 'MessageType', 'UserType', 'SubtractBalanceResult')
 
 
 class NamedEnum(Enum):
@@ -74,3 +74,9 @@ class Event(NamedEnum):
     on_pubsub_user_follow = auto()
     on_bot_shutdown = auto()
     on_after_database_init = auto()
+
+
+class SubtractBalanceResult(NamedEnum):
+    SUCCESS = auto()
+    NOT_ENOUGH_BALANCE = auto()
+    BALANCE_DOES_NOT_EXISTS = auto()
