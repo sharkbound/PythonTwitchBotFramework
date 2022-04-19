@@ -379,6 +379,15 @@ async def cmd_duel(msg: Message, *args):
     except IndexError:
         bet = 10
 
+    target_balance = get_balance(msg.channel_name, target, create_if_missing=False)
+    if target_balance is None:
+        raise InvalidArgumentsError(reason=f'{target} does not exists in the balance database', cmd=cmd_duel)
+    elif target_balance.balance < bet:
+        raise InvalidArgumentsError(
+            reason=f'{target} does not have enough {get_currency_name(msg.channel_name).name} to accept this duel!',
+            cmd=cmd_duel
+        )
+
     add_duel(msg.channel_name, msg.author, target, bet)
 
     currency_name = get_currency_name(msg.channel_name).name
