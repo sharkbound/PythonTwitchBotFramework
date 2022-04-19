@@ -375,8 +375,7 @@ async def cmd_duel(msg: Message, *args):
     try:
         bet = int(args[1])
     except ValueError:
-        raise InvalidArgumentsError(reason=f'invalid bet: {args[1]}, bet must be a number with no decimals, ex: 12',
-                                    cmd=cmd_duel)
+        raise InvalidArgumentsError(reason=f'invalid bet: {args[1]}, bet must be a number with no decimals, ex: 12', cmd=cmd_duel)
     except IndexError:
         bet = 10
 
@@ -401,7 +400,7 @@ async def cmd_accept(msg: Message, *args):
             reason=f'{msg.mention}, you have not been challenged by {challenger}, or the duel might have expired',
             cmd=cmd_accept)
 
-    loser = msg.author if winner == msg.author else challenger
+    loser = msg.author if winner != msg.author else challenger
 
     add_balance(msg.channel_name, winner, bet)
     subtract_balance(msg.channel_name, loser, bet)
