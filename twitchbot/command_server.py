@@ -66,7 +66,7 @@ from .message import Message
 
 
 class SilentMessage(Message):
-    async def reply(self, msg: str = '', whisper=False, strip_command_prefix: bool = True):
+    async def reply(self, msg: str = '', whisper=False, strip_command_prefix: bool = True, as_twitch_reply: bool = False):
         print(f'COMMAND SERVER [SILENT RUN OUTPUT]: {msg}')
 
     # noinspection PyUnresolvedReferences
