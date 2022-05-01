@@ -1,6 +1,8 @@
 import asyncio
 import getpass
 import json
+import queue
+import threading
 from functools import partial
 from typing import Optional, List, Coroutine
 
@@ -68,13 +70,27 @@ def print_help():
     print('/help to see this message again')
 
 
+def start_input_thread(input_queue: asyncio.Queue):
+    def _input_handler_func():
+        import time
+        time.sleep(1.5)
+        while True:
+            input_queue.put(input('>>> '))
+
+    threading.Thread(target=_input_handler_func).start()
+
+
 async def run():
     host = input('enter command server host (leave blank for "localhost"): ').strip() or 'localhost'
     port = int(input('enter command server port (leave blank for 1337): ').strip() or 1337)
     connection = Connection(host, port)
 
     await connection.connect()
+
     state = State()
+    input_queue = queue.Queue()
+
+    start_input_thread(input_queue)
 
     while True:
         data = await connection.read_json()
@@ -103,7 +119,11 @@ async def run():
             print_help()
 
         while state.authenticated and not state.waiting_for_read:
-            command = input('>> ')
+            try:
+                command = input_queue.get_nowait()
+            except queue.Empty:
+                await asyncio.sleep(.1)
+                continue
             parts = command.split()
 
             if not parts:
