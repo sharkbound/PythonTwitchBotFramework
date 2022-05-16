@@ -131,7 +131,7 @@ class Command:
 
         for parent in self.parent_chain():
             if (parent.permission
-                    and not all(await forward_event_with_results(Event.on_permission_check, origin_msg, parent, channel=origin_msg.channel_name))):
+                    and not any(await forward_event_with_results(Event.on_permission_check, origin_msg, parent, channel=origin_msg.channel_name))):
                 return False
         return True
 
