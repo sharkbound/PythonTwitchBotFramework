@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import sys
 import warnings
 from asyncio import get_event_loop
 from typing import Optional, TYPE_CHECKING
@@ -100,14 +101,14 @@ class BaseBot:
         triggered when a user sends the bot a whisper
         """
 
-    async def on_permission_check(self, msg: Message, cmd: Command) -> bool:
+    async def on_permission_check(self, msg: Message, cmd: Command) -> Optional[bool]:
         """
         triggered when a command permission check is requested
         :param msg: the message the command was found from
         :param cmd: the command that was found
         :return: bool indicating if the user has permission to call the command, True = yes, False = no
         """
-        return True
+        return None
 
     async def on_before_command_execute(self, msg: Message, cmd: Command) -> bool:
         """
@@ -263,10 +264,13 @@ class BaseBot:
     async def _run_command(self, msg: Message, cmd: Command):
         # [0] is needed here because get_sub_cmd() also returns the modified args relative to the level it recursively reached
         if not await cmd.get_sub_cmd(msg.args)[0].has_permission_to_run_from_msg(msg):
-            await msg.reply(
-                whisper=True,
-                msg=f'you do not have permission to execute "{msg.content}" in #{msg.channel_name}, do "{cfg.prefix}findperm {msg.parts[0]}" to see it\'s permission'
-            )
+            if cfg.disable_command_permission_denied_message:
+                print(f'denied {msg.author} permission to run command "{msg.content}" in #{msg.channel_name}', file=sys.stderr)
+            else:
+                await msg.reply(
+                    whisper=True,
+                    msg=f'you do not have permission to execute "{msg.content}" in #{msg.channel_name}, do "{cfg.prefix}findperm {msg.parts[0]}" to see it\'s permission'
+                )
             return
 
         elif not isinstance(cmd, CustomCommandAction) and is_command_disabled(msg.channel_name, cmd.fullname):

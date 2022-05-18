@@ -130,8 +130,17 @@ class Command:
         from .enums import Event
 
         for parent in self.parent_chain():
-            if (parent.permission
-                    and not any(await forward_event_with_results(Event.on_permission_check, origin_msg, parent, channel=origin_msg.channel_name))):
+            permission_event_results = [
+                result
+                for result in await forward_event_with_results(
+                    Event.on_permission_check, origin_msg, parent, channel=origin_msg.channel_name)
+                if result is not None
+                # remove None from results, None is returned from non-overridden on_permission_check events (mods, basebot)
+            ]
+            if (
+                    parent.permission
+                    and permission_event_results
+                    and not any(permission_event_results)):
                 return False
         return True
 

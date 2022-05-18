@@ -8,7 +8,7 @@ from importlib import import_module
 from inspect import isclass, getfile, getmodulename
 from pathlib import Path
 from traceback import print_exc
-from typing import Dict, Callable, Any
+from typing import Dict, Callable, Any, Optional
 
 if typing.TYPE_CHECKING:
     from .poll import PollData
@@ -119,14 +119,14 @@ class Mod:
         triggered when a user sends the bot a whisper
         """
 
-    async def on_permission_check(self, msg: Message, cmd: Command) -> bool:
+    async def on_permission_check(self, msg: Message, cmd: Command) -> Optional[bool]:
         """
         triggered when a command permission check is requested
         :param msg: the message the command was found from
         :param cmd: the command that was found
         :return: bool indicating if the user has permission to call the command, True = yes, False = no
         """
-        return True
+        return None
 
     async def on_before_command_execute(self, msg: Message, cmd: Command) -> bool:
         """

@@ -124,7 +124,7 @@ from twitchbot import Event
 
 Event.on_connected: (self)
 Event.on_permission_check: (self, msg
-                            : Message, cmd: Command) -> bool  # return False to deny permission to execute the cmd
+                            : Message, cmd: Command) -> Optional[bool]  # return False to deny permission to execute the cmd, Return None to ignore and continue
 Event.on_after_command_execute: (self, msg: Message, cmd: Command)
 Event.on_before_command_execute: (self, msg: Message, cmd: Command) -> bool  # return False to cancel command
 Event.on_bits_donated: (self, msg: Message, bits: int)

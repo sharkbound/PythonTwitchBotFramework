@@ -124,6 +124,7 @@ cfg = Config(
         'enablecmdglobal', 'enablecmd', 'addcmd', 'delcmd', 'updatecmd', 'cmd'
     ],
     enable_cooldown_bypass_permissions=True,
+    disable_command_permission_denied_message=False,
 )
 
 message_timer_cfg = Config(

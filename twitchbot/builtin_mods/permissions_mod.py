@@ -1,10 +1,12 @@
+from typing import Optional
+
 from twitchbot import Mod, perms, Message, Command
 
 
 class PermissionsMod(Mod):
     name = 'permissions'
 
-    async def on_permission_check(self, msg: Message, cmd: Command) -> bool:
+    async def on_permission_check(self, msg: Message, cmd: Command) -> Optional[bool]:
         if not cmd.permission:
             return True
 
