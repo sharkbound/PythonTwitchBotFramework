@@ -8,3 +8,4 @@ class Follower(NamedTuple):
     following: str
     id: int
     name: str
+    followed_at: str

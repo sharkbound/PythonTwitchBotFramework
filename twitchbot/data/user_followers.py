@@ -13,7 +13,8 @@ class UserFollowers:
             Follower(following=following,
                      following_id=int(following_id),
                      id=int(json['from_id']),
-                     name=json['from_name'])
+                     name=json['from_name'],
+                     followed_at=json['followed_at'])
             for json in followers
             if 'from_id' in json and 'from_name' in json
         ]
