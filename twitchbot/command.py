@@ -6,6 +6,7 @@ from typing import Dict, Callable, Optional, List, Tuple
 
 from twitchbot.database import CustomCommand
 from twitchbot.message import Message
+from twitchbot.database.dbcounter import increment_or_add_counter
 from .config import cfg
 from .enums import CommandContext
 from .util import get_py_files, get_file_name
@@ -201,7 +202,7 @@ def _calc_channel_live_time(msg) -> str:
 CUSTOM_COMMAND_PLACEHOLDERS = (
     (
         '%user',
-        lambda msg: f'@{msg.author}'
+        lambda msg, name: f'@{msg.author}'
     ),
     (
         '%uptime',
@@ -209,7 +210,11 @@ CUSTOM_COMMAND_PLACEHOLDERS = (
     ),
     (
         '%channel',
-        lambda msg: msg.channel_name
+        lambda msg, name: msg.channel_name
+    ),
+    (
+        '%counter',
+        lambda msg, name: str(increment_or_add_counter(msg.channel_name, name))
     ),
 )
 
@@ -225,7 +230,7 @@ class CustomCommandAction(Command):
 
         for placeholder, func in CUSTOM_COMMAND_PLACEHOLDERS:
             if placeholder in resp:
-                resp = resp.replace(placeholder, func(msg))
+                resp = resp.replace(placeholder, func(msg, self.cmd.name))
 
         await msg.channel.send_message(resp)
 
