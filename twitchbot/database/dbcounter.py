@@ -1,10 +1,12 @@
 from sqlalchemy import Integer
-from typing import Union, Optional
+from typing import Union, Optional, List
 
 from .session import session
 from .models import DBCounter
 
-__all__ = ('counter_exist', 'add_counter', 'increment_counter', 'increment_or_add_counter',  'set_counter', 'delete_counter_by_id', 'delete_counter_by_alias', 'get_counter_by_id', 'get_counter_by_alias', 'get_counter')
+__all__ = ('counter_exist', 'get_all_counters', 'add_counter', 'increment_counter', 'increment_or_add_counter',  
+    'set_counter', 'delete_counter_by_id', 'delete_counter_by_alias', 
+    'get_counter_by_id', 'get_counter_by_alias', 'get_counter')
 
 
 
@@ -106,3 +108,8 @@ def set_counter(channel: str, id_or_alias: Union[str, int], new_value) -> Option
     session.commit()
     return cur_counter.value
 
+def get_all_counters(channel: str) -> List[DBCounter]:
+    """
+    retrieve all counters from the current channel
+    """
+    return session.query(DBCounter).filter(DBCounter.channel == channel).all()

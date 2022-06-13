@@ -11,7 +11,8 @@ from twitchbot import (
     DBCounter,
     get_counter,
     delete_counter_by_id,
-    set_counter
+    set_counter,
+    get_all_counters
 )
 
 PREFIX = cfg.prefix
@@ -87,3 +88,8 @@ async def cmd_set_counter(msg: Message, *args):
     new_val = set_counter(channel=msg.channel_name, id_or_alias=alias, new_value=value)
 
     await msg.reply(f'The counter {alias} has been updated to {new_val}')
+
+@Command('listcounters', permission='manage_counter', help='list all counters of the channel')
+async def cmd_set_counter(msg: Message, *args):
+    clist = ', '.join(str(x) for x in get_all_counters(msg.channel_name))
+    await msg.reply(f'The following counters are available: {clist}')
