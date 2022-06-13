@@ -101,3 +101,6 @@ class DBCounter(Base):
     @classmethod
     def create(cls, channel: str, value: int = 0, user: str = None, alias: str = None):
         return DBCounter(channel=channel.lower(), user=user, value=value, alias=alias)
+    
+    def __str__(self):
+        return f'{self.alias} -> {self.value}'
