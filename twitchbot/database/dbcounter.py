@@ -1,11 +1,10 @@
-from collections import Counter
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Integer
 from typing import Union, Optional
 
 from .session import session
 from .models import DBCounter
 
-__all__ = ('counter_exist', 'add_counter', 'increment_counter', 'set_counter', 'delete_counter_by_id', 'delete_counter_by_alias', 'get_counter_by_id', 'get_counter_by_alias', 'get_counter')
+__all__ = ('counter_exist', 'add_counter', 'increment_counter', 'increment_or_add_counter',  'set_counter', 'delete_counter_by_id', 'delete_counter_by_alias', 'get_counter_by_id', 'get_counter_by_alias', 'get_counter')
 
 
 
@@ -69,27 +68,38 @@ def delete_counter_by_alias(channel: str, alias: str) -> None:
     session.commit()
 
 
-def increment_counter(channel: str, id_or_alias: Union[str, int]) -> Integer:
+def increment_counter(channel: str, id_or_alias: Union[str, int]) -> Optional[Integer]:
     """
-    tries to set  the counter an returns the new counter value
+    tries to set  the counter an returns the new counter value or None
     """
     cur_counter = get_counter(channel, id_or_alias)
     if cur_counter is None:
-        return -1
+        return None
     
     cur_counter.value = DBCounter.value + 1
 
     session.commit()
     return cur_counter.value
 
-
-def set_counter(channel: str, id_or_alias: Union[str, int], new_value) -> Integer:
+def increment_or_add_counter(channel: str, alias: str) -> Integer:
     """
-    tries to set counter an returns the new counter value
+    if the counter does not exits it will be automatically created with the value 0
+    the countervalue will be returned
+    """
+
+    if not counter_exist(channel=channel, alias=alias):
+        counter = DBCounter.create(channel=channel, alias=alias)
+        add_counter(counter)
+    
+    return increment_counter(channel, alias)
+
+def set_counter(channel: str, id_or_alias: Union[str, int], new_value) -> Optional[Integer]:
+    """
+    tries to set counter an returns the new counter value or None
     """
     cur_counter = get_counter(channel, id_or_alias)
     if cur_counter is None:
-        return -1
+        return None
     
     cur_counter.value = new_value
 
