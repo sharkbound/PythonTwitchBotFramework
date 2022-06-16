@@ -6,7 +6,7 @@ from .session import Base
 from ..config import cfg
 from ..enums import CommandContext
 
-__all__ = ('Quote', 'CustomCommand', 'Balance', 'CurrencyName', 'MessageTimer')
+__all__ = ('Quote', 'CustomCommand', 'Balance', 'CurrencyName', 'MessageTimer', 'DBCounter')
 
 
 class Quote(Base):
@@ -88,3 +88,19 @@ class MessageTimer(Base):
     @classmethod
     def create(cls, channel: str, name: str, message: str, interval: float, active=False):
         return MessageTimer(name=name, channel=channel, message=message, interval=interval, active=active)
+
+class DBCounter(Base):
+    __tablename__ = 'counter'
+
+    id = Column(Integer, primary_key=True, nullable=False)
+    user = Column(String(255))
+    channel = Column(String(255), nullable=False)
+    alias = Column(String(255))
+    value = Column(Integer, nullable=False)
+
+    @classmethod
+    def create(cls, channel: str, value: int = 0, user: str = None, alias: str = None):
+        return DBCounter(channel=channel.lower(), user=user, value=value, alias=alias)
+    
+    def __str__(self):
+        return f'{self.alias} -> {self.value}'

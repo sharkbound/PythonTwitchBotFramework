@@ -24,7 +24,7 @@ def _verify_resp_is_valid(resp: str):
          help='adds a custom command to the database for the this channel, '
               'placeholders: %user : the name of the person that triggered the command,'
               '%uptime : the channels live uptime,'
-              '%channel : the channels name')
+              '%channel : the channels name, %counter adds and uses a counter starting with the value 0')
 async def cmd_add_custom_command(msg: Message, *args):
     if len(args) < 2:
         raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_add_custom_command)
