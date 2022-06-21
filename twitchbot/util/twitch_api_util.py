@@ -1,4 +1,3 @@
-import logging
 import warnings
 from collections import namedtuple
 from datetime import datetime
@@ -9,7 +8,7 @@ from aiohttp import ClientSession, ClientResponse, ContentTypeError
 from async_timeout import timeout
 
 from ..config import get_client_id, get_oauth, DEFAULT_CLIENT_ID
-from ..data import UserFollowers, UserInfo, RateLimit, Follower
+from ..data import UserFollowers, UserInfo, Follower
 
 __all__ = ('CHANNEL_CHATTERS_URL', 'get_channel_chatters', 'get_stream_data', 'get_url', 'get_user_data', 'get_user_id',
            'STREAM_API_URL', 'USER_API_URL', 'get_user_followers', 'USER_FOLLOWERS_API_URL', 'get_headers',
@@ -88,7 +87,6 @@ async def get_user_followers(user: str, headers: dict = None) -> UserFollowers:
 
     user_id = await get_user_id(user, headers)
     _, json = await get_url(USER_FOLLOWERS_API_URL.format(user_id), headers)
-    # ratelimit = RateLimit.from_headers(_.headers)
 
     # covers invalid user id, or some other API error, such as invalid client-id
     if not json or json.get('status', -1) == 400:
@@ -101,26 +99,28 @@ async def get_user_followers(user: str, headers: dict = None) -> UserFollowers:
                          id=user_id_cache[user],
                          followers=json['data'])
 
-async def get_user_followage(user: str, follower: str, headers: dict = None) -> Follower:
+
+async def get_user_followage(channel_name: str, follower: str, headers: dict = None) -> Follower:
     headers = headers if headers is not None else get_headers()
     if not _check_headers_has_auth(headers):
         warnings.warn('[GET_USER_FOLLOWAGE] headers for the twitch api request are missing authorization')
-        return Follower(-1, '', -1, '', '')
+        return Follower(-1, '', -1, '', datetime.min)
 
-    user_id = await get_user_id(user, headers)
+    channel_id = await get_user_id(channel_name, headers)
     follower_id = await get_user_id(follower, headers)
-    _, json = await get_url(USER_FOLLOWAGE_API_URL.format(user_id, follower_id), headers)
-    # ratelimit = RateLimit.from_headers(_.headers)
+    _, json = await get_url(USER_FOLLOWAGE_API_URL.format(follower_id, channel_id), headers)
 
-    # covers invalid user id, or some other API error, such as invalid client-id
-    if not json or json.get('status', -1) == 400:
-        return Follower(-1, '', -1, '', '')
-    
-    return Follower(following=user, 
-        following_id=user_id, 
-        id=follower_id,
-        name=json['data'][0]['from_name'], 
-        followed_at=json['data'][0]['followed_at'])
+    # verify that the api response has data, and its total is not 0
+    if not json or not json.get('total', 0) or not json.get('data'):
+        return Follower(-1, '', -1, '', datetime.min)
+
+    # todo: test this out properly
+    return Follower(following=channel_name,
+                    following_id=channel_id,
+                    id=follower_id,
+                    name=json['data'][0]['from_name'],
+                    # datetime format: 2019-10-23T23:12:06Z
+                    followed_at=datetime.fromisoformat(json['data'][0]['followed_at'][:-1]))
 
 
 async def get_user_data(user: str, headers: dict = None) -> dict:
