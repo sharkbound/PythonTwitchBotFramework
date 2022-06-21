@@ -1,5 +1,6 @@
 from typing import List
 from .follower import Follower
+from datetime import datetime
 
 __all__ = ['UserFollowers']
 
@@ -14,7 +15,7 @@ class UserFollowers:
                      following_id=int(following_id),
                      id=int(json['from_id']),
                      name=json['from_name'],
-                     followed_at=json['followed_at'])
+                     followed_at=datetime.fromisoformat(json['followed_at'][:-1]))
             for json in followers
             if 'from_id' in json and 'from_name' in json
         ]
