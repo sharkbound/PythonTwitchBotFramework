@@ -10,3 +10,7 @@ class Follower(NamedTuple):
     id: int
     name: str
     followed_at: datetime
+
+    @property
+    def is_valid(self):
+        return bool(self.following_id) and bool(self.name.strip()) and bool(self.following.strip())
