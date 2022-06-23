@@ -30,6 +30,7 @@ from .poll import *
 from .event_util import *
 from .extra_configs import *
 from .pubsub import *
+from .translations import *
 
 BOT_VERSION = (2, 4, 5)
 _set_bot_package_path(__path__[0])
