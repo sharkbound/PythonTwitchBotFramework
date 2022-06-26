@@ -1,13 +1,23 @@
-from .config import CONFIG_FOLDER, Config
+from pathlib import Path
 
-__all__ = ['TRANSLATIONS_DIRECTORY', 'get_translation', 'load_translation_file', 'translate', 'translations_config']
+from .config import Config
 
-TRANSLATIONS_DIRECTORY = CONFIG_FOLDER / "translations"
-translations_config = Config(TRANSLATIONS_DIRECTORY / 'en_us.json')
+__all__ = ['TRANSLATIONS_DIRECTORY', 'get_translation', 'load_translation_file', 'translate', 'load_fallback_translation_file']
+
+TRANSLATIONS_DIRECTORY = Path("translations")
+
+_fallback_translations_config = Config(TRANSLATIONS_DIRECTORY / 'en_us.json')
+_translations_config = Config(TRANSLATIONS_DIRECTORY / 'en_us.json')
 
 
-def get_translation(self, key):
-    return self.translations_config[key]
+def get_translation(key):
+    if key in _translations_config:
+        return _translations_config[key]
+
+    if key in _fallback_translations_config:
+        return _fallback_translations_config[key]
+
+    raise ValueError(f'Translation not found: "{key}"')
 
 
 def _ensure_json_extension(file):
@@ -16,16 +26,22 @@ def _ensure_json_extension(file):
     return file
 
 
-def load_translation_file(translation_file_name):
+def _load_translation_file(translation_file_name):
     path = TRANSLATIONS_DIRECTORY / _ensure_json_extension(translation_file_name)
-    if path.exists():
-        raise ValueError(f'Tried to load non-existent translations file: {path}')
+    if not path.exists():
+        raise ValueError(f'Tried to load non-existent translations file: "{path}"')
+    return Config(path)
 
-    global translations_config
-    translations_config = Config(path)
+
+def load_fallback_translation_file(translation_file_name):
+    global _fallback_translations_config
+    _fallback_translations_config = _load_translation_file(translation_file_name)
+
+
+def load_translation_file(translation_file_name):
+    global _translations_config
+    _translations_config = _load_translation_file(translation_file_name)
 
 
 def translate(key, *args, **kwargs):
-    if key not in translations_config:
-        raise ValueError(f'Translation not found: "{key}"')
-    return translations_config[key].format(*args, **kwargs)
+    return get_translation(key).format(*args, **kwargs)
