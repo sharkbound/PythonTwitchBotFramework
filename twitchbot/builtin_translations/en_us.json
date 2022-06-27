@@ -1,0 +1,7 @@
+{
+  "bot_shutting_down": "bot shutting down...",
+  "missing_required_arguments": "missing required arguments",
+  "command_not_found": "no command found for \"{name}\"",
+  "command_already_disabled": "{name} is already disabled",
+  "disabled_command": "disabled command \"{name}\""
+}
