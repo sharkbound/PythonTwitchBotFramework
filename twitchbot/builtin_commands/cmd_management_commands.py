@@ -9,6 +9,7 @@ from twitchbot import (
     cfg_disabled_commands,
     channels,
     reload_whitelisted_commands,
+    translate,
 )
 
 MANAGE_COMMANDS_PERMISSION = 'manage_commands'
@@ -20,20 +21,20 @@ MANAGE_COMMANDS_PERMISSION = 'manage_commands'
          help='disables a command for the current channel')
 async def cmd_disable_cmd(msg: Message, *args):
     if not args:
-        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_disable_cmd)
+        raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_disable_cmd)
 
     name = args[0].lower()
 
     if not command_exist(name):
-        raise InvalidArgumentsError(reason=f'no command found for "{name}"', cmd=cmd_disable_cmd)
+        raise InvalidArgumentsError(reason=translate('command_not_found', name=name), cmd=cmd_disable_cmd)
 
     if is_command_disabled(msg.channel_name, name):
-        await msg.reply(f'{name} is already disabled')
+        await msg.reply(translate('command_already_disabled', name=name))
         return
 
     disable_command(msg.channel_name, name)
 
-    await msg.reply(f'disabled command "{name}"')
+    await msg.reply(translate('disabled_command', name=name))
 
 
 @Command('enablecmd',
