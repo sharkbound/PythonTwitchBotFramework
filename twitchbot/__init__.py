@@ -1,4 +1,8 @@
 from .bot_package_path import _set_bot_package_path, get_bot_package_path
+
+BOT_VERSION = (2, 4, 5)
+_set_bot_package_path(__path__[0])
+
 from .arena import *
 from .channel import *
 from twitchbot.api.chatters import *
@@ -31,6 +35,3 @@ from .event_util import *
 from .extra_configs import *
 from .pubsub import *
 from .translations import *
-
-BOT_VERSION = (2, 4, 5)
-_set_bot_package_path(__path__[0])
