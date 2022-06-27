@@ -5,7 +5,7 @@ _set_bot_package_path(__path__[0])
 
 from .arena import *
 from .channel import *
-from twitchbot.api.chatters import *
+from .api.chatters import *
 from .colors import *
 from .command import *
 from .config import *
