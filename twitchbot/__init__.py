@@ -1,4 +1,4 @@
-from ._bot_package_path import _set_bot_package_path
+from .bot_package_path import _set_bot_package_path, get_bot_package_path
 from .arena import *
 from .channel import *
 from twitchbot.api.chatters import *
