@@ -11,7 +11,7 @@ setup(
     name='PythonTwitchBotFramework',
     version='.'.join(map(str, BOT_VERSION)),  # change BOT VERSION in twitchbot/__init__.py:36 when updating this
     python_requires='>=3.6',
-    packages=find_packages(),#todo, include translations
+    packages=find_packages(),
     url='https://github.com/sharkbound/PythonTwitchBotFramework',
     license='MIT',
     author='sharkbound',

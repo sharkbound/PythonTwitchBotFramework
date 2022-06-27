@@ -1,1 +1,2 @@
 include *.txt
+include twitchbot/builtin_translations/*.json
