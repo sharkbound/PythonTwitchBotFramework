@@ -29,7 +29,8 @@ from twitchbot import (
     get_nick,
     Config,
     CONFIG_FOLDER,
-    SubtractBalanceResult
+    SubtractBalanceResult,
+    translate
 )
 
 PREFIX = cfg.prefix
@@ -40,17 +41,15 @@ MANAGE_CURRENCY_PERMISSION = 'manage_currency'
          help='sets the channels currency name')
 async def cmd_set_currency_name(msg: Message, *args):
     if len(args) != 1:
-        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_set_currency_name)
+        raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_set_currency_name)
 
     set_currency_name(msg.channel_name, args[0])
-    await msg.reply(
-        f"this channel's currency name is now \"{get_currency_name(msg.channel_name).name}\"")
+    await msg.reply(translate('currency_name_set', currency_name=get_currency_name(msg.channel_name).name))
 
 
 @Command('getcurrencyname', help='get the channels current currency name')
 async def cmd_get_currency_name(msg: Message, *ignored):
-    await msg.reply(
-        f'this channel\'s current currency name is "{get_currency_name(msg.channel_name).name}"')
+    await msg.reply(translate('currency_name_get', currency_name=get_currency_name(msg.channel_name).name))
 
 
 @Command('bal', syntax='(target)', help='gets the caller\'s (or target\'s if specified) balance')
@@ -62,14 +61,14 @@ async def cmd_get_bal(msg: Message, *args):
 
     currency_name = get_currency_name(msg.channel_name).name
     balance = get_balance(msg.channel_name, target).balance
-    await msg.reply(whisper=True, msg=f'@{target} has {balance} {currency_name}')
+    await msg.reply(translate('bal_current', target=target, balance=balance, currency_name=currency_name))
 
 
 @Command('setbal', permission=MANAGE_CURRENCY_PERMISSION, syntax='<new_balance> (target)',
          help='sets the callers or targets balance')
 async def cmd_set_bal(msg: Message, *args):
     if not len(args):
-        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_set_bal)
+        raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_set_bal)
     elif len(args) == 2:
         target = args[1].lstrip('@')
     else:
@@ -78,71 +77,75 @@ async def cmd_set_bal(msg: Message, *args):
     try:
         new_balance = int(args[0])
         if new_balance < 0:
-            raise InvalidArgumentsError(reason='new balance cannot be negative', cmd=cmd_set_bal)
+            raise InvalidArgumentsError(reason=translate('set_bal_negative'), cmd=cmd_set_bal)
 
         set_balance(msg.channel_name, target, new_balance)
     except ValueError:
-        raise InvalidArgumentsError(reason=f'target balance must be a integer. example: 100')
+        raise InvalidArgumentsError(reason=translate('set_bal_invalid_int'))
 
-    await msg.reply(
-        f'@{target} now has {args[0]} '
-        f'{get_currency_name(msg.channel_name).name}')
+    await msg.reply(translate('set_bal_success', target=target, balance=args[0], currency_name=get_currency_name(msg.channel_name).name))
 
 
 @Command('addbal', permission=MANAGE_CURRENCY_PERMISSION, syntax='<user or all> <amount>',
          help='adds the balance of the target, or all')
 async def cmd_add_bal(msg: Message, *args):
     if len(args) != 2:
-        raise InvalidArgumentsError('must supply both <user or all> and <amount>', cmd=cmd_add_bal)
+        raise InvalidArgumentsError(translate('add_bal_missing_args'), cmd=cmd_add_bal)
 
     target = args[0].lower()
     try:
         amount = int(args[1])
     except ValueError:
-        raise InvalidArgumentsError(f'cannot parse "{args[1]}" to a int, must be a valid int, ex: 100', cmd=cmd_add_bal)
+        raise InvalidArgumentsError(translate('add_bal_invalid_int', value=args[1]), cmd=cmd_add_bal)
 
     if amount <= 0:
-        raise InvalidArgumentsError(f'amount must be positive and not zero, ex: 1, 2, 100', cmd=cmd_add_bal)
+        raise InvalidArgumentsError(translate('add_bal_amount_must_be_positive'), cmd=cmd_add_bal)
 
     currency = get_currency_name(msg.channel_name).name
     if target == 'all':
         add_balance_to_all(msg.channel_name, amount)
-        await msg.reply(f"added {amount} {currency} to everyone's balance")
+        await msg.reply(translate('add_bal_add_all', amount=amount, currency=currency))
     else:
         add_balance(msg.channel_name, target, amount)
         await msg.reply(
-            f'gave {target} {amount} {currency}, '
-            f'their total is now {get_balance(msg.channel_name, target).balance} {currency}')
+            translate(
+                'add_bal_success',
+                target=target,
+                currency=currency,
+                amount=amount,
+                balance=get_balance(msg.channel_name, target).balance
+            )
+        )
 
 
 @Command('subbal', permission=MANAGE_CURRENCY_PERMISSION, syntax='<user or all> <amount>',
          help='subtracts the balance of the target, or all')
 async def cmd_sub_bal(msg: Message, *args):
     if len(args) != 2:
-        raise InvalidArgumentsError('must supply both <user or all> and <amount>', cmd=cmd_sub_bal)
+        raise InvalidArgumentsError(translate('add_bal_missing_args'), cmd=cmd_sub_bal)
 
     target = args[0].lower()
     try:
         amount = int(args[1])
     except ValueError:
-        raise InvalidArgumentsError(f'cannot parse "{args[1]}" to a int, must be a valid int, ex: 100', cmd=cmd_sub_bal)
+        raise InvalidArgumentsError(translate('add_bal_invalid_int', value=args[1]), cmd=cmd_sub_bal)
 
     if amount <= 0:
-        raise InvalidArgumentsError(f'amount must be positive and not zero, ex: 1, 2, 100', cmd=cmd_sub_bal)
+        raise InvalidArgumentsError(translate('add_bal_amount_must_be_positive'), cmd=cmd_sub_bal)
 
     currency = get_currency_name(msg.channel_name).name
 
     if target == 'all':
         subtract_balance_from_all(msg.channel_name, amount)
-        await msg.reply(f"subtracted {amount} {currency} from everyone's balance")
+        await msg.reply(translate('sub_bal_sub_all', amount=amount, currency=currency))
         return
 
     result = subtract_balance(msg.channel_name, target, amount)
     if result is SubtractBalanceResult.BALANCE_DOES_NOT_EXISTS:
-        raise InvalidArgumentsError(f'{target} does not exist in the database', cmd=cmd_sub_bal)
+        raise InvalidArgumentsError(translate('sub_bal_no_balance', target=target), cmd=cmd_sub_bal)
     elif result is SubtractBalanceResult.NOT_ENOUGH_BALANCE:
-        raise InvalidArgumentsError(f'{target} does not have {currency} to subtract {amount} {currency} from', cmd=cmd_sub_bal)
-    elif result is SubtractBalanceResult.SUCCESS:
+        raise InvalidArgumentsError(translate('sub_bal_insufficient_balance', target=target, currency=currency, amount=amount), cmd=cmd_sub_bal)
+    elif result is SubtractBalanceResult.SUCCESS: #todo
         await msg.reply(
             f'subtracted {amount} {currency} from {target}, their total is now {get_balance(msg.channel_name, target).balance} {currency}')
 

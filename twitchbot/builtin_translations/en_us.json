@@ -9,5 +9,19 @@
   "reloaded_disabled_commands_config": "reloaded disabled commands config",
   "disabled_command_globally": "disabled command \"{name}\" globally",
   "enabled_command_globally": "enabled command \"{name}\" globally",
-  "reloaded_command_whitelist": "{mention} reloaded command whitelist"
+  "reloaded_command_whitelist": "{mention} reloaded command whitelist",
+  "currency_name_set": "this channel's currency name is now \"{currency_name}\"",
+  "currency_name_get": "this channel's current currency name is \"{currency_name}\"",
+  "bal_current": "@{target} has {balance} {currency_name}",
+  "set_bal_negative": "new balance cannot be negative",
+  "set_bal_invalid_int": "target balance must be a integer. example: 100",
+  "set_bal_success": "@{target} now has {balance} {currency_name}",
+  "add_bal_missing_args": "must supply both <user or all> and <amount>",
+  "add_bal_invalid_int": "cannot parse \"{value}\" to a int, must be a valid int, ex: 100",
+  "add_bal_amount_must_be_positive": "amount must be positive and not zero, ex: 1, 2, 100",
+  "add_bal_add_all": "added {amount} {currency} to everyone's balance",
+  "add_bal_success": "gave {target} {amount} {currency}, their total is now {balance} {currency}",
+  "sub_bal_sub_all": "subtracted {amount} {currency} from everyone's balance",
+  "sub_bal_no_balance": "{target} does not exist in the database",
+  "sub_bal_insufficient_balance": "{target} does not have {currency} to subtract {amount} {currency} from"
 }
