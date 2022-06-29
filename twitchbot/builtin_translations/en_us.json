@@ -53,5 +53,14 @@
   "duel_target_insufficient_balance": "{target} does not have enough {currency} to accept this duel!",
   "duel_challenged": "{mention} has challenged @{target} to a duel for {bet} {currency}, do \"{command_prefix}accept {mention}\" to accept the duel",
   "duel_accept_no_duel": "{mention}, you have not been challenged by {challenger}, or the duel might have expired",
-  "duel_accept_result": "@{winner} has won the duel, {bet} {currency} went to the winner"
+  "duel_accept_result": "@{winner} has won the duel, {bet} {currency} went to the winner",
+  "add_cmd_invalid_response": "response cannot have . or / as the starting character",
+  "add_cmd_duplicate": "custom command already exist by that name",
+  "add_cmd_success": "successfully added command \"{name}\", trigger the command using \"{name}\" (without the quotes)",
+  "add_cmd_fail": "failed to add command \"{name}\"",
+  "update_cmd_not_exists": "custom command \"{name}\" does not exist",
+  "update_cmd_success": "successfully updated command \"{name}\"",
+  "del_cmd_success": "successfully deleted command \"{name}\"",
+  "del_cmd_fail": "failed to delete command \"{name}\"",
+  "cmd_cmd_result": "the response for \"{name}\" is \"{response}\""
 }
