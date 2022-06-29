@@ -145,19 +145,16 @@ async def cmd_sub_bal(msg: Message, *args):
         raise InvalidArgumentsError(translate('sub_bal_no_balance', target=target), cmd=cmd_sub_bal)
     elif result is SubtractBalanceResult.NOT_ENOUGH_BALANCE:
         raise InvalidArgumentsError(translate('sub_bal_insufficient_balance', target=target, currency=currency, amount=amount), cmd=cmd_sub_bal)
-    elif result is SubtractBalanceResult.SUCCESS: #todo
+    elif result is SubtractBalanceResult.SUCCESS:
         await msg.reply(
-            f'subtracted {amount} {currency} from {target}, their total is now {get_balance(msg.channel_name, target).balance} {currency}')
+            translate('sub_bal_success', target=target, currency=currency, amount=amount, balance=get_balance(msg.channel_name, target).balance))
 
 
 @Command('give', syntax='<target> <amount>',
          help='gives the target the specified amount from the callers currency balance')
 async def cmd_give(msg: Message, *args):
     if len(args) != 2:
-        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_give)
-
-    if not msg.mentions:
-        raise InvalidArgumentsError(reason=f'no viewer found by the name "{(msg.mentions or args)[0]}"')
+        raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_give)
 
     caller = get_balance_from_msg(msg)
     target = get_balance(msg.channel_name, msg.mentions[0])
@@ -165,15 +162,15 @@ async def cmd_give(msg: Message, *args):
     try:
         give = int(args[1])
     except ValueError:
-        raise InvalidArgumentsError(reason='give amount must be a integer, example: 100', cmd=cmd_give)
+        raise InvalidArgumentsError(reason=translate('give_invalid_amount_int'), cmd=cmd_give)
 
     if give <= 0:
-        raise InvalidArgumentsError(reason='give amount must be 1 or higher', cmd=cmd_give)
+        raise InvalidArgumentsError(reason=translate('give_invalid_amount_not_positive'), cmd=cmd_give)
 
     cur_name = get_currency_name(msg.channel_name).name
 
     if caller.balance < give:
-        raise InvalidArgumentsError(reason=f"{msg.mention} you don't have enough {cur_name}", cmd=cmd_give)
+        raise InvalidArgumentsError(reason=translate('give_insufficient_balance', mention=msg.mention, currency=cur_name), cmd=cmd_give)
 
     caller.balance -= give
     target.balance += give
@@ -182,7 +179,7 @@ async def cmd_give(msg: Message, *args):
 
     target_user = args[0].strip('@')
     await msg.reply(
-        f"@{msg.author} you gave @{target_user} {give} {cur_name}, @{target_user}'s balance is now {target.balance}")
+        translate('give_success', author=msg.author, target_user=target_user, give=give, currency=cur_name, target_balance=target.balance))
 
 
 @Command('gamble', syntax='<bet> <dice_sides>',
@@ -192,30 +189,30 @@ async def cmd_give(msg: Message, *args):
          permission='gamble')
 async def cmd_gamble(msg: Message, *args):
     if not len(args):
-        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_gamble)
+        raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_gamble)
 
     try:
         bet = int(args[0])
     except ValueError:
-        raise InvalidArgumentsError(reason='invalid value for bet', cmd=cmd_gamble)
+        raise InvalidArgumentsError(reason=translate('gamble_invalid_bet'), cmd=cmd_gamble)
 
     sides = 6
     if len(args) == 2:
         if not args[1].isdigit():
-            raise InvalidArgumentsError(reason='invalid value for dice_sides', cmd=cmd_gamble)
+            raise InvalidArgumentsError(reason=translate('gamble_invalid_dice_sides'), cmd=cmd_gamble)
         sides = int(args[1])
 
     if bet < 10:
-        raise InvalidArgumentsError(reason='bet cannot be less then 10', cmd=cmd_gamble)
+        raise InvalidArgumentsError(reason=translate('gamble_bet_less_than_10'), cmd=cmd_gamble)
 
     elif sides < 2:
-        raise InvalidArgumentsError(reason='sides cannot be less than 2', cmd=cmd_gamble)
+        raise InvalidArgumentsError(reason=translate('gamble_sides_less_than_2'), cmd=cmd_gamble)
 
     bal = get_balance_from_msg(msg)
 
     cur_name = get_currency_name(msg.channel_name).name
     if bal.balance < bet:
-        raise InvalidArgumentsError(reason=f"{msg.mention} you don't have enough {cur_name}", cmd=cmd_gamble)
+        raise InvalidArgumentsError(reason=translate('gamble_insufficient_balance', mention=msg.mention, currency=cur_name), cmd=cmd_gamble)
 
     def _calc_winnings(sides, roll, bet):
         if roll == sides:
@@ -228,11 +225,11 @@ async def cmd_gamble(msg: Message, *args):
     if winnings > bet:
         gain = winnings - bet
         bal.balance += gain
-        await msg.reply(f'you rolled {roll} and won {gain} {cur_name}')
+        await msg.reply(translate('gamble_won', gain=gain, roll=roll, currency=cur_name))
     else:
         loss = bet - winnings
         bal.balance -= loss
-        await msg.reply(f'you rolled {roll} and lost {loss} {cur_name}')
+        await msg.reply(translate('gamble_lost', loss=loss, roll=roll, currency=cur_name))
 
     session.commit()
 
@@ -253,11 +250,11 @@ async def cmd_mine(msg: Message, *args):
         last_mine_time[key] = datetime.now() + timedelta(minutes=5)
 
         await msg.reply(
-            f'@{msg.author} you went to work at the mines and came out with '
-            f'{mine_gain} {get_currency_name(msg.channel_name).name} worth of gold',
+            translate('mine_success', author=msg.author, gain=mine_gain, currency=get_currency_name(msg.channel_name).name),
             whisper=True)
     else:
-        await msg.reply(f'you cannot mine again for {int(abs(diff))} seconds', whisper=True)
+        diff = int(abs(diff))
+        await msg.reply(translate('mine_cooldown', diff=diff), whisper=True)
 
 
 cfg_ignored_top_usernames = Config(file_path=CONFIG_FOLDER / 'command_configs' / 'command_top_config.json', ignored_usernames=[])
@@ -266,7 +263,7 @@ cfg_ignored_top_usernames = Config(file_path=CONFIG_FOLDER / 'command_configs' /
 @Command('topreloadignored', permission='topreloadignored', help='reloads the config file for top\'s ignored usernames')
 async def cmd_top_reload_ignored(msg: Message, *args):
     cfg_ignored_top_usernames.load()
-    await msg.reply('successfully reloaded top\'s ignored list!')
+    await msg.reply(translate('reloaded_top_ignored_list'))
 
 
 @Command('top', help="lists the top 10 balance holders")
@@ -285,7 +282,7 @@ async def cmd_top(msg: Message, *args):
                     ][:10]
     message = ' | '.join(valid_matches)
 
-    await msg.reply(message or 'no users found')
+    await msg.reply(message or translate('top_no_results'))
 
 
 running_arenas: Dict[str, Arena] = {}
@@ -313,13 +310,12 @@ async def cmd_arena(msg: Message, *args):
         if msg.author in arena.users:
             return await msg.reply(
                 whisper=True,
-                msg='you are already entered the in the arena')
+                msg=translate('arena_already_entered'))
 
         elif not _can_pay_entry_fee(arena.entry_fee):
             await msg.reply(
                 whisper=True,
-                msg=f'{msg.mention} you do not have enough {curname} '
-                    f'to join the arena, entry_fee is {arena.entry_fee} {curname}')
+                msg=translate('arena_insufficient_balance', currency=curname, mention=msg.mention, entry_fee=arena.entry_fee))
             return
 
         arena.add_user(msg.author)
@@ -327,8 +323,7 @@ async def cmd_arena(msg: Message, *args):
 
         await msg.reply(
             whisper=True,
-            msg=f'{msg.mention} you have been added to the arena, '
-                f'you were charged {arena.entry_fee} {curname} for entry')
+            msg=translate('arena_entered', currency=curname, mention=msg.mention, entry_fee=arena.entry_fee))
 
     # start a new arena as one is not already running for this channel
     else:
@@ -336,18 +331,17 @@ async def cmd_arena(msg: Message, *args):
             try:
                 entry_fee = int(args[0])
             except ValueError:
-                raise InvalidArgumentsError(reason='invalid value for entry fee, example: 100', cmd=cmd_arena)
+                raise InvalidArgumentsError(reason=translate('arena_invalid_entry_fee'), cmd=cmd_arena)
         else:
             entry_fee = ARENA_DEFAULT_ENTRY_FEE
 
         if entry_fee and entry_fee < ARENA_DEFAULT_ENTRY_FEE:
-            raise InvalidArgumentsError(reason=f'entry fee cannot be less than {ARENA_DEFAULT_ENTRY_FEE}',
-                                        cmd=cmd_arena)
+            raise InvalidArgumentsError(reason=translate('arena_entry_fee_not_high_enough', entry_fee=ARENA_DEFAULT_ENTRY_FEE), cmd=cmd_arena)
 
         if not _can_pay_entry_fee(entry_fee):
             await msg.reply(
                 whisper=True,
-                msg=f'{msg.mention} you do not have {entry_fee} {curname}')
+                msg=translate('arena_cannot_enter_not_enough_balance', mention=msg.mention, entry_fee=arena.entry_fee, currency=curname))
             return
 
         arena = Arena(msg.channel, entry_fee, on_arena_ended_func=_remove_running_arena_entry)
@@ -363,53 +357,51 @@ async def cmd_arena(msg: Message, *args):
          help='challenges a user to a duel with the bid as the reward')
 async def cmd_duel(msg: Message, *args):
     if not args:
-        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_duel)
+        raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_duel)
 
     target = args[0].lstrip('@')
 
     if target == msg.author:
-        raise InvalidArgumentsError(reason='you cannot duel yourself', cmd=cmd_duel)
+        raise InvalidArgumentsError(reason=translate('duel_self'), cmd=cmd_duel)
 
     duel = get_duel(msg.channel_name, msg.author, target)
 
     if duel and not duel_expired(duel):
-        raise InvalidArgumentsError(reason=f'{msg.mention} you already have a pending duel with {target}', cmd=cmd_duel)
+        raise InvalidArgumentsError(reason=translate('duel_duplicate', mention=msg.mention, target=target), cmd=cmd_duel)
 
     try:
         bet = int(args[1])
     except ValueError:
-        raise InvalidArgumentsError(reason=f'invalid bet: {args[1]}, bet must be a number with no decimals, ex: 12', cmd=cmd_duel)
+        raise InvalidArgumentsError(reason=translate('duel_invalid_bet', bet=args[1]), cmd=cmd_duel)
     except IndexError:
         bet = 10
 
     target_balance = get_balance(msg.channel_name, target, create_if_missing=False)
     if target_balance is None:
-        raise InvalidArgumentsError(reason=f'{target} does not exists in the balance database', cmd=cmd_duel)
+        raise InvalidArgumentsError(reason=translate('duel_target_no_balance', target=target), cmd=cmd_duel)
     elif target_balance.balance < bet:
         raise InvalidArgumentsError(
-            reason=f'{target} does not have enough {get_currency_name(msg.channel_name).name} to accept this duel!',
+            reason=translate('duel_target_insufficient_balance', target=target, currency=get_currency_name(msg.channel_name).name),
             cmd=cmd_duel
         )
 
     add_duel(msg.channel_name, msg.author, target, bet)
 
     currency_name = get_currency_name(msg.channel_name).name
-    await msg.reply(
-        f'{msg.mention} has challenged @{target} to a duel for {bet} {currency_name}'
-        f', do "{cfg.prefix}accept {msg.mention}" to accept the duel')
+    await msg.reply(translate('duel_challenged', mention=msg.mention, target=target, bet=bet, currency=currency_name, command_prefix=cfg.prefix))
 
 
 @Command('accept', syntax='<challenger>', help='accepts a duel issued by the challenger that is passed to this command')
 async def cmd_accept(msg: Message, *args):
     if len(args) != 1:
-        raise InvalidArgumentsError('missing required arguments')
+        raise InvalidArgumentsError(reason=translate('missing_required_arguments'))
 
     challenger = args[0].lstrip('@')
     winner, bet = accept_duel(msg.channel_name, challenger, msg.author)
 
     if not winner:
         raise InvalidArgumentsError(
-            reason=f'{msg.mention}, you have not been challenged by {challenger}, or the duel might have expired',
+            reason=translate('duel_accept_no_duel', challenger=challenger, mention=msg.mention),
             cmd=cmd_accept)
 
     loser = msg.author if winner != msg.author else challenger
@@ -418,4 +410,4 @@ async def cmd_accept(msg: Message, *args):
     subtract_balance(msg.channel_name, loser, bet)
 
     currency_name = get_currency_name(msg.channel_name).name
-    await msg.reply(f'@{winner} has won the duel, {bet} {currency_name} went to the winner')
+    await msg.reply(translate('duel_accept_result', winner=winner, bet=bet, currency=currency_name))
