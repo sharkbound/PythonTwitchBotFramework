@@ -63,5 +63,17 @@
   "del_cmd_success": "successfully deleted command \"{name}\"",
   "del_cmd_fail": "failed to delete command \"{name}\"",
   "cmd_cmd_result": "the response for \"{name}\" is \"{response}\"",
-  "ping_response": "Pong #{pings}"
+  "ping_response": "Pong #{pings}",
+  "roll_invalid_sides": "invalid value for sides",
+  "roll_result": "{user} you rolled {num}",
+  "crashme": "you may not crash me! {mention}",
+  "choose_result": "result: {value}",
+  "color_set": "set color to {color}",
+  "8ball_result": "{mention} {value}",
+  "8ball_yes_1": "it is certain",
+  "8ball_yes_2": "yes",
+  "8ball_no_1": "not happening",
+  "8ball_no_2": "no",
+  "8ball_maybe_1": "maybe",
+  "8ball_maybe_2": "it's possible"
 }
