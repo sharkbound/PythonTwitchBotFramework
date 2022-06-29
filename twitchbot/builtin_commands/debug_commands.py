@@ -1,4 +1,4 @@
-from twitchbot import Message, Command, CommandContext
+from twitchbot import Message, Command, CommandContext, translate
 
 pings = -1
 
@@ -7,7 +7,7 @@ pings = -1
 async def cmd_ping(msg: Message, *args):
     global pings
     pings += 1
-    await msg.reply(f'Pong #{pings}')
+    await msg.reply(translate('ping_response', pings=pings))
 
 # @Command('whisper', context=CommandContext.WHISPER)
 # async def cmd_whisper(msg: Message, *args):

@@ -62,5 +62,6 @@
   "update_cmd_success": "successfully updated command \"{name}\"",
   "del_cmd_success": "successfully deleted command \"{name}\"",
   "del_cmd_fail": "failed to delete command \"{name}\"",
-  "cmd_cmd_result": "the response for \"{name}\" is \"{response}\""
+  "cmd_cmd_result": "the response for \"{name}\" is \"{response}\"",
+  "ping_response": "Pong #{pings}"
 }
