@@ -10,6 +10,7 @@ from twitchbot import (
     is_command_disabled,
     perms,
     is_command_whitelisted,
+    translate,
 )
 
 
@@ -45,38 +46,39 @@ async def cmd_commands(msg: Message, *args):
     global_commands = ', '.join(usable_commands)
 
     if usable_commands:
-        await msg.reply(whisper=True, msg=f'COMMANDS YOU CAN USE: {global_commands}')
+        await msg.reply(whisper=True, msg=translate('commands_usable', global_commands=global_commands))
     else:
-        await msg.reply(whisper=True, msg=f'{msg.mention}, you do not have permission to use any commands')
+        await msg.reply(whisper=True, msg=translate('command_no_usable', mention=msg.mention))
 
     if custom_commands:
-        await msg.reply(whisper=True, msg=f'CUSTOM: {custom_commands}')
+        await msg.reply(whisper=True, msg=translate('command_custom', custom_commands=custom_commands))
 
 
 @Command(name='help', syntax='<command>', help='gets the help text for a command')
 async def cmd_help(msg: Message, *args):
     if not args:
-        raise InvalidArgumentsError(reason='missing required argument', cmd=cmd_help)
+        raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_help)
 
     cmd = get_command(args[0])
     if not cmd:
-        raise InvalidArgumentsError(reason=f'command not found', cmd=cmd_help)
+        raise InvalidArgumentsError(reason=translate('command_not_found', name=args[0]), cmd=cmd_help)
 
-    await msg.reply(msg=f'help for {cmd.fullname} - syntax: {cmd.syntax} - help: {cmd.help}')
+    await msg.reply(msg=translate('help_success', fullname=cmd.fullname, syntax=cmd.syntax, help=cmd.help))
+    # await msg.reply(msg=f'help for {cmd.fullname} - syntax: {cmd.syntax} - help: {cmd.help}')
 
 
 @Command(name='findperm', syntax='<command>', help='finds a permission for a given command')
 async def cmd_find_perm(msg: Message, *args):
     if not args:
-        raise InvalidArgumentsError(reason='missing required command parameter', cmd=cmd_find_perm)
+        raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_find_perm)
 
     cmd = get_command(args[0])
     if not cmd:
-        await msg.reply(f'no command was found by "{args[0]}"')
+        await msg.reply(translate('command_not_found', name=args[0]))
         return
 
     if not cmd.permission:
-        await msg.reply(f'command "{cmd.fullname}" does not have require permission to use it')
+        await msg.reply(translate('findperm_no_permission', fullname=cmd.fullname))
         return
 
-    await msg.reply(f'the permission for "{cmd.fullname}" is "{cmd.permission}"')
+    await msg.reply(translate('findperm_success', permission=cmd.fullname, permission=cmd.permission))

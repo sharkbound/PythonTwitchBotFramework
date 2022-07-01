@@ -75,5 +75,11 @@
   "8ball_no_1": "not happening",
   "8ball_no_2": "no",
   "8ball_maybe_1": "maybe",
-  "8ball_maybe_2": "it's possible"
+  "8ball_maybe_2": "it's possible",
+  "commands_usable": "COMMANDS YOU CAN USE: {global_commands}",
+  "command_no_usable": "{mention}, you do not have permission to use any commands",
+  "command_custom": "CUSTOM: {custom_commands}",
+  "help_success": "help for {fullname} - syntax: {syntax} - help: {help}",
+  "findperm_no_permission": "command \"{fullname}\" does not have require permission to use it",
+  "findperm_success": "the permission for \"{fullname}\" is \"{permission}\""
 }
