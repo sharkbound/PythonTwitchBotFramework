@@ -81,4 +81,4 @@ async def cmd_find_perm(msg: Message, *args):
         await msg.reply(translate('findperm_no_permission', fullname=cmd.fullname))
         return
 
-    await msg.reply(translate('findperm_success', permission=cmd.fullname, permission=cmd.permission))
+    await msg.reply(translate('findperm_success', fullname=cmd.fullname, permission=cmd.permission))
