@@ -19,7 +19,10 @@ class Tags:
         self.user_type: int = self.all_tags.get('user-type')
         self.bits: int = _try_parse_int(self.all_tags.get('bits'))
         self.bits_leader: int = self.all_tags.get('bits-leader', None)
+
         self.broadcaster: int = self.badges.get('broadcaster', 0)
+        self.vip: int = self.badges.get('vip', 0)
+
         self.msg_id: str = self.all_tags.get('msg-id', '')
         self.raid_viewer_count: int = _try_parse_int(self.all_tags.get('msg-param-viewerCount'))
 
