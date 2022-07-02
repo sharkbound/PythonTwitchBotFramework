@@ -64,7 +64,6 @@ async def cmd_help(msg: Message, *args):
         raise InvalidArgumentsError(reason=translate('command_not_found', name=args[0]), cmd=cmd_help)
 
     await msg.reply(msg=translate('help_success', fullname=cmd.fullname, syntax=cmd.syntax, help=cmd.help))
-    # await msg.reply(msg=f'help for {cmd.fullname} - syntax: {cmd.syntax} - help: {cmd.help}')
 
 
 @Command(name='findperm', syntax='<command>', help='finds a permission for a given command')

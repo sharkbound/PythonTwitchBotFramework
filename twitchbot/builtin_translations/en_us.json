@@ -81,5 +81,16 @@
   "command_custom": "CUSTOM: {custom_commands}",
   "help_success": "help for {fullname} - syntax: {syntax} - help: {help}",
   "findperm_no_permission": "command \"{fullname}\" does not have require permission to use it",
-  "findperm_success": "the permission for \"{fullname}\" is \"{permission}\""
+  "findperm_success": "the permission for \"{fullname}\" is \"{permission}\"",
+  "enabledmod_not_found": "could not find mod \"{mod}\"",
+  "enabledmod_already_enabled": "mod \"{mod}\" is already enabled",
+  "enabledmod_enabled": "mod \"{mod}\" has been enabled for this channel",
+  "disablemod_already_disabled": "mod \"{mod}\" is already disabled",
+  "disablemod_disabled": "mod \"{mod}\" has been disabled for this channel",
+  "disabledmods_list": "disabled mods for \"{channel_name}\": ",
+  "reloadmod_failed": "failed to reload mod \"{mod}\"",
+  "reloadmod_reloaded_all": "reloaded all mods",
+  "reloadmod_success": "reloaded mod \"{mod}\"",
+  "listmods_disabled_prefix": "(DISABLED)",
+  "listmods_found": "found mods: {mods}"
 }
