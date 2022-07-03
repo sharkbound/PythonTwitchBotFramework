@@ -105,5 +105,16 @@
   "addmember_no_group": "failed to add member, group does not exists",
   "delmember_deleted": "removed \"{member}\" from \"{group}\"",
   "delmember_failed_no_group": "failed to remove member, group does not exist",
-  "delmember_member_not_in_group": "\"{member}\" is not in that group"
+  "delmember_member_not_in_group": "\"{member}\" is not in that group",
+  "startpoll_invalid": "your poll commands seems to be improperly formatted, example: {command_prefix}startpoll what should i eat? [apples, oranges, potatos]",
+  "vote_missing_id": "missing required vote arguments, must provide the id of the choice you want to vote for",
+  "vote_no_active_polls": "there are NOT any active polls running right now to vote for",
+  "vote_requires_id": "{mention} there are multiple polls active, please specify the poll id, example: {command_prefix}vote {choice} <POLL_ID>",
+  "vote_poll_not_found": "Could not find poll by ID {poll_id}",
+  "vote_invalid_vote": "{choice} is not a valid choice id for poll#{poll_id}, choices are: {poll_options}",
+  "listpolls_no_polls": "There are currently no active polls.",
+  "pollinfo_no_polls": "there are not any polls active right now",
+  "pollinfo_requires_id": "multiple polls are running, the poll id is required to be passed, example: {command_prefix}pollinfo <POLL_ID>",
+  "pollinfo_result": "POLL INFO #{poll_id} ~ {poll_title} ~ {poll_options} ~ seconds left: {poll_seconds_left}",
+  "pollhelper_int_error": "{value} is not a valid number"
 }
