@@ -116,5 +116,13 @@
   "pollinfo_no_polls": "there are not any polls active right now",
   "pollinfo_requires_id": "multiple polls are running, the poll id is required to be passed, example: {command_prefix}pollinfo <POLL_ID>",
   "pollinfo_result": "POLL INFO #{poll_id} ~ {poll_title} ~ {poll_options} ~ seconds left: {poll_seconds_left}",
-  "pollhelper_int_error": "{value} is not a valid number"
+  "pollhelper_int_error": "{value} is not a valid number",
+  "addquote_invalid_user": "invalid user for user=, must be a combination of digits and letters, ex: john_doe17",
+  "addquote_invalid_alias": "invalid alias for alias=, must be a combination of digits and letters, ex: my_quote1",
+  "addquote_duplicate_alias": "there is already a quote with that alias",
+  "addquote_failed": "failed to add quote, already exist",
+  "addquote_added": "successfully added quote #{quote_id}",
+  "quote_not_found": "quote not found",
+  "quote_info": "\"{text}\" user: {user} alias: {alias}",
+  "delquote_deleted": "successfully deleted quote, id: {quote_id}, alias: {alias}"
 }
