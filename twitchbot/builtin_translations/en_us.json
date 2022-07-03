@@ -92,5 +92,18 @@
   "reloadmod_reloaded_all": "reloaded all mods",
   "reloadmod_success": "reloaded mod \"{mod}\"",
   "listmods_disabled_prefix": "(DISABLED)",
-  "listmods_found": "found mods: {mods}"
+  "listmods_found": "found mods: {mods}",
+  "addperm_added": "added permission \"{perm}\" to \"{group}\"",
+  "addperm_no_group": "no group found by the \"{group}\"",
+  "delperm_deleted": "deleted permission \"{perm}\" from \"{group}\"",
+  "addgroup_added": "added permission group \"{group}\"",
+  "addgroup_already_exists": "permission group \"{group}\" already exist",
+  "delgroup_deleted": "deleted permission group \"{group}\"",
+  "reloaded_permissions": "reloaded permissions",
+  "reloaded_permissions_failed": "failed to reload permissions",
+  "addmember_added": "added \"{member}\" to \"{group}\"",
+  "addmember_no_group": "failed to add member, group does not exists",
+  "delmember_deleted": "removed \"{member}\" from \"{group}\"",
+  "delmember_failed_no_group": "failed to remove member, group does not exist",
+  "delmember_member_not_in_group": "\"{member}\" is not in that group"
 }
