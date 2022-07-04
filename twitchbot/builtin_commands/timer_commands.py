@@ -11,7 +11,8 @@ from twitchbot import (
     cfg,
     Message,
     Command,
-    InvalidArgumentsError
+    InvalidArgumentsError,
+    translate,
 )
 
 PREFIX = cfg.prefix
@@ -26,14 +27,14 @@ async def _parse_interval(msg, value):
             raise ValueError()
         return True, value
     except ValueError:
-        await msg.reply('invalid interval, must be a valid float and be above 10, ex: 10,  11.5, 30')
+        await msg.reply(translate('timer_helper_invalid_interval'))
         return False, 0
 
 
 @Command('addtimer', syntax='<name> <interval> <message>', help='adds a message timer', permission=TIMER_PERMISSION)
 async def cmd_add_timer(msg: Message, *args):
     if len(args) < 3:
-        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_add_timer)
+        raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_add_timer)
 
     valid, interval = await _parse_interval(msg, args[1])
     if not valid:
@@ -43,69 +44,69 @@ async def cmd_add_timer(msg: Message, *args):
     timer_name = args[0].lower()
 
     if message_timer_exist(msg.channel_name, timer_name):
-        raise InvalidArgumentsError(reason=f'a timer already exist by the name of "{timer_name}"', cmd=cmd_add_timer)
+        raise InvalidArgumentsError(reason=translate('addtimer_duplicate_name', timer_name=timer_name), cmd=cmd_add_timer)
 
     set_message_timer(msg.channel_name, timer_name, timer_msg, interval)
-    await msg.reply(f'created timer successfully')
+    await msg.reply(translate('addtimer_created'))
 
 
 @Command('starttimer', syntax='<name>', help='starts a message timer', permission=TIMER_PERMISSION)
 async def cmd_start_timer(msg: Message, *args):
     if not args:
-        raise InvalidArgumentsError('missing required argument', cmd=cmd_start_timer)
+        raise InvalidArgumentsError(translate('missing_required_arguments'), cmd=cmd_start_timer)
 
     name = args[0].lower()
     timer = get_message_timer(msg.channel_name, name)
 
     if not timer:
-        raise InvalidArgumentsError(reason=f'no timer was found by "{name}"', cmd=cmd_start_timer)
+        raise InvalidArgumentsError(reason=translate('starttimer_timer_not_found', name=name), cmd=cmd_start_timer)
 
     if timer.running:
-        await msg.reply(f'timer "{name}" is already running')
+        await msg.reply(translate('starttimer_timer_already_running', name=name))
         return
 
     if set_message_timer_active(msg.channel_name, name, True):
-        await msg.reply(f'successfully started the timer "{name}"')
+        await msg.reply(translate('starttimer_started', name=name))
     else:
-        await msg.reply(f'failed to start the timer "{name}"')
+        await msg.reply(translate('starttimer_failed', name=name))
 
 
 @Command('stoptimer', syntax='<name>', help='stops a message timer', permission=TIMER_PERMISSION)
 async def cmd_stop_timer(msg: Message, *args):
     if not args:
-        raise InvalidArgumentsError(reason='missing required argument', cmd=cmd_stop_timer)
+        raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_stop_timer)
 
     name = args[0].lower()
     timer = get_message_timer(msg.channel_name, name)
 
     if not timer:
-        raise InvalidArgumentsError(reason=f'no timer was found by "{name}"', cmd=cmd_stop_timer)
+        raise InvalidArgumentsError(reason=translate('starttimer_timer_not_found', name=name), cmd=cmd_stop_timer)
 
     if not timer.running:
-        await msg.reply(f'that timer is not running')
+        await msg.reply(translate('stoptimer_not_running', name=name))
         return
 
     if set_message_timer_active(msg.channel_name, name, False):
-        await msg.reply(f'successfully stopped the timer "{name}"')
+        await msg.reply(translate('stoptimer_stopped', name=name))
     else:
-        await msg.reply(f'failed to stop the timer "{name}"')
+        await msg.reply(translate('stoptimer_failed', name=name))
 
 
 @Command('deltimer', syntax='<name>', help='deletes a message timer', permission=TIMER_PERMISSION)
 async def cmd_del_timer(msg: Message, *args):
     if not args:
-        raise InvalidArgumentsError(reason='missing required argument', cmd=cmd_del_timer)
+        raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_del_timer)
 
     name = args[0].lower()
     timer = get_message_timer(msg.channel_name, name)
 
     if not timer:
-        raise InvalidArgumentsError(reason=f'no timer was found by "{name}"', cmd=cmd_del_timer)
+        raise InvalidArgumentsError(reason=translate('starttimer_timer_not_found', name=name), cmd=cmd_del_timer)
 
     if delete_message_timer(msg.channel_name, name):
-        await msg.reply(f'successfully deleted timer "{name}"')
+        await msg.reply(translate('deltimer_deleted', name=name))
     else:
-        await msg.reply(f'failed to delete timer "{name}"')
+        await msg.reply(translate('deltimer_failed', name=name))
 
 
 @Command('listtimers', help='lists all message timers for a channel', permission=TIMER_PERMISSION)
@@ -115,41 +116,41 @@ async def cmd_list_timers(msg: Message, *args):
     inactive_timers = ', '.join(timer.name for timer in timers if not timer.active)
 
     if not active_timers and not inactive_timers:
-        await msg.reply(f'no timers found for this channel')
+        await msg.reply(translate('listtimers_no_timers'))
         return
 
     if active_timers:
-        await msg.reply(f'active timers: {active_timers}')
+        await msg.reply(translate('listtimers_active', active_timers=active_timers))
 
     if inactive_timers:
-        await msg.reply(f'inactive timers: {inactive_timers}')
+        await msg.reply(translate('listtimers_inactive', inactive_timers=inactive_timers))
 
 
 @Command('edittimer', syntax='<name> <msg or interval> <new value>', help="edits a timer's message or interval", permission=TIMER_PERMISSION)
 async def cmd_edit_timer(msg: Message, *args):
     if len(args) < 3:
-        raise InvalidArgumentsError(reason='missing required arguments', cmd=cmd_edit_timer)
+        raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_edit_timer)
 
     name = args[0].lower()
     timer = get_message_timer(msg.channel_name, name)
 
     if not timer:
-        raise InvalidArgumentsError(reason=f'no timer was found by "{name}"', cmd=cmd_edit_timer)
+        raise InvalidArgumentsError(reason=translate('starttimer_timer_not_found', name=name), cmd=cmd_edit_timer)
 
     mode = args[1].lower()
     if mode not in ('msg', 'interval'):
-        raise InvalidArgumentsError(reason='invalid option, must be `msg` or `interval`', cmd=cmd_edit_timer)
+        raise InvalidArgumentsError(reason=translate('edittimer_invalid_option'), cmd=cmd_edit_timer)
 
     if mode == 'interval':
         try:
             interval = int(args[2])
         except ValueError:
-            raise InvalidArgumentsError(reason='interval must be a valid integer, ex: 10', cmd=cmd_edit_timer)
+            raise InvalidArgumentsError(reason=translate('editimer_interval_invalid_int'), cmd=cmd_edit_timer)
 
         set_message_timer_interval(msg.channel_name, name, interval)
         restart_message_timer(msg.channel_name, name)
 
-        return await msg.reply(f'updated timer interval for "{name}"')
+        return await msg.reply(translate('edittimer_updated_interval', name=name))
 
     elif mode == 'msg':
         value = ' '.join(args[2:])
@@ -157,4 +158,4 @@ async def cmd_edit_timer(msg: Message, *args):
         set_message_timer_message(msg.channel_name, name, value)
         restart_message_timer(msg.channel_name, name)
 
-        return await msg.reply(f'updated timer message for "{name}"')
+        return await msg.reply(translate('edittimer_updated_msg', name=name))
