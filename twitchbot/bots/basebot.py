@@ -348,10 +348,11 @@ class BaseBot:
         from ..command import load_commands_from_directory
         from ..modloader import load_mods_from_directory, ensure_commands_folder_exists, ensure_mods_folder_exists
         from ..command_server import start_command_server
-        from .._bot_package_path import _BOT_PACKAGE_PATH
+        from ..bot_package_path import get_bot_package_path
 
-        load_commands_from_directory(os.path.join(_BOT_PACKAGE_PATH, 'builtin_commands'))
-        load_mods_from_directory(os.path.join(_BOT_PACKAGE_PATH, 'builtin_mods'))
+        bot_package_path = get_bot_package_path()
+        load_commands_from_directory(os.path.join(bot_package_path, 'builtin_commands'))
+        load_mods_from_directory(os.path.join(bot_package_path, 'builtin_mods'))
 
         ensure_mods_folder_exists()
         ensure_commands_folder_exists()

@@ -1,4 +1,16 @@
-from twitchbot import *
+import re
+from typing import Optional
+from twitchbot import (
+    Message,
+    InvalidArgumentsError,
+    cfg,
+    Command,
+    get_active_channel_polls,
+    get_active_channel_poll_count,
+    get_channel_poll_by_id,
+    PollData,
+    translate,
+)
 
 RE_POLL_INFO = re.compile(r'(?P<title>.+)\[(?P<options>[\w\d\s,]+)]\s*(?P<time>[0-9.]*)')
 
@@ -15,12 +27,12 @@ DEFAULT_POLL_DURATION = 60
          permission=START_POLL_PERMISSION)
 async def cmd_start_poll(msg: Message, *args):
     if len(args) < 2:
-        raise InvalidArgumentsError(reason='missing required poll arguments', cmd=cmd_start_poll)
+        raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_start_poll)
 
     poll = _parse_poll_data(msg)
     if poll is None:
         raise InvalidArgumentsError(
-            reason=f'your poll commands seems to be improperly formatted, example: {cfg.prefix}startpoll what should i eat? [apples, oranges, potatos]',
+            reason=translate('startpoll_invalid', command_prefix=cfg.prefix),
             cmd=cmd_start_poll
         )
 
@@ -33,32 +45,32 @@ async def cmd_start_poll(msg: Message, *args):
          permission=VOTE_PERMISSION)
 async def cmd_vote(msg: Message, *args):
     if not args:
-        raise InvalidArgumentsError(reason='missing required vote arguments, must provide the id of the choice you want to vote for', cmd=cmd_vote)
+        raise InvalidArgumentsError(reason=translate('vote_missing_id'), cmd=cmd_vote)
 
     choice = args[0]
     count = get_active_channel_poll_count(msg.channel_name)
 
     if not count:
-        await msg.reply('there are NOT any active polls running right now to vote for')
+        await msg.reply(translate('vote_no_active_polls'))
         return
 
     if count == 1:
         poll = get_active_channel_polls(msg.channel_name)[0]
     else:
         if len(args) != 2:
-            await msg.reply(
-                f'{msg.mention} there are multiple polls active, please specify the poll id, example: {cfg.prefix}vote {choice} <POLL_ID>')
+            await msg.reply(translate('vote_requires_id', mention=msg.mention, command_prefix=cfg.prefix, choice=choice))
             return
 
         passed_poll_id = _cast_to_int_or_error(args[1], cmd_vote)
         poll = get_channel_poll_by_id(msg.channel_name, passed_poll_id)
 
         if poll is None:
-            raise InvalidArgumentsError(reason=f'Could not find poll by ID {passed_poll_id}', cmd=cmd_vote)
+            raise InvalidArgumentsError(reason=translate('vote_poll_not_found', poll_id=passed_poll_id), cmd=cmd_vote)
 
     choice = _cast_to_int_or_error(choice, cmd_vote)
     if not poll.is_valid_vote(choice):
-        await msg.reply(f'{choice} is not a valid choice id for poll#{poll.id}, choices are: {poll.formatted_choices()}')
+        # await msg.reply(f'{choice} is not a valid choice id for poll#{poll.id}, choices are: {poll.formatted_choices()}')
+        await msg.reply(translate('vote_invalid_vote', choice=choice, poll_id=poll.id, poll_options=poll.formatted_choices()))
         return
 
     poll.add_vote(msg.author, choice)
@@ -70,7 +82,7 @@ async def cmd_list_polls(msg: Message, *args):
     if polls:
         await msg.reply(" ".join(f"{poll.id}) {poll.title}" for poll in polls))
     else:
-        await msg.reply("There are currently no active polls.")
+        await msg.reply(translate('listpolls_no_polls'))
 
 
 @Command('pollinfo', syntax='(POLL_ID)', help='views info about the poll using the passed poll id', permission=POLL_INFO_PERMISSION)
@@ -78,12 +90,12 @@ async def cmd_poll_info(msg: Message, *args):
     count = get_active_channel_poll_count(msg.channel_name)
 
     if not count:
-        await msg.reply('there are not any polls active right now')
+        await msg.reply(translate('pollinfo_no_polls'))
         return
 
     if count > 1 and not args:
         raise InvalidArgumentsError(
-            reason=f'multiple polls are running, the poll id is required to be passed, example: {cfg.prefix}pollinfo <POLL_ID>',
+            reason=translate('pollinfo_requires_id', command_prefix=cfg.prefix),
             cmd=cmd_poll_info
         )
 
@@ -94,14 +106,15 @@ async def cmd_poll_info(msg: Message, *args):
         poll = get_channel_poll_by_id(msg.channel_name, poll_id)
 
         if poll is None:
-            raise InvalidArgumentsError(reason=f'could not find any poll by ID {poll_id}', cmd=cmd_poll_info)
+            raise InvalidArgumentsError(reason=translate('vote_poll_not_found', poll_id=poll_id), cmd=cmd_poll_info)
 
-    await msg.reply(f'POLL INFO #{poll.id} ~ {poll.title} ~ {poll.formatted_choices()} ~ seconds left: {poll.seconds_left}')
+    await msg.reply(translate('pollinfo_result', poll_id=poll.id, poll_title=poll.title, poll_options=poll.formatted_choices(),
+                              poll_seconds_left=poll.seconds_left))
 
 
 def _cast_to_int_or_error(value: str, src_cmd) -> int:
     if not value.isdigit():
-        raise InvalidArgumentsError(reason=f'{value} is not a valid number', cmd=src_cmd)
+        raise InvalidArgumentsError(reason=translate('pollhelper_int_error', value=value), cmd=src_cmd)
     return int(value)
 
 

@@ -104,8 +104,8 @@ venv.bak/
 .mypy_cache/
 
 # config files
-*.json
 *.sqlite
+configs/
 
 # pycharm
 .idea
