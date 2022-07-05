@@ -89,6 +89,7 @@ class MessageTimer(Base):
     def create(cls, channel: str, name: str, message: str, interval: float, active=False):
         return MessageTimer(name=name, channel=channel, message=message, interval=interval, active=active)
 
+
 class DBCounter(Base):
     __tablename__ = 'counter'
 
@@ -101,6 +102,6 @@ class DBCounter(Base):
     @classmethod
     def create(cls, channel: str, value: int = 0, user: str = None, alias: str = None):
         return DBCounter(channel=channel.lower(), user=user, value=value, alias=alias)
-    
+
     def __str__(self):
-        return f'{self.alias} -> {self.value}'
+        return f'<DBCounter id={self.id} alias={self.alias} value={self.value} channel={self.channel}>'
