@@ -94,5 +94,5 @@ async def cmd_set_counter(msg: Message, *args):
 
 @Command('listcounters', permission='manage_counter', help='list all counters of the channel')
 async def cmd_set_counter(msg: Message, *args):
-    clist = ', '.join(str(x) for x in get_all_counters(msg.channel_name))
+    clist = ', '.join(translate('listcounters_format', id=x.id, alias=x.alias, value=x.value) for x in get_all_counters(msg.channel_name))
     await msg.reply(translate('listcounters_list', clist=clist))
