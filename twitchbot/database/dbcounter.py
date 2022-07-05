@@ -4,11 +4,9 @@ from typing import Union, Optional, List
 from .session import session
 from .models import DBCounter
 
-__all__ = ('counter_exist', 'get_all_counters', 'add_counter', 'increment_counter', 'increment_or_add_counter',  
-    'set_counter', 'delete_counter_by_id', 'delete_counter_by_alias', 
-    'get_counter_by_id', 'get_counter_by_alias', 'get_counter')
-
-
+__all__ = ('counter_exist', 'get_all_counters', 'add_counter', 'increment_counter', 'increment_or_add_counter',
+           'set_counter', 'delete_counter_by_id', 'delete_counter_by_alias',
+           'get_counter_by_id', 'get_counter_by_alias', 'get_counter')
 
 
 def counter_exist(channel: str, id: int = None, alias: str = None) -> bool:
@@ -38,6 +36,7 @@ def add_counter(counter: DBCounter) -> bool:
     session.commit()
     return True
 
+
 def get_counter_by_id(channel: str, id: int) -> Optional[DBCounter]:
     assert isinstance(id, int), 'counter_id must be of type int'
     return session.query(DBCounter).filter(DBCounter.id == id, DBCounter.channel == channel).one_or_none()
@@ -46,6 +45,7 @@ def get_counter_by_id(channel: str, id: int) -> Optional[DBCounter]:
 def get_counter_by_alias(channel: str, alias: str) -> Optional[DBCounter]:
     assert isinstance(alias, str), 'counter_alias must be of type str'
     return session.query(DBCounter).filter(DBCounter.alias == alias, DBCounter.channel == channel).one_or_none()
+
 
 def get_counter(channel: str, id_or_alias: Union[str, int]) -> Optional[DBCounter]:
     """
@@ -57,6 +57,7 @@ def get_counter(channel: str, id_or_alias: Union[str, int]) -> Optional[DBCounte
         return get_counter_by_id(channel, int(id_or_alias))
     except (ValueError, TypeError):
         return get_counter_by_alias(channel, str(id_or_alias))
+
 
 def delete_counter_by_id(channel: str, id: int) -> None:
     assert isinstance(id, int), 'counter_id must be of type int'
@@ -70,20 +71,21 @@ def delete_counter_by_alias(channel: str, alias: str) -> None:
     session.commit()
 
 
-def increment_counter(channel: str, id_or_alias: Union[str, int]) -> Optional[Integer]:
+def increment_counter(channel: str, id_or_alias: Union[str, int]) -> Optional[int]:
     """
     tries to set  the counter an returns the new counter value or None
     """
     cur_counter = get_counter(channel, id_or_alias)
     if cur_counter is None:
         return None
-    
-    cur_counter.value = DBCounter.value + 1
+
+    cur_counter.value += 1
 
     session.commit()
     return cur_counter.value
 
-def increment_or_add_counter(channel: str, alias: str) -> Integer:
+
+def increment_or_add_counter(channel: str, alias: str) -> int:
     """
     if the counter does not exits it will be automatically created with the value 0
     the countervalue will be returned
@@ -92,21 +94,23 @@ def increment_or_add_counter(channel: str, alias: str) -> Integer:
     if not counter_exist(channel=channel, alias=alias):
         counter = DBCounter.create(channel=channel, alias=alias)
         add_counter(counter)
-    
+
     return increment_counter(channel, alias)
 
-def set_counter(channel: str, id_or_alias: Union[str, int], new_value) -> Optional[Integer]:
+
+def set_counter(channel: str, id_or_alias: Union[str, int], new_value) -> Optional[int]:
     """
     tries to set counter an returns the new counter value or None
     """
     cur_counter = get_counter(channel, id_or_alias)
     if cur_counter is None:
         return None
-    
+
     cur_counter.value = new_value
 
     session.commit()
     return cur_counter.value
+
 
 def get_all_counters(channel: str) -> List[DBCounter]:
     """
