@@ -14,6 +14,7 @@ from twitchbot import (
     set_counter,
     get_all_counters,
     translate,
+    counter_exist
 )
 
 PREFIX = cfg.prefix
@@ -58,38 +59,24 @@ async def cmd_del_counter(msg: Message, *args):
     await msg.reply(translate('delcounter_deleted', counter_id=counter.id, counter_alias=counter.alias))
 
 
-@Command('setcounter', permission='manage_counter', syntax='alias=(alias) value=(value)', help='adds a counter to the database')
+@Command('setcounter', permission='manage_counter', syntax='<alias_or_id> <new_value>', help='adds a counter to the database')
 async def cmd_set_counter(msg: Message, *args):
-    if not args:
+    if len(args) != 2:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_set_counter)
 
-    optionals = ' '.join(args[0:])
+    alias_or_id, new_value = args
+    counter = get_counter(msg.channel_name, alias_or_id)
 
-    alias = None
-    if 'alias=' in optionals:
-        m = re.search(r'alias=([\d\w]+)', msg.content)
-        if not m:
-            raise InvalidArgumentsError(
-                reason=translate('addcounter_invalid_alias'),
-                cmd=cmd_set_counter)
+    try:
+        new_value = int(new_value)
+    except ValueError:
+        raise InvalidArgumentsError(reason=translate('setcounter_invalid_value'), cmd=cmd_set_counter)
 
-        alias = m.group(1)
-        if get_counter_by_alias(msg.channel_name, alias) is None:
-            raise InvalidArgumentsError(reason=translate('delcounter_not_found', query=alias), cmd=cmd_set_counter)
+    if counter is None:
+        raise InvalidArgumentsError(reason=translate('delcounter_not_found', query=alias_or_id), cmd=cmd_set_counter)
 
-    value = None
-    if 'value=' in optionals:
-        m = re.search(r'value=([\d]+)', msg.content)
-        if not m:
-            raise InvalidArgumentsError(
-                reason=translate('setcounter_invalid_value'),
-                cmd=cmd_set_counter)
-
-        value = m.group(1)
-
-    new_val = set_counter(channel=msg.channel_name, id_or_alias=alias, new_value=value)
-
-    await msg.reply(translate('setcounter_success', alias=alias, new_val=new_val))
+    set_counter(msg.channel_name, alias_or_id, new_value)
+    await msg.reply(translate('setcounter_success', counter=alias_or_id, new_val=new_value))
 
 
 @Command('listcounters', permission='manage_counter', help='list all counters of the channel')
