@@ -192,7 +192,7 @@ class DummyCommand(Command):
         return cmd
 
 
-def _calc_channel_live_time(msg) -> str:
+def _calc_channel_live_time(msg, name) -> str:
     if msg.channel.live:
         return format((msg.channel.stats.started_at - datetime.now()).total_seconds() / 3600, '.1f')
 
