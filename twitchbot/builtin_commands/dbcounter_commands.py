@@ -1,5 +1,4 @@
 import re
-from sqlalchemy import Integer
 
 from twitchbot import (
     Command,
