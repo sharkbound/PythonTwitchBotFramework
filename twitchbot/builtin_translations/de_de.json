@@ -140,7 +140,7 @@
   "listtimers_no_timers": "Es sind keine Timer für den Kanal definiert.",
   "listtimers_active": "Aktivierte Timer: {active_timers}",
   "listtimers_inactive": "Deaktivierte Timer: {inactive_timers}",
-  "edittimer_invalid_option": "Ungültige Option: Muss entweder `msg` oder `interval` sein",
+  "edittimer_invalid_option": "Ungültige Option: Es muss entweder `msg` oder `interval` angegeben werden.",
   "editimer_interval_invalid_int": "Das Interval \"interval\" muss eine Gannzahl sein. Beispiel: 10",
   "edittimer_updated_interval": "Interval für \"{name}\" wurde aktualisiert.",
   "edittimer_updated_msg": "Nachricht für den Timer \"{name}\" wurde aktualisiert.",
