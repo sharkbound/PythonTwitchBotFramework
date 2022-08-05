@@ -57,6 +57,7 @@ class _RequestType:
     BAD_DATA = 'bad_data'
     AUTHENTICATION_SUCCESSFUL = 'authentication_successful'
     SEND_PRIVMSG = 'send_privmsg'
+    SEND_WHISPER = 'send_whisper'
     CHANNEL_NOT_FOUND = 'channel_not_found'
     SUCCESS = 'success'
     RUN_COMMAND = 'run_command'
@@ -112,6 +113,16 @@ class ClientHandler:
 
         await channels[channel].send_message(data['message'])
         await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.SUCCESS, data={'type': _RequestType.SEND_PRIVMSG})
+
+    async def handle_send_whisper(self, data: dict):
+        for key in ('user', 'message'):
+            if key not in data:
+                await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.BAD_DATA,
+                                                           data={'reason': f'data for send_whisper is missing `{key}` key'})
+                return
+        from twitchbot import get_bot
+        await get_bot().irc.send_whisper(data['user'], data['message'])
+        await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.SUCCESS, data={'type': _RequestType.SEND_WHISPER})
 
     async def _guard_run_cmd(self, data: dict):
         from .util import run_command
@@ -192,6 +203,8 @@ class ClientHandler:
                     await self.handle_send_privmsg(data)
                 elif msg_type == _RequestType.RUN_COMMAND:
                     await self.handle_run_command(data)
+                elif msg_type == _RequestType.SEND_WHISPER:
+                    await self.handle_send_whisper(data)
         except ConnectionResetError:
             return
         except websockets.exceptions.ConnectionClosedOK:
@@ -200,3 +213,6 @@ class ClientHandler:
 
 async def handle_client(websocket: websockets.WebSocketServerProtocol, path: str):
     await ClientHandler(websocket, path).run()
+
+# TODO:
+# - add option to echo command response back to client websocket

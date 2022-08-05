@@ -42,6 +42,7 @@ class _RequestType:
     BAD_DATA = 'bad_data'
     AUTHENTICATION_SUCCESSFUL = 'authentication_successful'
     SEND_PRIVMSG = 'send_privmsg'
+    SEND_WHISPER = 'send_whisper'
     CHANNEL_NOT_FOUND = 'channel_not_found'
     SUCCESS = 'success'
     RUN_COMMAND = 'run_command'
@@ -66,6 +67,7 @@ class State:
 def print_help():
     print('/channel <channel> : binds this console to a bot-joined channel (needed for /chat)')
     print('/chat <msg> : sends the chat message to the channel bound to this console')
+    print('/whisper <user> <message> : sends the <user> a whisper containing <message>')
     print('/sendcmd <commands> [args...]: tells the bot run a command')
     print('/help to see this message again')
 
@@ -186,6 +188,16 @@ async def c_chat(connection: Connection, state: State, args: List[str]):
 
     state.reads_left += 1
     await connection.send_json(type=_RequestType.SEND_PRIVMSG, channel=state.bound_channel, message=' '.join(args))
+
+
+@client_command(name='whisper')
+async def c_whisper(connection: Connection, state: State, args: List[str]):
+    if len(args) < 2:
+        print('you must provide the user, and the message to send them! ex: `/whisper johndoe hello johndoe`')
+        return
+
+    state.reads_left += 1
+    await connection.send_json(type=_RequestType.SEND_WHISPER, user=args[0], message=' '.join(args[1:]))
 
 
 @client_command(name='channel')
