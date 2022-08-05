@@ -24,7 +24,7 @@ class Connection:
     async def read_json(self) -> dict:
         try:
             return json.loads(await self.read())
-        except (json.JSONDecoder, TypeError):
+        except (json.JSONDecodeError, TypeError):
             return {}
 
     async def send(self, text: str):
@@ -46,6 +46,7 @@ class _RequestType:
     CHANNEL_NOT_FOUND = 'channel_not_found'
     SUCCESS = 'success'
     RUN_COMMAND = 'run_command'
+    COMMAND_RESPONSE = 'command_response'
 
 
 class State:
@@ -53,11 +54,6 @@ class State:
         self.bound_channel = ''
         self.channels: List[str] = []
         self.authenticated = False
-        self.reads_left = 0
-
-    @property
-    def waiting_for_read(self):
-        return self.reads_left > 0
 
     @property
     def has_bound_channel(self):
@@ -95,32 +91,35 @@ async def run():
     start_input_thread(input_queue)
 
     while True:
-        data = await connection.read_json()
-        if state.reads_left > 0:
-            state.reads_left -= 1
-        msg_type = data['type']
+        try:
+            data = await asyncio.wait_for(connection.read_json(), timeout=2)
+            msg_type = data['type']
+            if msg_type == _RequestType.SEND_PASSWORD:
+                await connection.send(getpass.getpass('enter password for server >>> ').strip())
 
-        if msg_type == _RequestType.SEND_PASSWORD:
-            await connection.send(getpass.getpass('enter password for server >>> ').strip())
+            elif msg_type == _RequestType.DISCONNECTING:
+                print('server terminated connection...')
+                return
 
-        elif msg_type == _RequestType.DISCONNECTING:
-            print('server terminated connection...')
-            return
+            elif msg_type == _RequestType.BAD_PASSWORD:
+                print('authentication failed... password did not match!')
+                return
 
-        elif msg_type == _RequestType.BAD_PASSWORD:
-            print('authentication failed... password did not match!')
-            return
+            elif msg_type == _RequestType.LIST_CHANNELS:
+                await update_state_channels(data, state)
 
-        elif msg_type == _RequestType.LIST_CHANNELS:
-            await update_state_channels(data, state)
+            elif msg_type == _RequestType.AUTHENTICATION_SUCCESSFUL:
+                state.authenticated = True
+                print('logged in to command server!\n>>> ', end='')
+                print_help()
 
-        elif msg_type == _RequestType.AUTHENTICATION_SUCCESSFUL:
-            state.authenticated = True
-            state.reads_left += 1
-            print('logged in to command server!')
-            print_help()
+            elif msg_type == _RequestType.COMMAND_RESPONSE:
+                print(f'Response from (/sendcmd {data["command"]} {" ".join(data["args"])}): {data["response"]}\n>>> ', end='')
 
-        while state.authenticated and not state.waiting_for_read:
+        except asyncio.TimeoutError:
+            pass
+
+        if state.authenticated:  # and not state.waiting_for_read:
             try:
                 command = input_queue.get_nowait()
             except queue.Empty:
@@ -172,8 +171,15 @@ async def c_sendcmd(connection: Connection, state: State, args: List[str]):
         print('you must provide a command to run to /sendcmd, ex: /sendcmd help')
         return
 
-    state.reads_left += 1
-    await connection.send_json(type=_RequestType.RUN_COMMAND, channel=state.bound_channel, command=args[0], args=args[1:], silent=True)
+    await connection.send_json(
+        type=_RequestType.RUN_COMMAND,
+        channel=state.bound_channel,
+        command=args[0],
+        args=args[1:],
+        silent=True,
+        echo_response=True,
+        custom_data={'command': args[0], 'args': args[1:]}
+    )
 
 
 @client_command(name='chat')
@@ -186,7 +192,6 @@ async def c_chat(connection: Connection, state: State, args: List[str]):
         print('there is not a bound channel! use `/channel <channel>` to bind one!')
         return
 
-    state.reads_left += 1
     await connection.send_json(type=_RequestType.SEND_PRIVMSG, channel=state.bound_channel, message=' '.join(args))
 
 
@@ -196,7 +201,6 @@ async def c_whisper(connection: Connection, state: State, args: List[str]):
         print('you must provide the user, and the message to send them! ex: `/whisper johndoe hello johndoe`')
         return
 
-    state.reads_left += 1
     await connection.send_json(type=_RequestType.SEND_WHISPER, user=args[0], message=' '.join(args[1:]))
 
 

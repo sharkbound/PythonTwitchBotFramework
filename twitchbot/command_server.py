@@ -4,15 +4,16 @@ from typing import Optional, Callable, Awaitable
 import websockets
 from asyncio import get_event_loop
 from traceback import format_exc
+from functools import partial
 
 from .channel import channels
 from .config import cfg
-from .util import add_task, task_running, stop_task
+from .exceptions import InvalidArgumentsError
 
 __all__ = [
     'start_command_server',
     'stop_command_server',
-    'SilentMessage'
+    'CommandServerMessage'
 ]
 
 HOST = cfg.command_server_host
@@ -61,14 +62,41 @@ class _RequestType:
     CHANNEL_NOT_FOUND = 'channel_not_found'
     SUCCESS = 'success'
     RUN_COMMAND = 'run_command'
+    COMMAND_RESPONSE = 'command_response'
 
 
 from .message import Message
 
 
-class SilentMessage(Message):
+async def _send_command_response(websocket: websockets.WebSocketServerProtocol, response: str, custom_data: dict):
+    await websocket.send(json.dumps({'type': _RequestType.COMMAND_RESPONSE, 'custom_data': custom_data, 'response': response}))
+
+
+class CommandServerMessage(Message):
+    def __init__(
+            self,
+            msg,
+            irc=None,
+            bot=None,
+            silent: bool = False,
+            echo_response: bool = False,
+            websocket: websockets.WebSocketServerProtocol = None,
+            custom_data: dict = None
+    ):
+        super().__init__(msg, irc, bot)
+        self.websocket = websocket
+        self.silent = silent
+        self.echo_response = echo_response
+        self.custom_data = custom_data or {}
+
     async def reply(self, msg: str = '', whisper=False, strip_command_prefix: bool = True, as_twitch_reply: bool = False):
-        print(f'COMMAND SERVER [SILENT RUN OUTPUT]: {msg}')
+        if self.silent:
+            print(f'COMMAND SERVER [SILENT RUN OUTPUT]: {msg}')
+        else:
+            await super().reply(msg=msg, whisper=whisper, strip_command_prefix=strip_command_prefix, as_twitch_reply=as_twitch_reply)
+
+        if self.echo_response:
+            await _send_command_response(self.websocket, msg, self.custom_data)
 
     # noinspection PyUnresolvedReferences
     async def wait_for_reply(self, predicate: Callable[['Message'], Awaitable[bool]] = None, timeout=30, default=None,
@@ -128,15 +156,26 @@ class ClientHandler:
         from .util import run_command
         from .irc import create_fake_privmsg
 
+        silent = data.get('silent', False)
+        echo_response = data.get('echo_response', False)
         try:
-            msg_class = SilentMessage if data.get('silent', False) else None
+            msg_class = CommandServerMessage if silent else None
+
             await run_command(
                 name=data['command'],
                 msg=create_fake_privmsg(data['channel'], ''),
                 args=list(data['args']),
                 blocking=True,
-                msg_class=msg_class
+                msg_class=partial(msg_class, silent=silent, echo_response=echo_response, websocket=self.websocket)
             )
+        except InvalidArgumentsError as e:
+            if echo_response:
+                await _send_command_response(
+                    self.websocket,
+                    f'attempt to run command "{data["command"]}" with args {data["args"]} raised a error. details:\n\t{e.__class__.__name__}: {e}',
+                    data.get('custom_data', {})
+                )
+
         except Exception as e:
             print(
                 f'COMMAND SERVER [FAILED TO RUN COMMAND]: attempt to run command "{data["command"]}" with args {data["args"]} raised a error. details:\n\t'
@@ -181,7 +220,7 @@ class ClientHandler:
 
             while self._running:
                 try:
-                    data = json.loads(await self.read())
+                    data = json.loads(await self.read()) # fixme: websockets.exceptions.ConnectionClosedError: no close frame received or sent
                 except (json.JSONDecodeError, TypeError):
                     await self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'response must be valid json'})
                     continue
@@ -213,6 +252,3 @@ class ClientHandler:
 
 async def handle_client(websocket: websockets.WebSocketServerProtocol, path: str):
     await ClientHandler(websocket, path).run()
-
-# TODO:
-# - add option to echo command response back to client websocket
