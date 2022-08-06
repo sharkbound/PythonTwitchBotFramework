@@ -162,7 +162,7 @@
   "command_server_proper_command_syntax": "\nKorrekte Syntax: {cmd_syntax}. ",
   "command_server_invalid_arguments_error_response": "\nKorrekte Syntax: {cmd_syntax}. ",
   "command_server_error_executing_command": "COMMAND SERVER [AUSFÜHRUNG FEHLGESCHLAGEN]: Eingegebenes Kommando \"{command}\" mit den Argumenten {args} führten zum Fehler:\n\t{error_type}: {error}",
-  "arena_win_message_1": "{winner} hat als der besste Kämpfer herausgestellt und gewinnt {winnings} {currency}!",
+  "arena_win_message_1": "{winner} hat sich nach einem harten Kampf als der besste in der Arena herausgestellt und gewinnt {winnings} {currency}!",
   "arena_win_message_2": "{winner} hat das Spektakel gewonnen und geht mit {winnings} {currency} nach Hause!",
   "arena_not_enough_entries_refund": "Es haben sich nicht genügend Kämpfer eingefunden. Der Eintritt ist zurück erstattet worden.",
   "arena_opening_message": "Die Arena ist vorbereitet und wird in {delay} Sekunden starten! Der Eintritt kostet {entry_fee} {curname}. Gib {command_prefix}arena ein um mitzumachen."
