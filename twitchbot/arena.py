@@ -1,16 +1,18 @@
 import asyncio
 from asyncio import Future, ensure_future
-from twitchbot.channel import Channel
 from secrets import choice
+
+from twitchbot.channel import Channel
 from twitchbot.database import add_balance, get_currency_name
-from .config import cfg, get_command_prefix
+from .config import get_command_prefix
+from .translations import translate
 
 ARENA_WAIT_TIME = 30
 ARENA_DEFAULT_ENTRY_FEE = 30
 
 VICTORY_MESSAGES = [
-    '{winner} fought long and hard, and won {winnings} {currency}',
-    '{winner} has won the FFA, and walked away with {winnings} {currency}!',
+    'arena_win_message_1',
+    'arena_win_message_2',
 ]
 
 
@@ -29,16 +31,14 @@ class Arena:
         curname = get_currency_name(self.channel.name).name
 
         await self.channel.send_message(
-            f'FFA arena has been opened and will start in {delay} seconds! Entry fee is {self.entry_fee} {curname}. '
-            f'Type {get_command_prefix()}arena to join')
+            translate('arena_opening_message', command_prefix=get_command_prefix(), delay=delay, entry_fee=self.entry_fee, curname=curname))
 
         await asyncio.sleep(delay)
         await self._start_arena()
 
     async def _start_arena(self):
         if len(self.users) < self.min_users:
-            await self.channel.send_message(
-                f'not enough users joined the arena to start, everyone that entered was issued a refund')
+            await self.channel.send_message(translate('arena_not_enough_entries_refund'))
 
             for user in self.users:
                 add_balance(self.channel.name, user, self.entry_fee)
@@ -50,7 +50,7 @@ class Arena:
 
             add_balance(self.channel.name, winner, winnings)
             await self.channel.send_message(
-                choice(VICTORY_MESSAGES).format(winner=winner, winnings=winnings, currency=currency))
+                translate(choice(VICTORY_MESSAGES), winner=winner, winnings=winnings, currency=currency))
 
             self.users.clear()
 
