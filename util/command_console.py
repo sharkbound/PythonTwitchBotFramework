@@ -66,11 +66,12 @@ class State:
 
 
 def print_help():
-    print('/channel <channel> : binds this console to a bot-joined channel (needed for /chat)')
+    print('\n\n/channel <channel> : binds this console to a bot-joined channel (needed for /chat)')
     print('/chat <msg> : sends the chat message to the channel bound to this console')
     print('/whisper <user> <message> : sends the <user> a whisper containing <message>')
     print('/sendcmd <commands> [args...]: tells the bot run a command')
     print('/help to see this message again')
+    print('\n/quit to exit this console\n>>>')
 
 
 def start_input_thread(input_queue: asyncio.Queue):
@@ -85,7 +86,7 @@ def start_input_thread(input_queue: asyncio.Queue):
 
 async def _command_input_processor_loop(state: State, input_queue: asyncio.Queue, connection: Connection):
     while True:
-        if state.authenticated:  # and not state.waiting_for_read:
+        if state.authenticated:
             try:
                 command = input_queue.get_nowait()
             except queue.Empty:
