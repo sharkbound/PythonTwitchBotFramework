@@ -2,6 +2,8 @@ import asyncio
 import getpass
 import json
 import queue
+import signal
+import sys
 import threading
 from functools import partial
 from typing import Optional, List, Coroutine
@@ -14,6 +16,9 @@ class Connection:
         self.host = host
         self.port = port
         self.websocket: Optional[websockets.WebSocketClientProtocol] = None
+
+    async def disconnect(self):
+        await self.websocket.close()
 
     async def connect(self):
         self.websocket = await websockets.connect(f'ws://{self.host}:{self.port}')
@@ -46,6 +51,7 @@ class _RequestType:
     CHANNEL_NOT_FOUND = 'channel_not_found'
     SUCCESS = 'success'
     RUN_COMMAND = 'run_command'
+    DISCONNECT = 'disconnect'
 
 
 class State:
@@ -85,8 +91,8 @@ async def _command_input_processor_loop(state: State, input_queue: asyncio.Queue
             except queue.Empty:
                 await asyncio.sleep(.5)
                 continue
-            parts = command.split()
 
+            parts = command.split()
             if not parts:
                 print_help()
                 continue
@@ -106,8 +112,10 @@ async def _handle_server_messages_processor_loop(state: State, connection: Conne
             await connection.send(getpass.getpass('enter password for server >>> ').strip())
 
         elif msg_type == _RequestType.DISCONNECTING:
-            print('server terminated connection...')
-            return
+            await connection.disconnect()
+            print('server terminated connection... exiting...')
+            import os
+            os.kill(os.getpid(), signal.SIGINT)
 
         elif msg_type == _RequestType.BAD_PASSWORD:
             print('authentication failed... password did not match!')
@@ -224,6 +232,11 @@ async def c_channel(connection: Connection, state: State, args: List[str]):
         return
 
     state.bound_channel = args[0]
+
+
+@client_command(name='quit')
+async def c_quit(connection: Connection, state: State, args: List[str]):
+    await connection.send_json(type=_RequestType.DISCONNECT)
 
 
 if __name__ == '__main__':

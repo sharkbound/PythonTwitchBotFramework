@@ -62,6 +62,7 @@ class _RequestType:
     CHANNEL_NOT_FOUND = 'channel_not_found'
     SUCCESS = 'success'
     RUN_COMMAND = 'run_command'
+    DISCONNECT = 'disconnect'
 
 
 from .message import Message
@@ -257,10 +258,16 @@ class ClientHandler:
                     await self.handle_run_command(data)
                 elif msg_type == _RequestType.SEND_WHISPER:
                     await self.handle_send_whisper(data)
+                elif msg_type == _RequestType.DISCONNECT:
+                    await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.DISCONNECTING)
+                    await self.websocket.close()
+                    return
+
         except ConnectionResetError:
             return
+
         except websockets.exceptions.ConnectionClosedOK:
-            pass
+            return
 
 
 async def handle_client(websocket: websockets.WebSocketServerProtocol, path: str):
