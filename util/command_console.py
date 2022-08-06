@@ -24,7 +24,7 @@ class Connection:
     async def read_json(self) -> dict:
         try:
             return json.loads(await self.read())
-        except (json.JSONDecoder, TypeError):
+        except (json.JSONDecodeError, TypeError):
             return {}
 
     async def send(self, text: str):
@@ -42,6 +42,7 @@ class _RequestType:
     BAD_DATA = 'bad_data'
     AUTHENTICATION_SUCCESSFUL = 'authentication_successful'
     SEND_PRIVMSG = 'send_privmsg'
+    SEND_WHISPER = 'send_whisper'
     CHANNEL_NOT_FOUND = 'channel_not_found'
     SUCCESS = 'success'
     RUN_COMMAND = 'run_command'
@@ -52,11 +53,6 @@ class State:
         self.bound_channel = ''
         self.channels: List[str] = []
         self.authenticated = False
-        self.reads_left = 0
-
-    @property
-    def waiting_for_read(self):
-        return self.reads_left > 0
 
     @property
     def has_bound_channel(self):
@@ -66,6 +62,7 @@ class State:
 def print_help():
     print('/channel <channel> : binds this console to a bot-joined channel (needed for /chat)')
     print('/chat <msg> : sends the chat message to the channel bound to this console')
+    print('/whisper <user> <message> : sends the <user> a whisper containing <message>')
     print('/sendcmd <commands> [args...]: tells the bot run a command')
     print('/help to see this message again')
 
@@ -80,24 +77,31 @@ def start_input_thread(input_queue: asyncio.Queue):
     threading.Thread(target=_input_handler_func).start()
 
 
-async def run():
-    host = input('enter command server host (leave blank for "localhost"): ').strip() or 'localhost'
-    port = int(input('enter command server port (leave blank for 1337): ').strip() or 1337)
-    connection = Connection(host, port)
+async def _command_input_processor_loop(state: State, input_queue: asyncio.Queue, connection: Connection):
+    while True:
+        if state.authenticated:  # and not state.waiting_for_read:
+            try:
+                command = input_queue.get_nowait()
+            except queue.Empty:
+                await asyncio.sleep(.5)
+                continue
+            parts = command.split()
 
-    await connection.connect()
+            if not parts:
+                print_help()
+                continue
 
-    state = State()
-    input_queue = queue.Queue()
+            command_part = parts[0].lower()
+            if command_part in client_commands:
+                await client_commands[command_part](connection, state, parts[1:])
+        else:
+            await asyncio.sleep(.5)
 
-    start_input_thread(input_queue)
 
+async def _handle_server_messages_processor_loop(state: State, connection: Connection):
     while True:
         data = await connection.read_json()
-        if state.reads_left > 0:
-            state.reads_left -= 1
         msg_type = data['type']
-
         if msg_type == _RequestType.SEND_PASSWORD:
             await connection.send(getpass.getpass('enter password for server >>> ').strip())
 
@@ -114,25 +118,28 @@ async def run():
 
         elif msg_type == _RequestType.AUTHENTICATION_SUCCESSFUL:
             state.authenticated = True
-            state.reads_left += 1
-            print('logged in to command server!')
+            print('logged in to command server!\n>>> ', end='')
             print_help()
 
-        while state.authenticated and not state.waiting_for_read:
-            try:
-                command = input_queue.get_nowait()
-            except queue.Empty:
-                await asyncio.sleep(.1)
-                continue
-            parts = command.split()
+        elif msg_type == _RequestType.SUCCESS and data.get('data', {}).get('type', None) == _RequestType.RUN_COMMAND:
+            command_data = data['data']
+            formatted_resp = '\n< ' + '\n< '.join(command_data['output'])
+            print(f'\nResponse from (/sendcmd {command_data["command"]} {" ".join(command_data["args"])}): {formatted_resp}\n>>> ', end='')
 
-            if not parts:
-                print_help()
-                continue
 
-            command_part = parts[0].lower()
-            if command_part in client_commands:
-                await client_commands[command_part](connection, state, parts[1:])
+async def run():
+    host = input('enter command server host (leave blank for "localhost"): ').strip() or 'localhost'
+    port = int(input('enter command server port (leave blank for 1337): ').strip() or 1337)
+    connection = Connection(host, port)
+
+    await connection.connect()
+
+    state = State()
+    input_queue = queue.Queue()
+
+    start_input_thread(input_queue)
+    asyncio.get_event_loop().create_task(_command_input_processor_loop(state, input_queue, connection))
+    await _handle_server_messages_processor_loop(state, connection)
 
 
 async def update_state_channels(data, state):
@@ -170,8 +177,14 @@ async def c_sendcmd(connection: Connection, state: State, args: List[str]):
         print('you must provide a command to run to /sendcmd, ex: /sendcmd help')
         return
 
-    state.reads_left += 1
-    await connection.send_json(type=_RequestType.RUN_COMMAND, channel=state.bound_channel, command=args[0], args=args[1:], silent=True)
+    await connection.send_json(
+        type=_RequestType.RUN_COMMAND,
+        channel=state.bound_channel,
+        command=args[0],
+        args=args[1:],
+        silent=True,
+        echo_response=True
+    )
 
 
 @client_command(name='chat')
@@ -184,8 +197,16 @@ async def c_chat(connection: Connection, state: State, args: List[str]):
         print('there is not a bound channel! use `/channel <channel>` to bind one!')
         return
 
-    state.reads_left += 1
     await connection.send_json(type=_RequestType.SEND_PRIVMSG, channel=state.bound_channel, message=' '.join(args))
+
+
+@client_command(name='whisper')
+async def c_whisper(connection: Connection, state: State, args: List[str]):
+    if len(args) < 2:
+        print('you must provide the user, and the message to send them! ex: `/whisper johndoe hello johndoe`')
+        return
+
+    await connection.send_json(type=_RequestType.SEND_WHISPER, user=args[0], message=' '.join(args[1:]))
 
 
 @client_command(name='channel')

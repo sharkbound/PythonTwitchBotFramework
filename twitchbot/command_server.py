@@ -2,17 +2,18 @@ import json
 from typing import Optional, Callable, Awaitable
 
 import websockets
-from asyncio import get_event_loop
 from traceback import format_exc
+from functools import partial
 
 from .channel import channels
 from .config import cfg
-from .util import add_task, task_running, stop_task
+from .exceptions import InvalidArgumentsError
+from .command import get_command
 
 __all__ = [
     'start_command_server',
     'stop_command_server',
-    'SilentMessage'
+    'CommandServerMessage'
 ]
 
 HOST = cfg.command_server_host
@@ -57,6 +58,7 @@ class _RequestType:
     BAD_DATA = 'bad_data'
     AUTHENTICATION_SUCCESSFUL = 'authentication_successful'
     SEND_PRIVMSG = 'send_privmsg'
+    SEND_WHISPER = 'send_whisper'
     CHANNEL_NOT_FOUND = 'channel_not_found'
     SUCCESS = 'success'
     RUN_COMMAND = 'run_command'
@@ -65,9 +67,37 @@ class _RequestType:
 from .message import Message
 
 
-class SilentMessage(Message):
+async def _send_command_response(websocket: websockets.WebSocketServerProtocol, response: str, custom_data: dict):
+    await websocket.send(json.dumps({'type': _RequestType.COMMAND_RESPONSE, 'custom_data': custom_data, 'response': response}))
+
+
+class CommandServerMessage(Message):
+    def __init__(
+            self,
+            msg,
+            irc=None,
+            bot=None,
+            silent: bool = False,
+            echo_response: bool = False,
+            websocket: websockets.WebSocketServerProtocol = None,
+            custom_data: dict = None,
+            output: list = None,
+    ):
+        super().__init__(msg, irc, bot)
+        self.websocket = websocket
+        self.silent = silent
+        self.echo_response = echo_response
+        self.custom_data = custom_data or {}
+        self.output = output
+
     async def reply(self, msg: str = '', whisper=False, strip_command_prefix: bool = True, as_twitch_reply: bool = False):
-        print(f'COMMAND SERVER [SILENT RUN OUTPUT]: {msg}')
+        if self.silent:
+            print(f'COMMAND SERVER [SILENT RUN OUTPUT]: {msg}')
+        else:
+            await super().reply(msg=msg, whisper=whisper, strip_command_prefix=strip_command_prefix, as_twitch_reply=as_twitch_reply)
+
+        if self.echo_response and isinstance(self.output, list):
+            self.output.append(msg)
 
     # noinspection PyUnresolvedReferences
     async def wait_for_reply(self, predicate: Callable[['Message'], Awaitable[bool]] = None, timeout=30, default=None,
@@ -113,23 +143,54 @@ class ClientHandler:
         await channels[channel].send_message(data['message'])
         await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.SUCCESS, data={'type': _RequestType.SEND_PRIVMSG})
 
+    async def handle_send_whisper(self, data: dict):
+        for key in ('user', 'message'):
+            if key not in data:
+                await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.BAD_DATA,
+                                                           data={'reason': f'data for send_whisper is missing `{key}` key'})
+                return
+        from twitchbot import get_bot
+        await get_bot().irc.send_whisper(data['user'], data['message'])
+        await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.SUCCESS, data={'type': _RequestType.SEND_WHISPER})
+
     async def _guard_run_cmd(self, data: dict):
         from .util import run_command
         from .irc import create_fake_privmsg
 
+        output = []
+        silent = data.get('silent', False)
+        echo_response = data.get('echo_response', False)
         try:
-            msg_class = SilentMessage if data.get('silent', False) else None
+            msg_class = CommandServerMessage if silent else None
+            print(echo_response)
             await run_command(
                 name=data['command'],
                 msg=create_fake_privmsg(data['channel'], ''),
                 args=list(data['args']),
                 blocking=True,
-                msg_class=msg_class
+                msg_class=partial(msg_class, silent=silent, echo_response=echo_response, websocket=self.websocket, output=output)
             )
+        except InvalidArgumentsError as e:
+            command = get_command(data['command'])
+            if command is not None:
+                usage = f'\nproper command syntax: {command.syntax}. '
+            else:
+                usage = ''
+            if echo_response:
+                output.append(
+                    f'attempt to run command "{data["command"]}" with args {data["args"]} raised a error.'
+                    f'{usage}details:\n\t{e.__class__.__name__}: {e}',
+                )
+
         except Exception as e:
-            print(
-                f'COMMAND SERVER [FAILED TO RUN COMMAND]: attempt to run command "{data["command"]}" with args {data["args"]} raised a error. details:\n\t'
-                f'{e.__class__.__name__}: {e}')
+            formatted_error = f'COMMAND SERVER [FAILED TO RUN COMMAND]: ' \
+                              f'attempt to run command "{data["command"]}" with args {data["args"]} ' \
+                              f'raised a error. details:\n\t{e.__class__.__name__}: {e}'
+            if echo_response:
+                output.append(formatted_error)
+            print(formatted_error)
+
+        return output
 
     async def handle_run_command(self, data: dict):
         if 'channel' not in data:
@@ -152,8 +213,11 @@ class ClientHandler:
                                                        data={'reason': 'key `args` must be a list for `run_command`'})
             return
 
-        get_event_loop().create_task(self._guard_run_cmd(data))
-        await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.SUCCESS, data={'type': _RequestType.RUN_COMMAND})
+        # get_event_loop().create_task(self._guard_run_cmd(data, output=cmd_output))
+        cmd_output = await self._guard_run_cmd(data)
+        await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.SUCCESS,
+                                                   data={'type': _RequestType.RUN_COMMAND, 'output': cmd_output, 'args': data['args'],
+                                                         'command': data['command']})
 
     async def run(self):
         try:
@@ -175,7 +239,6 @@ class ClientHandler:
                     await self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'response must be valid json'})
                     continue
 
-                custom_data = data.get('custom_data', None)
                 if not isinstance(data, dict):
                     await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.BAD_DATA,
                                                                data={'reason': 'data must be dictionary'})
@@ -192,6 +255,8 @@ class ClientHandler:
                     await self.handle_send_privmsg(data)
                 elif msg_type == _RequestType.RUN_COMMAND:
                     await self.handle_run_command(data)
+                elif msg_type == _RequestType.SEND_WHISPER:
+                    await self.handle_send_whisper(data)
         except ConnectionResetError:
             return
         except websockets.exceptions.ConnectionClosedOK:
