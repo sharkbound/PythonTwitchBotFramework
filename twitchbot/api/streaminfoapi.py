@@ -3,6 +3,7 @@ from traceback import format_exc
 
 from .baseapi import Api
 from .. import util
+from ..translations import translate
 
 
 class StreamInfoApi(Api):
@@ -40,7 +41,6 @@ class StreamInfoApi(Api):
             await self.on_successful_update()
         except Exception as e:
             if log:
-                print(
-                    f'[STREAM INFO API] failed to update stream data for {self.user}\nERROR TYPE: {type(e)}\nERROR DETAILS: {e}\nSTACKTRACE:\n{format_exc()}')
+                print(translate('stream_info_api_error', user=self.user, error=str(e), error_type=str(type(e)), formatted_exception=format_exc()))
 
             await self.on_failed_update()

@@ -32,6 +32,7 @@ from ..pubsub import PubSubClient
 from ..extra_configs import logging_config
 from ..irc import Irc
 from ..util import get_oauth_token_info, _check_token
+from ..translations import translate
 
 if TYPE_CHECKING:
     from ..pubsub import PubSubData, PubSubPointRedemption, PubSubBits, PubSubModerationAction, PubSubSubscription, PubSubPollData, PubSubFollow
@@ -305,9 +306,9 @@ class BaseBot:
             forward_event(Event.on_after_command_execute, msg, cmd, channel=msg.channel_name)
 
     async def _send_cmd_help(self, msg: Message, cmd: Command, exc: InvalidArgumentsError):
-        await msg.reply(
-            f'{exc.reason} - "{cmd.fullname} {cmd.syntax}" - do "{get_command_prefix()}help {cmd.fullname}" for more details')
-
+        await msg.reply(translate(
+            'send_command_help_message', reason=exc.reason, cmd_fullname=cmd.fullname, command_prefix=get_command_prefix(), cmd_syntax=cmd.syntax
+        ))
     # kept if needed later
     # def _load_overrides(self):
     #     for k, v in overrides.items():
