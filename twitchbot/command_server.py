@@ -2,13 +2,13 @@ import json
 from typing import Optional, Callable, Awaitable
 
 import websockets
-from asyncio import get_event_loop
 from traceback import format_exc
 from functools import partial
 
 from .channel import channels
 from .config import cfg
 from .exceptions import InvalidArgumentsError
+from .command import get_command
 
 __all__ = [
     'start_command_server',
@@ -62,7 +62,6 @@ class _RequestType:
     CHANNEL_NOT_FOUND = 'channel_not_found'
     SUCCESS = 'success'
     RUN_COMMAND = 'run_command'
-    COMMAND_RESPONSE = 'command_response'
 
 
 from .message import Message
@@ -81,13 +80,15 @@ class CommandServerMessage(Message):
             silent: bool = False,
             echo_response: bool = False,
             websocket: websockets.WebSocketServerProtocol = None,
-            custom_data: dict = None
+            custom_data: dict = None,
+            output: list = None,
     ):
         super().__init__(msg, irc, bot)
         self.websocket = websocket
         self.silent = silent
         self.echo_response = echo_response
         self.custom_data = custom_data or {}
+        self.output = output
 
     async def reply(self, msg: str = '', whisper=False, strip_command_prefix: bool = True, as_twitch_reply: bool = False):
         if self.silent:
@@ -95,8 +96,8 @@ class CommandServerMessage(Message):
         else:
             await super().reply(msg=msg, whisper=whisper, strip_command_prefix=strip_command_prefix, as_twitch_reply=as_twitch_reply)
 
-        if self.echo_response:
-            await _send_command_response(self.websocket, msg, self.custom_data)
+        if self.echo_response and isinstance(self.output, list):
+            self.output.append(msg)
 
     # noinspection PyUnresolvedReferences
     async def wait_for_reply(self, predicate: Callable[['Message'], Awaitable[bool]] = None, timeout=30, default=None,
@@ -156,30 +157,40 @@ class ClientHandler:
         from .util import run_command
         from .irc import create_fake_privmsg
 
+        output = []
         silent = data.get('silent', False)
         echo_response = data.get('echo_response', False)
         try:
             msg_class = CommandServerMessage if silent else None
-
+            print(echo_response)
             await run_command(
                 name=data['command'],
                 msg=create_fake_privmsg(data['channel'], ''),
                 args=list(data['args']),
                 blocking=True,
-                msg_class=partial(msg_class, silent=silent, echo_response=echo_response, websocket=self.websocket)
+                msg_class=partial(msg_class, silent=silent, echo_response=echo_response, websocket=self.websocket, output=output)
             )
         except InvalidArgumentsError as e:
+            command = get_command(data['command'])
+            if command is not None:
+                usage = f'\nproper command syntax: {command.syntax}. '
+            else:
+                usage = ''
             if echo_response:
-                await _send_command_response(
-                    self.websocket,
-                    f'attempt to run command "{data["command"]}" with args {data["args"]} raised a error. details:\n\t{e.__class__.__name__}: {e}',
-                    data.get('custom_data', {})
+                output.append(
+                    f'attempt to run command "{data["command"]}" with args {data["args"]} raised a error.'
+                    f'{usage}details:\n\t{e.__class__.__name__}: {e}',
                 )
 
         except Exception as e:
-            print(
-                f'COMMAND SERVER [FAILED TO RUN COMMAND]: attempt to run command "{data["command"]}" with args {data["args"]} raised a error. details:\n\t'
-                f'{e.__class__.__name__}: {e}')
+            formatted_error = f'COMMAND SERVER [FAILED TO RUN COMMAND]: ' \
+                              f'attempt to run command "{data["command"]}" with args {data["args"]} ' \
+                              f'raised a error. details:\n\t{e.__class__.__name__}: {e}'
+            if echo_response:
+                output.append(formatted_error)
+            print(formatted_error)
+
+        return output
 
     async def handle_run_command(self, data: dict):
         if 'channel' not in data:
@@ -202,8 +213,11 @@ class ClientHandler:
                                                        data={'reason': 'key `args` must be a list for `run_command`'})
             return
 
-        get_event_loop().create_task(self._guard_run_cmd(data))
-        await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.SUCCESS, data={'type': _RequestType.RUN_COMMAND})
+        # get_event_loop().create_task(self._guard_run_cmd(data, output=cmd_output))
+        cmd_output = await self._guard_run_cmd(data)
+        await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.SUCCESS,
+                                                   data={'type': _RequestType.RUN_COMMAND, 'output': cmd_output, 'args': data['args'],
+                                                         'command': data['command']})
 
     async def run(self):
         try:
@@ -220,12 +234,11 @@ class ClientHandler:
 
             while self._running:
                 try:
-                    data = json.loads(await self.read()) # fixme: websockets.exceptions.ConnectionClosedError: no close frame received or sent
+                    data = json.loads(await self.read())
                 except (json.JSONDecodeError, TypeError):
                     await self.write_json(type=_RequestType.BAD_DATA, data={'reason': 'response must be valid json'})
                     continue
 
-                custom_data = data.get('custom_data', None)
                 if not isinstance(data, dict):
                     await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.BAD_DATA,
                                                                data={'reason': 'data must be dictionary'})

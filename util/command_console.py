@@ -46,7 +46,6 @@ class _RequestType:
     CHANNEL_NOT_FOUND = 'channel_not_found'
     SUCCESS = 'success'
     RUN_COMMAND = 'run_command'
-    COMMAND_RESPONSE = 'command_response'
 
 
 class State:
@@ -78,6 +77,56 @@ def start_input_thread(input_queue: asyncio.Queue):
     threading.Thread(target=_input_handler_func).start()
 
 
+async def _command_input_processor_loop(state: State, input_queue: asyncio.Queue, connection: Connection):
+    while True:
+        if state.authenticated:  # and not state.waiting_for_read:
+            try:
+                command = input_queue.get_nowait()
+            except queue.Empty:
+                await asyncio.sleep(.5)
+                continue
+            parts = command.split()
+
+            if not parts:
+                print_help()
+                continue
+
+            command_part = parts[0].lower()
+            if command_part in client_commands:
+                await client_commands[command_part](connection, state, parts[1:])
+        else:
+            await asyncio.sleep(.5)
+
+
+async def _handle_server_messages_processor_loop(state: State, connection: Connection):
+    while True:
+        data = await connection.read_json()
+        msg_type = data['type']
+        if msg_type == _RequestType.SEND_PASSWORD:
+            await connection.send(getpass.getpass('enter password for server >>> ').strip())
+
+        elif msg_type == _RequestType.DISCONNECTING:
+            print('server terminated connection...')
+            return
+
+        elif msg_type == _RequestType.BAD_PASSWORD:
+            print('authentication failed... password did not match!')
+            return
+
+        elif msg_type == _RequestType.LIST_CHANNELS:
+            await update_state_channels(data, state)
+
+        elif msg_type == _RequestType.AUTHENTICATION_SUCCESSFUL:
+            state.authenticated = True
+            print('logged in to command server!\n>>> ', end='')
+            print_help()
+
+        elif msg_type == _RequestType.SUCCESS and data.get('data', {}).get('type', None) == _RequestType.RUN_COMMAND:
+            command_data = data['data']
+            formatted_resp = '\n< ' + '\n< '.join(command_data['output'])
+            print(f'\nResponse from (/sendcmd {command_data["command"]} {" ".join(command_data["args"])}): {formatted_resp}\n>>> ', end='')
+
+
 async def run():
     host = input('enter command server host (leave blank for "localhost"): ').strip() or 'localhost'
     port = int(input('enter command server port (leave blank for 1337): ').strip() or 1337)
@@ -89,51 +138,8 @@ async def run():
     input_queue = queue.Queue()
 
     start_input_thread(input_queue)
-
-    while True:
-        try:
-            data = await asyncio.wait_for(connection.read_json(), timeout=2)
-            msg_type = data['type']
-            if msg_type == _RequestType.SEND_PASSWORD:
-                await connection.send(getpass.getpass('enter password for server >>> ').strip())
-
-            elif msg_type == _RequestType.DISCONNECTING:
-                print('server terminated connection...')
-                return
-
-            elif msg_type == _RequestType.BAD_PASSWORD:
-                print('authentication failed... password did not match!')
-                return
-
-            elif msg_type == _RequestType.LIST_CHANNELS:
-                await update_state_channels(data, state)
-
-            elif msg_type == _RequestType.AUTHENTICATION_SUCCESSFUL:
-                state.authenticated = True
-                print('logged in to command server!\n>>> ', end='')
-                print_help()
-
-            elif msg_type == _RequestType.COMMAND_RESPONSE:
-                print(f'Response from (/sendcmd {data["command"]} {" ".join(data["args"])}): {data["response"]}\n>>> ', end='')
-
-        except asyncio.TimeoutError:
-            pass
-
-        if state.authenticated:  # and not state.waiting_for_read:
-            try:
-                command = input_queue.get_nowait()
-            except queue.Empty:
-                await asyncio.sleep(.1)
-                continue
-            parts = command.split()
-
-            if not parts:
-                print_help()
-                continue
-
-            command_part = parts[0].lower()
-            if command_part in client_commands:
-                await client_commands[command_part](connection, state, parts[1:])
+    asyncio.get_event_loop().create_task(_command_input_processor_loop(state, input_queue, connection))
+    await _handle_server_messages_processor_loop(state, connection)
 
 
 async def update_state_channels(data, state):
@@ -177,8 +183,7 @@ async def c_sendcmd(connection: Connection, state: State, args: List[str]):
         command=args[0],
         args=args[1:],
         silent=True,
-        echo_response=True,
-        custom_data={'command': args[0], 'args': args[1:]}
+        echo_response=True
     )
 
 
