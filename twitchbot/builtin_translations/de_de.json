@@ -144,7 +144,7 @@
   "editimer_interval_invalid_int": "Das Interval \"interval\" muss eine Gannzahl sein. Beispiel: 10",
   "edittimer_updated_interval": "Interval für \"{name}\" ist aktualisiert worden.",
   "edittimer_updated_msg": "Nachricht für den Timer \"{name}\" ist aktualisiert worden.",
-  "addcounter_invalid_alias": "Umgültiger Alias angegeben. Der Alias muss aus Zahlen und Buchstaben bestehen. Beispiel: my_counter1",
+  "addcounter_invalid_alias": "Ungültiger Alias angegeben. Der Alias muss aus Zahlen und Buchstaben bestehen. Beispiel: my_counter1",
   "addcounter_duplicate_alias": "Es gibt bereits einen Counter mit dem Alias.",
   "addcounter_success": "Der Counter #{counter_id} ist erstellt worden.",
   "addcounter_already_exists": "Fehler beim hinzufügen: Der Counter existiert bereits.",
