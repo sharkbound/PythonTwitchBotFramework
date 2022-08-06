@@ -153,5 +153,13 @@
   "setcounter_invalid_value": "invalid value, only numbers are allowed",
   "setcounter_success": "The counter {counter} has been updated to {new_val}",
   "listcounters_list": "The following counters are available: {clist}",
-  "listcounters_format": "{id}({alias}) -> {value}"
+  "listcounters_format": "{id}({alias}) -> {value}",
+  "mod_event_error": "\nerror has occurred while triggering a event on a mod, details:\nmod: {mod_name}\nevent: {event}\nerror: {error_type}\nreason: {error}\nstack trace:",
+  "event_handler_error": "\nerror has occurred while calling an event handler, details:\nevent: {event}\nerror: {error_type}\nreason: {error}\nstack trace:",
+  "send_command_help_message": "{reason} - \"{cmd_fullname} {cmd_syntax}\" - do \"{command_prefix}help {cmd_fullname}\" for more details",
+  "bad_twitch_api_response": "bad response received from endpoint: {endpoint}\nextra details: {message}",
+  "stream_info_api_error": "[STREAM INFO API] failed to update stream data for {user}\nERROR TYPE: {error}\nERROR DETAILS: {error}\nSTACKTRACE:\n{formatted_exception}",
+  "command_server_proper_command_syntax": "\nproper command syntax: {cmd_syntax}. ",
+  "command_server_invalid_arguments_error_response": "\nproper command syntax: {cmd_syntax}. ",
+  "command_server_error_executing_command": "COMMAND SERVER [FAILED TO RUN COMMAND]: attempt to run command \"{command}\" with args {args} raised a error. details:\n\t{error_type}: {error}"
 }

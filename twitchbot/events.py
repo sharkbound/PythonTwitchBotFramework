@@ -3,6 +3,7 @@ from collections import defaultdict
 from typing import DefaultDict, Callable, List
 
 from .enums import Event
+from .translations import translate
 
 custom_event_handlers: DefaultDict[Event, List[Callable]] = defaultdict(list)
 
@@ -13,11 +14,7 @@ async def trigger_event(event: Event, *args) -> list:
         try:
             out.append(await handler(*args))
         except Exception as e:
-            print(f'\nerror has occurred while triggering a custom event on a mod, details:\n'
-                  f'event: {event}\n'
-                  f'error: {type(e)}\n'
-                  f'reason: {e}\n'
-                  f'stack trace:')
+            print(translate('event_handler_error', event=event, error_type=str(type(e)), error=str(e)))
             traceback.print_exc()
     return out
 

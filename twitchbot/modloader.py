@@ -24,6 +24,7 @@ from .events import trigger_event, AsyncEventWrapper
 from .message import Message
 from .shared import get_bot
 from .util import temp_syspath, get_py_files, get_file_name
+from .translations import translate
 
 __all__ = ('ensure_mods_folder_exists', 'Mod', 'register_mod', 'trigger_mod_event', 'mods',
            'load_mods_from_directory', 'mod_exists', 'reload_mod', 'is_mod', 'unregister_mod',
@@ -309,12 +310,7 @@ async def trigger_mod_event(event: Event, *args, channel: str = '') -> list:
         try:
             output.append(await getattr(mod, event.value, _missing_function)(*args))
         except Exception as e:
-            print(f'\nerror has occurred while triggering a event on a mod, details:\n'
-                  f'mod: {mod.name_or_class_name()}\n'
-                  f'event: {event}\n'
-                  f'error: {type(e)}\n'
-                  f'reason: {e}\n'
-                  f'stack trace:')
+            print(translate('mod_event_error', error=str(e), error_type=str(type(e)), mod_name=mod.name_or_class_name(), event=str(event)))
             traceback.print_exc()
     return output
 

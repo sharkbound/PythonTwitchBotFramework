@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+from .translations import translate
 
 if TYPE_CHECKING:
     from .command import Command
@@ -30,4 +31,4 @@ class InvalidArgumentsError(Exception):
 
 class BadTwitchAPIResponse(Exception):
     def __init__(self, endpoint, message):
-        super().__init__(f'bad response received from endpoint: {endpoint}\nextra details: {message}')
+        super().__init__(translate('bad_twitch_api_response', message=message, endpoint=endpoint))

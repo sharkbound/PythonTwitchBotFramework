@@ -9,6 +9,7 @@ from .channel import channels
 from .config import cfg
 from .exceptions import InvalidArgumentsError
 from .command import get_command
+from .translations import translate
 
 __all__ = [
     'start_command_server',
@@ -174,19 +175,30 @@ class ClientHandler:
         except InvalidArgumentsError as e:
             command = get_command(data['command'])
             if command is not None:
-                usage = f'\nproper command syntax: {command.syntax}. '
+                # usage = f'\nproper command syntax: {command.syntax}. '
+                usage = translate('command_server_proper_command_syntax', cmd_syntax=command.syntax)
             else:
                 usage = ''
             if echo_response:
                 output.append(
-                    f'attempt to run command "{data["command"]}" with args {data["args"]} raised a error.'
-                    f'{usage}details:\n\t{e.__class__.__name__}: {e}',
+                    # f'attempt to run command "{data["command"]}" with args {data["args"]} raised a error. {usage}details:\n\t{e.__class__.__name__}: {e}',
+                    # f'attempt to run command "{command}" with args {args} raised a error. {usage}details:\n\t{error_type}: {error}',
+                    translate(
+                        'command_server_invalid_arguments_error_response',
+                        command=data['command'],
+                        args=str(data['args']),
+                        usage=usage,
+                        error=str(e),
+                        error_type=str(type(e))
+                    )
                 )
 
         except Exception as e:
-            formatted_error = f'COMMAND SERVER [FAILED TO RUN COMMAND]: ' \
-                              f'attempt to run command "{data["command"]}" with args {data["args"]} ' \
-                              f'raised a error. details:\n\t{e.__class__.__name__}: {e}'
+            # {command}{args}{error_type}{error}"
+            formatted_error = translate(
+                'command_server_error_executing_command',
+                command=data['command'], args=data['args'], error_type=str(type(e)), error=str(e)
+            )
             if echo_response:
                 output.append(formatted_error)
             print(formatted_error)
