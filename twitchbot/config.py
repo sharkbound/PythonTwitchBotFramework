@@ -12,6 +12,8 @@ CONFIG_FOLDER = Path('configs')
 
 # noinspection PyTypeChecker
 class Config:
+    ENCODING = 'utf-8'
+
     def __init__(self, file_path: Union[str, Path], **defaults):
         if isinstance(file_path, str):
             file_path = Path(file_path)
@@ -48,8 +50,8 @@ class Config:
 
     def save(self):
         """updates the config file with the current config data"""
-        with open(self.file_path, 'w') as file:
-            json.dump(self.data, file, indent=2)
+        with open(self.file_path, 'w', encoding=Config.ENCODING) as file:
+            json.dump(self.data, file, indent=2, ensure_ascii=False)
 
     def load(self):
         """
@@ -59,7 +61,7 @@ class Config:
         if not self.exist:
             self.create()
 
-        with open(self.file_path) as file:
+        with open(self.file_path, encoding=Config.ENCODING) as file:
             self.data = json.load(file)
 
     def create(self, overwrite=False):
@@ -73,8 +75,8 @@ class Config:
             except FileExistsError:
                 pass
 
-        with open(self.file_path, 'w') as file:
-            json.dump(self.defaults, file, indent=2)
+        with open(self.file_path, 'w', encoding=Config.ENCODING) as file:
+            json.dump(self.defaults, file, indent=2, ensure_ascii=False)
 
     def __getattr__(self, item):
         """allows for getting config values by accessing a attribute"""
