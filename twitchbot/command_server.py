@@ -69,10 +69,6 @@ class _RequestType:
 from .message import Message
 
 
-async def _send_command_response(websocket: websockets.WebSocketServerProtocol, response: str, custom_data: dict):
-    await websocket.send(json.dumps({'type': _RequestType.COMMAND_RESPONSE, 'custom_data': custom_data, 'response': response}))
-
-
 class CommandServerMessage(Message):
     def __init__(
             self,
@@ -94,7 +90,7 @@ class CommandServerMessage(Message):
 
     async def reply(self, msg: str = '', whisper=False, strip_command_prefix: bool = True, as_twitch_reply: bool = False):
         if self.silent:
-            print(f'COMMAND SERVER [SILENT RUN OUTPUT]: {msg}')
+            print(f'COMMAND SERVER [SILENT RUN OUTPUT]: {msg}')  # todo: need to convert this file to use translations
         else:
             await super().reply(msg=msg, whisper=whisper, strip_command_prefix=strip_command_prefix, as_twitch_reply=as_twitch_reply)
 
@@ -104,7 +100,7 @@ class CommandServerMessage(Message):
     # noinspection PyUnresolvedReferences
     async def wait_for_reply(self, predicate: Callable[['Message'], Awaitable[bool]] = None, timeout=30, default=None,
                              raise_on_timeout=False) -> 'ReplyResult':
-        raise RuntimeError(f'cannot call wait_for_reply() on {self.__class__}')
+        raise RuntimeError(f'wait_for_reply() is not supported on CommandServer sent messages')
 
 
 class ClientHandler:
