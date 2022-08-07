@@ -8,7 +8,7 @@ from .message import Message
 __all__ = [
     'reply_wait_queue',
     'ReplyWaitType',
-    'same_author_predicate',
+    'same_author_and_channel_predicate',
     'same_channel_predicate',
     'wait_for_reply',
     'custom_predicate',
@@ -25,7 +25,7 @@ ReplyWaitType = Tuple[Future, Callable[..., Awaitable[bool]]]
 reply_wait_queue: List[ReplyWaitType] = []
 
 
-def same_author_predicate(msg: Message):
+def same_author_and_channel_predicate(msg: Message):
     """
     returns a async predicate where the message from be from the same author and channel as `msg` passed to this function
     """
@@ -64,7 +64,7 @@ def custom_predicate(custom_predicate: Callable[[Message], bool] = None,
             'msg cannot be None if same_author or same_channel is True, add `msg=MSG_HERE` to fix this error')
 
     async def _custom_predicate(m: Message):
-        if (same_channel and m.channel != m.channel) or (same_author and m.author != msg.author):
+        if (same_channel and m.channel != msg.channel) or (same_author and m.author != msg.author):
             return False
 
         if custom_predicate is not None:
@@ -79,7 +79,7 @@ def custom_async_predicate(msg: Message, custom_predicate: Callable[[Message], A
                            same_author=True,
                            same_channel=True):
     async def _custom_async_predicate(m: Message):
-        if (same_channel and m.channel != m.channel) or (same_author and m.author != msg.author):
+        if (same_channel and m.channel != msg.channel) or (same_author and m.author != msg.author):
             return False
 
         if custom_predicate is not None:

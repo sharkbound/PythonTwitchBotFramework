@@ -336,10 +336,14 @@ class Message:
         predicate defaults to `same_author_predicate`
         """
 
-        from .replywaiter import wait_for_reply, same_author_predicate
+        from .replywaiter import wait_for_reply, same_author_and_channel_predicate
 
-        return await wait_for_reply(predicate or same_author_predicate(self), timeout=timeout, default=default,
-                                    raise_on_timeout=raise_on_timeout)
+        return await wait_for_reply(
+            (predicate if predicate is not None else same_author_and_channel_predicate(self)),
+            timeout=timeout,
+            default=default,
+            raise_on_timeout=raise_on_timeout
+        )
 
     def _is_valid_arg_index(self, index: int):
         if index >= 0:
