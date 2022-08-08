@@ -152,7 +152,7 @@ class ClientHandler:
         await self.write_json_preserve_custom_data(original_data=data, type=_RequestType.SUCCESS, data={'type': _RequestType.SEND_WHISPER})
 
     async def _guard_run_cmd(self, data: dict):
-        from .util import run_command
+        from .util import run_command, join_args_to_original_string
         from .irc import create_fake_privmsg
 
         output = []
@@ -160,7 +160,6 @@ class ClientHandler:
         echo_response = data.get('echo_response', False)
         try:
             msg_class = CommandServerMessage if silent else None
-            print(echo_response)
             await run_command(
                 name=data['command'],
                 msg=create_fake_privmsg(data['channel'], ''),
@@ -171,7 +170,6 @@ class ClientHandler:
         except InvalidArgumentsError as e:
             command = get_command(data['command'])
             if command is not None:
-                # usage = f'\nproper command syntax: {command.syntax}. '
                 usage = translate('command_server_proper_command_syntax', cmd_syntax=command.syntax)
             else:
                 usage = ''
@@ -185,15 +183,23 @@ class ClientHandler:
                         args=str(data['args']),
                         usage=usage,
                         error=str(e),
-                        error_type=str(type(e))
+                        error_type=str(type(e)),
+                        cmd_syntax=command.syntax,
+                        reason=e.reason,
+                        stack_trace=format_exc(),
+                        joined_args=join_args_to_original_string(data['args']),
                     )
                 )
 
         except Exception as e:
-            # {command}{args}{error_type}{error}"
             formatted_error = translate(
                 'command_server_error_executing_command',
-                command=data['command'], args=data['args'], error_type=str(type(e)), error=str(e)
+                command=data['command'],
+                args=data['args'],
+                error_type=str(type(e)),
+                error=str(e),
+                stack_trace=format_exc(),
+                joined_args=join_args_to_original_string(data['args']),
             )
             if echo_response:
                 output.append(formatted_error)

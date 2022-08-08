@@ -4,7 +4,7 @@ import typing
 from typing import Union
 from ..regex import RE_AT_MENTION
 
-__all__ = ('split_message', 'get_message_mentions')
+__all__ = ('split_message', 'get_message_mentions', 'join_args_to_original_string')
 
 # little "hack" to get around circular imports for type hinting
 if typing.TYPE_CHECKING:
@@ -32,3 +32,7 @@ def get_message_mentions(message: Union['Message', str]):
         mentions += tuple(p.lower() for p in message.parts if p in message.channel.chatters)
 
     return mentions
+
+
+def join_args_to_original_string(args: typing.Iterable[str]) -> str:
+    return ' '.join(f'"{value}"' if any(v.isspace() for v in args) else value for value in args)

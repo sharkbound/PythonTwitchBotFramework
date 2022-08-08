@@ -14,6 +14,8 @@ from twitchbot import (
 async def cmd_roll(msg: Message, *args):
     try:
         sides = int(args[0]) if args else 6
+        if sides < 2:
+            raise InvalidArgumentsError(reason=translate('roll_invalid_sides'), cmd=cmd_roll)
     except ValueError:
         raise InvalidArgumentsError(reason=translate('roll_invalid_sides'), cmd=cmd_roll)
 
