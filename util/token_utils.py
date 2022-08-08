@@ -1,6 +1,3 @@
-import requests
-
-
 class Scopes:
     PUBSUB_BITS = 'bits:read'
     PUBSUB_BITS_BADGE = 'bits:read'
@@ -34,9 +31,11 @@ def join_scopes(*scopes):
 
 
 def validate_oauth(token: str) -> dict:
+    import requests
     return requests.get(VALIDATE_URL, headers={'Authorization': f'OAuth {token}'}).json()
 
 
 def revoke_oauth_token(client_id: str, oauth: str):
+    import requests
     oauth = oauth.replace('oauth:', '')
     return requests.post(f'https://id.twitch.tv/oauth2/revoke?client_id={client_id}&token={oauth}')
