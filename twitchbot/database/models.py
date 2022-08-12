@@ -54,7 +54,9 @@ class Balance(Base):
     balance = Column(Integer, nullable=False)
 
     @classmethod
-    def create(cls, channel: str, user: str, balance: int = cfg.default_balance):
+    def create(cls, channel: str, user: str, balance: int = None):
+        if balance is None:
+            balance = cfg.default_balance
         return Balance(channel=channel.lower(), user=user, balance=balance)
 
 
