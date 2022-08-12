@@ -2,9 +2,10 @@ from asyncio import Task
 
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
-from .session import Base
+from .session import Base, get_database_session
 from ..config import cfg
 from ..enums import CommandContext
+from ..util import query_exists
 
 __all__ = ('Quote', 'CustomCommand', 'Balance', 'CurrencyName', 'MessageTimer', 'DBCounter')
 
@@ -58,6 +59,16 @@ class Balance(Base):
         if balance is None:
             balance = cfg.default_balance
         return Balance(channel=channel.lower(), user=user, balance=balance)
+
+    @classmethod
+    def ensure_exists(cls, channel: str, user: str, initial_balance: int = None):
+        if initial_balance is None:
+            initial_balance = cfg.default_balance
+
+        db_session = get_database_session()
+        if not query_exists(db_session, cls.channel == channel, cls.user == user):
+            db_session.add(Balance.create(channel=channel, user=user, balance=initial_balance))
+            db_session.commit()
 
 
 class CurrencyName(Base):
