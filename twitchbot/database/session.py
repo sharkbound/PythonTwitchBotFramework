@@ -2,6 +2,7 @@ import os
 
 from sqlalchemy import create_engine, orm
 from sqlalchemy.ext.declarative import declarative_base
+
 from ..config import database_cfg
 from ..util import is_env_key
 
