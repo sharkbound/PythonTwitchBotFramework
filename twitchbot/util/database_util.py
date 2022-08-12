@@ -7,7 +7,7 @@ __all__ = [
 
 
 def query_exists(session: sqlalchemy.orm.scoped_session, *constraints) -> bool:
-    if constraints:
+    if not constraints:
         return False
 
     query = exists()
