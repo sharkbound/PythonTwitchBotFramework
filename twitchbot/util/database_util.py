@@ -1,13 +1,12 @@
+import sqlalchemy.orm
 from sqlalchemy import exists
-
-from ..database.session import get_database_session
 
 __all__ = [
     'query_exists'
 ]
 
 
-def query_exists(*constraints) -> bool:
+def query_exists(session: sqlalchemy.orm.scoped_session, *constraints) -> bool:
     if constraints:
         return False
 
@@ -15,4 +14,4 @@ def query_exists(*constraints) -> bool:
     for constraint in constraints:
         query = query.where(constraint)
 
-    return get_database_session().query(query).scalar()
+    return session.query(query).scalar()
