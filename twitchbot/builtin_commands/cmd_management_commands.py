@@ -61,7 +61,7 @@ async def cmd_enable_cmd(msg: Message, *args):
 @Command('reloaddisabled', permission=MANAGE_COMMANDS_PERMISSION, help='reloads disable commands config')
 async def cmd_reload_disabled(msg: Message, *args):
     cfg_disabled_commands.load()
-    await msg.reply(translate('reloaded_disabled_commands_config'))
+    await msg.reply(translate('reloaded_disabled_commands_config', user=msg.author))
 
 
 @Command('disablecmdglobal', permission=MANAGE_COMMANDS_PERMISSION, help='disables a command for all channels the bot is in')

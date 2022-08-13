@@ -6,7 +6,7 @@
   "disabled_command": "disabled command \"{name}\"",
   "command_not_disabled": "{name} is not disabled",
   "command_enabled": "enabled command \"{name}\"",
-  "reloaded_disabled_commands_config": "reloaded disabled commands config",
+  "reloaded_disabled_commands_config": "@{user} reloaded disabled commands config",
   "disabled_command_globally": "disabled command \"{name}\" globally",
   "enabled_command_globally": "enabled command \"{name}\" globally",
   "reloaded_command_whitelist": "{mention} reloaded command whitelist",

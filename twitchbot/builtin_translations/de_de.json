@@ -6,7 +6,7 @@
   "disabled_command": "Das Kommando \"{name}\" ist deaktiviert worden.",
   "command_not_disabled": "Das Kommando \"{name}\" ist bereits aktiviert.",
   "command_enabled": "Das Kommando \"{name}\" ist aktiviert worden.",
-  "reloaded_disabled_commands_config": "Die Liste der deaktivierten Kommandos ist erneut eingelesen worden.",
+  "reloaded_disabled_commands_config": "@{user} Die Liste der deaktivierten Kommandos ist erneut eingelesen worden.",
   "disabled_command_globally": "Das Kommando \"{name}\" ist jetzt global deaktiviert.",
   "enabled_command_globally": "Das Kommando \"{name}\" ist jetzt global aktiviert.",
   "reloaded_command_whitelist": "{mention} Liste der freigeschalteten Kommandos (Whitelist) ist erneut eingelesen worden.",
