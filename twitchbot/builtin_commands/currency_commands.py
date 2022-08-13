@@ -342,7 +342,8 @@ async def cmd_arena(msg: Message, *args):
         if not _can_pay_entry_fee(entry_fee):
             await msg.reply(
                 whisper=True,
-                msg=translate('arena_cannot_enter_not_enough_balance', mention=msg.mention, entry_fee=arena.entry_fee, currency=curname))
+                msg=translate('arena_cannot_enter_not_enough_balance', mention=msg.mention, entry_fee=entry_fee,
+                              currency=curname))
             return
 
         arena = Arena(msg.channel, entry_fee, on_arena_ended_func=_remove_running_arena_entry)
