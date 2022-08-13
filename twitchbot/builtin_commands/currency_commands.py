@@ -302,11 +302,12 @@ async def cmd_arena(msg: Message, *args):
         except KeyError:
             pass
 
-    arena = running_arenas.get(msg.channel_name)
+    Balance.ensure_exists(msg.channel_name, msg.author)
     curname = get_currency_name(msg.channel_name).name
 
     # arena is already running for this channel
-    if arena:
+    arena = running_arenas.get(msg.channel_name)
+    if arena is not None:
         if msg.author in arena.users:
             return await msg.reply(
                 whisper=True,
