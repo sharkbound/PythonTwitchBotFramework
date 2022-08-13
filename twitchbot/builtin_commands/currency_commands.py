@@ -157,7 +157,7 @@ async def cmd_give(msg: Message, *args):
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_give)
 
     caller = get_balance_from_msg(msg)
-    target = get_balance(msg.channel_name, msg.mentions[0])
+    target = get_balance(msg.channel_name, args[0], create_if_missing=True)
 
     try:
         give = int(args[1])
