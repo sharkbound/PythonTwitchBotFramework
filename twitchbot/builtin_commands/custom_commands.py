@@ -10,7 +10,7 @@ from twitchbot import (
     Command,
     InvalidArgumentsError,
     translate,
-    create_translate_callable
+    create_translate_callable,
 )
 
 PERMISSION = 'manage_commands'

@@ -31,7 +31,7 @@ from twitchbot import (
     CONFIG_FOLDER,
     SubtractBalanceResult,
     translate,
-    create_translate_callable
+    create_translate_callable,
 )
 
 PREFIX = cfg.prefix
