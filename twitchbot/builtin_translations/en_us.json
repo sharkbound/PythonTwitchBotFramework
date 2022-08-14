@@ -206,5 +206,12 @@
   "builtin_command_help_message_disablemod": "disables a mod for the current channel",
   "builtin_command_help_message_disabledmods": "lists disabled mods for the current channel",
   "builtin_command_help_message_reloadmod": "reloads a specific module (case sensitive) from disk",
-  "builtin_command_help_message_listmods": "list all mods currently loaded"
+  "builtin_command_help_message_listmods": "list all mods currently loaded",
+  "builtin_command_help_message_addperm": "adds a permission a group",
+  "builtin_command_help_message_delperm": "removes a permission from a group",
+  "builtin_command_help_message_addgroup": "adds a permission group",
+  "builtin_command_help_message_delgroup": "removes a permission group",
+  "builtin_command_help_message_reloadperms": "reloads permissions",
+  "builtin_command_help_message_addmember": "adds a member to a permission group",
+  "builtin_command_help_message_delmember": "removes a member from a permission group"
 }

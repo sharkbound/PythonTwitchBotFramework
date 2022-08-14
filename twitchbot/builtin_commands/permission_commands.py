@@ -5,6 +5,7 @@ from twitchbot import (
     cfg,
     InvalidArgumentsError,
     translate,
+    create_translate_callable,
 )
 
 WHISPER = True
@@ -13,7 +14,7 @@ PREFIX = cfg.prefix
 PERMISSION = 'manage_permissions'
 
 
-@Command('addperm', permission=PERMISSION, syntax='<group> <permission>', help='adds a permission a group')
+@Command('addperm', permission=PERMISSION, syntax='<group> <permission>', help=create_translate_callable('builtin_command_help_message_addperm'))
 async def cmd_add_perm(msg: Message, *args):
     if len(args) != 2:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_add_perm)
@@ -25,7 +26,7 @@ async def cmd_add_perm(msg: Message, *args):
         await msg.reply(whisper=WHISPER, msg=translate('addperm_no_group', group=group))
 
 
-@Command('delperm', permission=PERMISSION, syntax='<group> <permission>', help='removes a permission from a group')
+@Command('delperm', permission=PERMISSION, syntax='<group> <permission>', help=create_translate_callable('builtin_command_help_message_delperm'))
 async def cmd_del_perm(msg: Message, *args):
     if len(args) != 2:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_del_perm)
@@ -37,7 +38,7 @@ async def cmd_del_perm(msg: Message, *args):
         await msg.reply(whisper=WHISPER, msg=translate('addperm_no_group', group=group))
 
 
-@Command('addgroup', permission=PERMISSION, syntax='<group>', help='adds a permission group')
+@Command('addgroup', permission=PERMISSION, syntax='<group>', help=create_translate_callable('builtin_command_help_message_addgroup'))
 async def cmd_add_group(msg: Message, *args):
     if not args:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_add_group)
@@ -49,7 +50,7 @@ async def cmd_add_group(msg: Message, *args):
         await msg.reply(whisper=WHISPER, msg=translate('addgroup_already_exists', group=group))
 
 
-@Command('delgroup', permission=PERMISSION, syntax='<group>', help='removes a permission group')
+@Command('delgroup', permission=PERMISSION, syntax='<group>', help=create_translate_callable('builtin_command_help_message_delgroup'))
 async def cmd_del_group(msg: Message, *args):
     if not args:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_del_group)
@@ -61,7 +62,7 @@ async def cmd_del_group(msg: Message, *args):
         await msg.reply(whisper=WHISPER, msg=translate('addperm_no_group', group=group))
 
 
-@Command('reloadperms', permission=PERMISSION, help='reloads permissions')
+@Command('reloadperms', permission=PERMISSION, help=create_translate_callable('builtin_command_help_message_reloadperms'))
 async def cmd_reload_perms(msg: Message, *args):
     if perms.reload_permissions(channel=msg.channel_name):
         await msg.reply(whisper=WHISPER, msg=translate('reloaded_permissions'))
@@ -69,7 +70,7 @@ async def cmd_reload_perms(msg: Message, *args):
         await msg.reply(whisper=WHISPER, msg=translate('reloaded_permissions_failed'))
 
 
-@Command('addmember', permission=PERMISSION, syntax='<group> <member>', help='adds a member to a permission group')
+@Command('addmember', permission=PERMISSION, syntax='<group> <member>', help=create_translate_callable('builtin_command_help_message_addmember'))
 async def cmd_add_member(msg: Message, *args):
     if len(args) != 2:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_add_member)
@@ -83,7 +84,7 @@ async def cmd_add_member(msg: Message, *args):
         await msg.reply(whisper=WHISPER, msg=translate('addmember_no_group'))
 
 
-@Command('delmember', permission=PERMISSION, syntax='<group> <member>', help='removes a member from a permission group')
+@Command('delmember', permission=PERMISSION, syntax='<group> <member>', help=create_translate_callable('builtin_command_help_message_delmember'))
 async def cmd_del_member(msg: Message, *args):
     if len(args) != 2:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_del_member)
