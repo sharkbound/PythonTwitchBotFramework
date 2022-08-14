@@ -13,13 +13,14 @@ from twitchbot import (
     set_counter,
     get_all_counters,
     translate,
-    counter_exist
+    counter_exist,
+    create_translate_callable,
 )
 
 PREFIX = cfg.prefix
 
 
-@Command('addcounter', permission='manage_counter', syntax='<ALIAS>', help='adds a counter to the database')
+@Command('addcounter', permission='manage_counter', syntax='<ALIAS>', help=create_translate_callable('builtin_command_help_message_addcounter'))
 async def cmd_add_counter(msg: Message, *args):
     if not args:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_add_counter)
@@ -45,7 +46,7 @@ async def cmd_add_counter(msg: Message, *args):
     await msg.reply(resp)
 
 
-@Command('delcounter', permission='manage_counter', syntax='<ID or ALIAS>', help='deletes the counter from the database')
+@Command('delcounter', permission='manage_counter', syntax='<ID or ALIAS>', help=create_translate_callable('builtin_command_help_message_delcounter'))
 async def cmd_del_counter(msg: Message, *args):
     if not args:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_del_counter)
@@ -58,7 +59,7 @@ async def cmd_del_counter(msg: Message, *args):
     await msg.reply(translate('delcounter_deleted', counter_id=counter.id, counter_alias=counter.alias))
 
 
-@Command('setcounter', permission='manage_counter', syntax='<alias_or_id> <new_value>', help='adds a counter to the database')
+@Command('setcounter', permission='manage_counter', syntax='<alias_or_id> <new_value>', help=create_translate_callable('builtin_command_help_message_setcounter'))
 async def cmd_set_counter(msg: Message, *args):
     if len(args) != 2:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_set_counter)
@@ -78,7 +79,7 @@ async def cmd_set_counter(msg: Message, *args):
     await msg.reply(translate('setcounter_success', counter=alias_or_id, new_val=new_value))
 
 
-@Command('listcounters', permission='manage_counter', help='list all counters of the channel')
+@Command('listcounters', permission='manage_counter', help=create_translate_callable('builtin_command_help_message_listcounters'))
 async def cmd_list_counters(msg: Message, *args):
     clist = ', '.join(translate('listcounters_format', id=x.id, alias=x.alias, value=x.value) for x in get_all_counters(msg.channel_name))
     await msg.reply(translate('listcounters_list', clist=clist))
