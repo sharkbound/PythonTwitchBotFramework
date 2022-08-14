@@ -198,5 +198,8 @@
   "builtin_command_help_message_roll": "rolls a X sided die",
   "builtin_command_help_message_choose": "chooses a random option passed to the command",
   "builtin_command_help_message_color": "sets the bots chat color",
-  "builtin_command_help_message_8ball": "prints a random answer to the question"
+  "builtin_command_help_message_8ball": "prints a random answer to the question",
+  "builtin_command_help_message_commands": "lists all commands, add -a or -alias to list aliases",
+  "builtin_command_help_message_help": "gets the help text for a command",
+  "builtin_command_help_message_findperm": "finds a permission for a given command"
 }
