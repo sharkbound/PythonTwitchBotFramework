@@ -10,6 +10,7 @@ from twitchbot import (
     get_channel_poll_by_id,
     PollData,
     translate,
+    create_translate_callable,
 )
 
 RE_POLL_INFO = re.compile(r'(?P<title>.+)\[(?P<options>[\w\d\s,]+)]\s*(?P<time>[0-9.]*)')
@@ -23,7 +24,7 @@ DEFAULT_POLL_DURATION = 60
 
 @Command('startpoll',
          syntax='<title> [option1, option2, ect] (seconds_for_poll)',
-         help='starts the poll for the the current channel',
+         help=create_translate_callable('builtin_command_help_message_startpoll'),
          permission=START_POLL_PERMISSION)
 async def cmd_start_poll(msg: Message, *args):
     if len(args) < 2:
@@ -41,7 +42,7 @@ async def cmd_start_poll(msg: Message, *args):
 
 @Command('vote',
          syntax='<choice_id> (poll_id)',
-         help='starts the poll for the the current channel',
+         help=create_translate_callable('builtin_command_help_message_vote'),
          permission=VOTE_PERMISSION)
 async def cmd_vote(msg: Message, *args):
     if not args:
@@ -76,7 +77,7 @@ async def cmd_vote(msg: Message, *args):
     poll.add_vote(msg.author, choice)
 
 
-@Command('listpolls', help='list all active polls', permission=LIST_POLLS_PERMISSION)
+@Command('listpolls', help=create_translate_callable('builtin_command_help_message_listpolls'), permission=LIST_POLLS_PERMISSION)
 async def cmd_list_polls(msg: Message, *args):
     polls = get_active_channel_polls(msg.channel_name)
     if polls:
@@ -85,7 +86,7 @@ async def cmd_list_polls(msg: Message, *args):
         await msg.reply(translate('listpolls_no_polls'))
 
 
-@Command('pollinfo', syntax='(POLL_ID)', help='views info about the poll using the passed poll id', permission=POLL_INFO_PERMISSION)
+@Command('pollinfo', syntax='(POLL_ID)', help=create_translate_callable('builtin_command_help_message_pollinfo'), permission=POLL_INFO_PERMISSION)
 async def cmd_poll_info(msg: Message, *args):
     count = get_active_channel_poll_count(msg.channel_name)
 

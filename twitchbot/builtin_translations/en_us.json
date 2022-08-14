@@ -213,5 +213,9 @@
   "builtin_command_help_message_delgroup": "removes a permission group",
   "builtin_command_help_message_reloadperms": "reloads permissions",
   "builtin_command_help_message_addmember": "adds a member to a permission group",
-  "builtin_command_help_message_delmember": "removes a member from a permission group"
+  "builtin_command_help_message_delmember": "removes a member from a permission group",
+  "builtin_command_help_message_startpoll": "starts the poll for the the current channel",
+  "builtin_command_help_message_vote": "register a vote for the given choice if inside of the poll specified by <poll_id>",
+  "builtin_command_help_message_listpolls": "list all active polls",
+  "builtin_command_help_message_pollinfo": "views info about the poll using the passed poll id"
 }
