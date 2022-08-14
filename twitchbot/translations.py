@@ -8,6 +8,7 @@ __all__ = [
     'load_translation_file',
     'translate',
     'load_fallback_translation_file',
+    'create_translate_callable',
 ]
 
 _BUILTIN_TRANSLATION_DIRECTORY = get_bot_package_path() / 'builtin_translations'
@@ -58,3 +59,8 @@ def load_translation_file(translation_file_name):
 
 def translate(key, *args, **kwargs):
     return get_translation(key).format(*args, **kwargs)
+
+
+def create_translate_callable(translation_key: str, *args, **kwargs):
+    """Create a callable object for the given translation key."""
+    return lambda: translate(translation_key, *args, **kwargs)
