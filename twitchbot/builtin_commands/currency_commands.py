@@ -30,7 +30,8 @@ from twitchbot import (
     Config,
     CONFIG_FOLDER,
     SubtractBalanceResult,
-    translate
+    translate,
+    create_translate_callable
 )
 
 PREFIX = cfg.prefix
@@ -38,7 +39,7 @@ MANAGE_CURRENCY_PERMISSION = 'manage_currency'
 
 
 @Command('setcurrencyname', permission=MANAGE_CURRENCY_PERMISSION, syntax='<new_name>',
-         help='sets the channels currency name')
+         help=create_translate_callable('builtin_command_help_message_setcurrencyname'))
 async def cmd_set_currency_name(msg: Message, *args):
     if len(args) != 1:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_set_currency_name)
@@ -47,12 +48,12 @@ async def cmd_set_currency_name(msg: Message, *args):
     await msg.reply(translate('currency_name_set', currency_name=get_currency_name(msg.channel_name).name))
 
 
-@Command('getcurrencyname', help='get the channels current currency name')
+@Command('getcurrencyname', help=create_translate_callable('builtin_command_help_message_getcurrencyname'))
 async def cmd_get_currency_name(msg: Message, *ignored):
     await msg.reply(translate('currency_name_get', currency_name=get_currency_name(msg.channel_name).name))
 
 
-@Command('bal', syntax='(target)', help='gets the caller\'s (or target\'s if specified) balance')
+@Command('bal', syntax='(target)', help=create_translate_callable('builtin_command_help_message_bal'))
 async def cmd_get_bal(msg: Message, *args):
     if args:
         target = args[0].lstrip('@')
@@ -65,7 +66,7 @@ async def cmd_get_bal(msg: Message, *args):
 
 
 @Command('setbal', permission=MANAGE_CURRENCY_PERMISSION, syntax='<new_balance> (target)',
-         help='sets the callers or targets balance')
+         help=create_translate_callable('builtin_command_help_message_setbal'))
 async def cmd_set_bal(msg: Message, *args):
     if not len(args):
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_set_bal)
@@ -87,7 +88,7 @@ async def cmd_set_bal(msg: Message, *args):
 
 
 @Command('addbal', permission=MANAGE_CURRENCY_PERMISSION, syntax='<user or all> <amount>',
-         help='adds the balance of the target, or all')
+         help=create_translate_callable('builtin_command_help_message_addbal'))
 async def cmd_add_bal(msg: Message, *args):
     if len(args) != 2:
         raise InvalidArgumentsError(translate('add_bal_missing_args'), cmd=cmd_add_bal)
@@ -119,7 +120,7 @@ async def cmd_add_bal(msg: Message, *args):
 
 
 @Command('subbal', permission=MANAGE_CURRENCY_PERMISSION, syntax='<user or all> <amount>',
-         help='subtracts the balance of the target, or all')
+         help=create_translate_callable('builtin_command_help_message_subbal'))
 async def cmd_sub_bal(msg: Message, *args):
     if len(args) != 2:
         raise InvalidArgumentsError(translate('add_bal_missing_args'), cmd=cmd_sub_bal)
@@ -151,7 +152,7 @@ async def cmd_sub_bal(msg: Message, *args):
 
 
 @Command('give', syntax='<target> <amount>',
-         help='gives the target the specified amount from the callers currency balance')
+         help=create_translate_callable('builtin_command_help_message_give'))
 async def cmd_give(msg: Message, *args):
     if len(args) != 2:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_give)
@@ -183,9 +184,7 @@ async def cmd_give(msg: Message, *args):
 
 
 @Command('gamble', syntax='<bet> <dice_sides>',
-         help='throws a X sided die, '
-              'if the dice sides are more than 6 you get more payout on a success X roll, '
-              'but it is also a lower chance to roll X.',
+         help=create_translate_callable('builtin_command_help_message_gamble'),
          permission='gamble')
 async def cmd_gamble(msg: Message, *args):
     if not len(args):
@@ -238,7 +237,7 @@ last_mine_time = {}
 mine_gain = 50
 
 
-@Command('mine', help='mines for currency, gives you a predefined amount (default 50)', permission='mine')
+@Command('mine', help=create_translate_callable('builtin_command_help_message_mine'), permission='mine')
 async def cmd_mine(msg: Message, *args):
     key = (msg.author, msg.channel_name)
     diff = (datetime.now() - last_mine_time.get(key, datetime.now())).total_seconds()
@@ -260,13 +259,13 @@ async def cmd_mine(msg: Message, *args):
 cfg_ignored_top_usernames = Config(file_path=CONFIG_FOLDER / 'command_configs' / 'command_top_config.json', ignored_usernames=[])
 
 
-@Command('topreloadignored', permission='topreloadignored', help='reloads the config file for top\'s ignored usernames')
+@Command('topreloadignored', permission='topreloadignored', help=create_translate_callable('builtin_command_help_message_topreloadignored'))
 async def cmd_top_reload_ignored(msg: Message, *args):
     cfg_ignored_top_usernames.load()
     await msg.reply(translate('reloaded_top_ignored_list'))
 
 
-@Command('top', help="lists the top 10 balance holders")
+@Command('top', help=create_translate_callable('builtin_command_help_message_top'))
 async def cmd_top(msg: Message, *args):
     results = (session.query(Balance)
                .filter(Balance.channel == msg.channel_name, Balance.user != msg.channel_name,
@@ -289,9 +288,7 @@ running_arenas: Dict[str, Arena] = {}
 
 
 @Command('arena', syntax='<entry_fee>',
-         help='starts a arena match, waits a certain amount of time for ppl to enter, '
-              'if not enough ppl enter the arena is cancelled and everyone is refunded,'
-              'the winner gets all of the entry_fee\'s paid')
+         help=create_translate_callable('builtin_command_help_message_arena'))
 async def cmd_arena(msg: Message, *args):
     def _can_pay_entry_fee(fee):
         return get_balance(msg.channel_name, msg.author).balance >= fee
@@ -356,7 +353,7 @@ async def cmd_arena(msg: Message, *args):
 
 
 @Command('duel', syntax='<target_user> (amount, default: 10)',
-         help='challenges a user to a duel with the bid as the reward')
+         help=create_translate_callable('builtin_command_help_message_duel'))
 async def cmd_duel(msg: Message, *args):
     if not args:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_duel)
@@ -393,7 +390,7 @@ async def cmd_duel(msg: Message, *args):
     await msg.reply(translate('duel_challenged', mention=msg.mention, target=target, bet=bet, currency=currency_name, command_prefix=cfg.prefix))
 
 
-@Command('accept', syntax='<challenger>', help='accepts a duel issued by the challenger that is passed to this command')
+@Command('accept', syntax='<challenger>', help=create_translate_callable('builtin_command_help_message_accept'))
 async def cmd_accept(msg: Message, *args):
     if len(args) != 1:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'))

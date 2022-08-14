@@ -172,5 +172,19 @@
   "builtin_command_help_message_reloaddisabled": "reloads disable commands config",
   "builtin_command_help_message_disablecmdglobal": "disables a command for all channels the bot is in",
   "builtin_command_help_message_enablecmdglobal": "enables a command for all channels the bot is in",
-  "builtin_command_help_message_reloadcmdwhitelist": "reloads whitelisted commands from the config file"
+  "builtin_command_help_message_reloadcmdwhitelist": "reloads whitelisted commands from the config file",
+  "builtin_command_help_message_setcurrencyname": "sets the channels currency name",
+  "builtin_command_help_message_getcurrencyname": "get the channels current currency name",
+  "builtin_command_help_message_bal": "gets the caller's (or target's if specified) balance",
+  "builtin_command_help_message_setbal": "sets the callers or targets balance",
+  "builtin_command_help_message_addbal": "adds the balance of the target, or all",
+  "builtin_command_help_message_subbal": "subtracts the balance of the target, or all",
+  "builtin_command_help_message_give": "gives the target the specified amount from the callers currency balance",
+  "builtin_command_help_message_gamble": "throws a X sided die, if the dice sides are more than 6 you get more payout on a success X roll, but it is also a lower chance to roll X.",
+  "builtin_command_help_message_mine": "mines for currency, gives you a predefined amount (default 50)",
+  "builtin_command_help_message_topreloadignored": "reloads the config file for top's ignored usernames",
+  "builtin_command_help_message_top": "lists the top 10 balance holders",
+  "builtin_command_help_message_arena": "starts a arena match, waits a certain amount of time for ppl to enter, if not enough ppl enter the arena is cancelled and everyone is refunded, the winner gets all of the entry_fee's paid",
+  "builtin_command_help_message_duel": "challenges a user to a duel with the bid as the reward",
+  "builtin_command_help_message_accept": "accepts a duel issued by the challenger that is passed to this command"
 }
