@@ -201,5 +201,10 @@
   "builtin_command_help_message_8ball": "prints a random answer to the question",
   "builtin_command_help_message_commands": "lists all commands, add -a or -alias to list aliases",
   "builtin_command_help_message_help": "gets the help text for a command",
-  "builtin_command_help_message_findperm": "finds a permission for a given command"
+  "builtin_command_help_message_findperm": "finds a permission for a given command",
+  "builtin_command_help_message_enablemod": "enables a mod for the current channel",
+  "builtin_command_help_message_disablemod": "disables a mod for the current channel",
+  "builtin_command_help_message_disabledmods": "lists disabled mods for the current channel",
+  "builtin_command_help_message_reloadmod": "reloads a specific module (case sensitive) from disk",
+  "builtin_command_help_message_listmods": "list all mods currently loaded"
 }
