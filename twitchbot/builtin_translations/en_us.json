@@ -186,5 +186,9 @@
   "builtin_command_help_message_top": "lists the top 10 balance holders",
   "builtin_command_help_message_arena": "starts a arena match, waits a certain amount of time for ppl to enter, if not enough ppl enter the arena is cancelled and everyone is refunded, the winner gets all of the entry_fee's paid",
   "builtin_command_help_message_duel": "challenges a user to a duel with the bid as the reward",
-  "builtin_command_help_message_accept": "accepts a duel issued by the challenger that is passed to this command"
+  "builtin_command_help_message_accept": "accepts a duel issued by the challenger that is passed to this command",
+  "builtin_command_help_message_addcmd": "adds a custom command to the database for the this channel, placeholders: %user : the name of the person that triggered the command, %uptime : the channels live uptime, %channel : the channels name, %counter adds and uses a counter starting with the value 0",
+  "builtin_command_help_message_updatecmd": "updates a custom command's response message",
+  "builtin_command_help_message_delcmd": "deletes a custom commands",
+  "builtin_command_help_message_cmd": "gets a custom commmands response"
 }

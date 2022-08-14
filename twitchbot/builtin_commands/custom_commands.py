@@ -9,7 +9,8 @@ from twitchbot import (
     cfg,
     Command,
     InvalidArgumentsError,
-    translate
+    translate,
+    create_translate_callable
 )
 
 PERMISSION = 'manage_commands'
@@ -23,10 +24,7 @@ def _verify_resp_is_valid(resp: str):
 
 
 @Command('addcmd', permission=PERMISSION, syntax='<name> <response>',
-         help='adds a custom command to the database for the this channel, '
-              'placeholders: %user : the name of the person that triggered the command,'
-              '%uptime : the channels live uptime,'
-              '%channel : the channels name, %counter adds and uses a counter starting with the value 0')
+         help=create_translate_callable('builtin_command_help_message_addcmd'))
 async def cmd_add_custom_command(msg: Message, *args):
     if len(args) < 2:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_add_custom_command)
@@ -49,7 +47,7 @@ async def cmd_add_custom_command(msg: Message, *args):
 
 
 @Command('updatecmd', permission=PERMISSION, syntax='<name> <response>',
-         help="updates a custom command's response message")
+         help=translate('builtin_command_help_message_updatecmd'))
 async def cmd_update_custom_command(msg: Message, *args):
     if len(args) < 2:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_update_custom_command)
@@ -71,7 +69,7 @@ async def cmd_update_custom_command(msg: Message, *args):
     await msg.reply(translate('update_cmd_success', name=name))
 
 
-@Command('delcmd', permission=PERMISSION, syntax='<name>', help='deletes a custom commands')
+@Command('delcmd', permission=PERMISSION, syntax='<name>', help=create_translate_callable('builtin_command_help_message_delcmd'))
 async def cmd_del_custom_command(msg: Message, *args):
     if not args:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_del_custom_command)
@@ -86,7 +84,7 @@ async def cmd_del_custom_command(msg: Message, *args):
         await msg.reply(translate('del_cmd_fail', name=args[0]))
 
 
-@Command('cmd', syntax='<name>', help='gets a custom commmands response')
+@Command('cmd', syntax='<name>', help=create_translate_callable('builtin_command_help_message_cmd'))
 async def cmd_get_custom_command(msg: Message, *args):
     if not args:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_get_custom_command)
