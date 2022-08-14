@@ -165,5 +165,12 @@
   "arena_win_message_1": "{winner} fought long and hard, and won {winnings} {currency}!",
   "arena_win_message_2": "{winner} has won the FFA, and walked away with {winnings} {currency}!",
   "arena_not_enough_entries_refund": "not enough users joined the arena to start, everyone that entered was issued a refund",
-  "arena_opening_message": "FFA arena has been opened and will start in {delay} seconds! Entry fee is {entry_fee} {curname}. Type {command_prefix}arena to join"
+  "arena_opening_message": "FFA arena has been opened and will start in {delay} seconds! Entry fee is {entry_fee} {curname}. Type {command_prefix}arena to join",
+  "builtin_command_help_message_shutdown": "make the bot shutdown",
+  "builtin_command_help_message_disablecmd": "disables a command for the current channel",
+  "builtin_command_help_message_enablecmd": "enables a command for the current channel",
+  "builtin_command_help_message_reloaddisabled": "reloads disable commands config",
+  "builtin_command_help_message_disablecmdglobal": "disables a command for all channels the bot is in",
+  "builtin_command_help_message_enablecmdglobal": "enables a command for all channels the bot is in",
+  "builtin_command_help_message_reloadcmdwhitelist": "reloads whitelisted commands from the config file"
 }
