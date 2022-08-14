@@ -2,7 +2,7 @@ import os
 import typing
 from datetime import datetime
 from importlib import import_module
-from typing import Dict, Callable, Optional, List, Tuple
+from typing import Dict, Callable, Optional, List, Tuple, Union
 
 from twitchbot.database import CustomCommand
 from twitchbot.message import Message
@@ -28,7 +28,7 @@ __all__ = (
 class Command:
     def __init__(self, name: str, prefix: str = None, func: Callable = None, global_command: bool = True,
                  context: CommandContext = CommandContext.DEFAULT_COMMAND_CONTEXT, permission: str = None, syntax: str = None,
-                 help: str = None, aliases: List[str] = None, cooldown: int = DEFAULT_COOLDOWN,
+                 help: Optional[Union[str, Callable[[], str]]] = None, aliases: List[str] = None, cooldown: int = DEFAULT_COOLDOWN,
                  cooldown_bypass: str = DEFAULT_COOLDOWN_BYPASS, hidden: bool = False, parent: 'Command' = None):
         """
         :param name: name of the command (without the prefix)
@@ -49,7 +49,7 @@ class Command:
         self.cooldown_bypass = cooldown_bypass
         self.cooldown: int = cooldown
         self.aliases: List[str] = aliases if aliases is not None else []
-        self.help: str = help
+        self._help: str = help
         self.syntax: str = syntax
         self.permission: str = permission
         self.context: CommandContext = context
@@ -78,6 +78,14 @@ class Command:
             if self.name in self.parent.sub_cmds:
                 del self.parent.sub_cmds[self.name]
             parent.sub_cmds[self.name] = self
+
+    @property
+    def help(self):
+        if isinstance(self._help, str):
+            return self._help
+        elif callable(self._help):
+            return self._help()
+        return None
 
     @property
     def fullname(self) -> str:
