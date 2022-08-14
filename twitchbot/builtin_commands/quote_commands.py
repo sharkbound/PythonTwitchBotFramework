@@ -10,13 +10,15 @@ from twitchbot import (
     Quote,
     cfg,
     InvalidArgumentsError,
-    translate
+    translate,
+    create_translate_callable,
 )
 
 PREFIX = cfg.prefix
 
 
-@Command('addquote', permission='add_quote', syntax='"<quote text>" user=(user) alias=(alias)', help='adds a quote to the database')
+@Command('addquote', permission='add_quote', syntax='"<quote text>" user=(user) alias=(alias)',
+         help=create_translate_callable('builtin_command_help_message_addquote'))
 async def cmd_add_quote(msg: Message, *args):
     if not args:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_add_quote)
@@ -53,7 +55,7 @@ async def cmd_add_quote(msg: Message, *args):
     await msg.reply(resp)
 
 
-@Command('quote', syntax='<ID or ALIAS>', help='gets a quote by ID or ALIAS')
+@Command('quote', syntax='<ID or ALIAS>', help=create_translate_callable('builtin_command_help_message_quote'))
 async def cmd_get_quote(msg: Message, *args):
     if not args:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_get_quote)
@@ -65,7 +67,7 @@ async def cmd_get_quote(msg: Message, *args):
     await msg.reply(translate('quote_info', text=quote.value, user=quote.user, alias=quote.alias))
 
 
-@Command('delquote', permission='delete_quote', syntax='<ID or ALIAS>', help='deletes the quote from the database')
+@Command('delquote', permission='delete_quote', syntax='<ID or ALIAS>', help=create_translate_callable('builtin_command_help_message_delquote'))
 async def cmd_del_quote(msg: Message, *args):
     if not args:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_del_quote)

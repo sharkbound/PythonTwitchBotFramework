@@ -217,5 +217,8 @@
   "builtin_command_help_message_startpoll": "starts the poll for the the current channel",
   "builtin_command_help_message_vote": "register a vote for the given choice if inside of the poll specified by <poll_id>",
   "builtin_command_help_message_listpolls": "list all active polls",
-  "builtin_command_help_message_pollinfo": "views info about the poll using the passed poll id"
+  "builtin_command_help_message_pollinfo": "views info about the poll using the passed poll id",
+  "builtin_command_help_message_addquote": "adds a quote to the database",
+  "builtin_command_help_message_quote": "gets a quote by ID or ALIAS",
+  "builtin_command_help_message_delquote": "deletes the quote from the database"
 }
