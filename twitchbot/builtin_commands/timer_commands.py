@@ -13,6 +13,7 @@ from twitchbot import (
     Command,
     InvalidArgumentsError,
     translate,
+    create_translate_callable,
 )
 
 PREFIX = cfg.prefix
@@ -31,7 +32,8 @@ async def _parse_interval(msg, value):
         return False, 0
 
 
-@Command('addtimer', syntax='<name> <interval> <message>', help='adds a message timer', permission=TIMER_PERMISSION)
+@Command('addtimer', syntax='<name> <interval> <message>', help=create_translate_callable('builtin_command_help_message_addtimer'),
+         permission=TIMER_PERMISSION)
 async def cmd_add_timer(msg: Message, *args):
     if len(args) < 3:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_add_timer)
@@ -50,7 +52,7 @@ async def cmd_add_timer(msg: Message, *args):
     await msg.reply(translate('addtimer_created'))
 
 
-@Command('starttimer', syntax='<name>', help='starts a message timer', permission=TIMER_PERMISSION)
+@Command('starttimer', syntax='<name>', help=create_translate_callable('starts a message timer'), permission=TIMER_PERMISSION)
 async def cmd_start_timer(msg: Message, *args):
     if not args:
         raise InvalidArgumentsError(translate('missing_required_arguments'), cmd=cmd_start_timer)
@@ -71,7 +73,7 @@ async def cmd_start_timer(msg: Message, *args):
         await msg.reply(translate('starttimer_failed', name=name))
 
 
-@Command('stoptimer', syntax='<name>', help='stops a message timer', permission=TIMER_PERMISSION)
+@Command('stoptimer', syntax='<name>', help=create_translate_callable('builtin_command_help_message_stoptimer'), permission=TIMER_PERMISSION)
 async def cmd_stop_timer(msg: Message, *args):
     if not args:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_stop_timer)
@@ -92,7 +94,7 @@ async def cmd_stop_timer(msg: Message, *args):
         await msg.reply(translate('stoptimer_failed', name=name))
 
 
-@Command('deltimer', syntax='<name>', help='deletes a message timer', permission=TIMER_PERMISSION)
+@Command('deltimer', syntax='<name>', help=create_translate_callable('builtin_command_help_message_deltimer'), permission=TIMER_PERMISSION)
 async def cmd_del_timer(msg: Message, *args):
     if not args:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_del_timer)
@@ -109,7 +111,7 @@ async def cmd_del_timer(msg: Message, *args):
         await msg.reply(translate('deltimer_failed', name=name))
 
 
-@Command('listtimers', help='lists all message timers for a channel', permission=TIMER_PERMISSION)
+@Command('listtimers', help=create_translate_callable('builtin_command_help_message_listtimers'), permission=TIMER_PERMISSION)
 async def cmd_list_timers(msg: Message, *args):
     timers = get_all_message_timers(msg.channel_name)
     active_timers = ', '.join(timer.name for timer in timers if timer.active)
@@ -126,7 +128,8 @@ async def cmd_list_timers(msg: Message, *args):
         await msg.reply(translate('listtimers_inactive', inactive_timers=inactive_timers))
 
 
-@Command('edittimer', syntax='<name> <msg or interval> <new value>', help="edits a timer's message or interval", permission=TIMER_PERMISSION)
+@Command('edittimer', syntax='<name> <msg or interval> <new value>', help=create_translate_callable('builtin_command_help_message_edittimer'),
+         permission=TIMER_PERMISSION)
 async def cmd_edit_timer(msg: Message, *args):
     if len(args) < 3:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_edit_timer)

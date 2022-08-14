@@ -220,5 +220,10 @@
   "builtin_command_help_message_pollinfo": "views info about the poll using the passed poll id",
   "builtin_command_help_message_addquote": "adds a quote to the database",
   "builtin_command_help_message_quote": "gets a quote by ID or ALIAS",
-  "builtin_command_help_message_delquote": "deletes the quote from the database"
+  "builtin_command_help_message_delquote": "deletes the quote from the database",
+  "builtin_command_help_message_addtimer": "adds a message timer",
+  "builtin_command_help_message_starttimer": "starts a message timer",
+  "builtin_command_help_message_stoptimer": "stops a message timer",
+  "builtin_command_help_message_deltimer": "deletes a message timer",
+  "builtin_command_help_message_edittimer": "edits a timer's message or interval"
 }
