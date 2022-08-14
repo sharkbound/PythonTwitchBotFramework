@@ -194,5 +194,9 @@
   "builtin_command_help_message_addcounter": "adds a counter to the database",
   "builtin_command_help_message_delcounter": "deletes the counter from the database",
   "builtin_command_help_message_setcounter": "sets a counters value in the database",
-  "builtin_command_help_message_listcounters": "list all counters of the channel"
+  "builtin_command_help_message_listcounters": "list all counters of the channel",
+  "builtin_command_help_message_roll": "rolls a X sided die",
+  "builtin_command_help_message_choose": "chooses a random option passed to the command",
+  "builtin_command_help_message_color": "sets the bots chat color",
+  "builtin_command_help_message_8ball": "prints a random answer to the question"
 }

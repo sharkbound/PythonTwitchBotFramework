@@ -7,10 +7,11 @@ from twitchbot import (
     Command,
     InvalidArgumentsError,
     translate,
+    create_translate_callable,
 )
 
 
-@Command('roll', context=CommandContext.BOTH, syntax='(sides)', help='rolls a X sided die')
+@Command('roll', context=CommandContext.BOTH, syntax='(sides)', help=create_translate_callable('builtin_command_help_message_roll'))
 async def cmd_roll(msg: Message, *args):
     try:
         sides = int(args[0]) if args else 6
@@ -29,7 +30,7 @@ async def cmd_crash_code(msg: Message, *args):
     await msg.reply(translate('crashme', mention=msg.mention))
 
 
-@Command('choose', syntax='<option> <option> ect', help='chooses a random option passed to the command')
+@Command('choose', syntax='<option> <option> ect', help=create_translate_callable('builtin_command_help_message_choose'))
 async def cmd_choose(msg: Message, *args):
     if len(args) < 2:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_choose)
@@ -37,7 +38,7 @@ async def cmd_choose(msg: Message, *args):
     await msg.reply(translate('choose_result', value=choice(args)))
 
 
-@Command('color', permission='color', syntax='<color>', help='sets the bots chat color')
+@Command('color', permission='color', syntax='<color>', help=create_translate_callable('builtin_command_help_message_color'))
 async def cmd_color(msg: Message, *args):
     if not args:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_color)
@@ -56,6 +57,6 @@ magic_8_ball_messages = [
 ]
 
 
-@Command('8ball', syntax='<question>', help='prints a random answer to the question')
+@Command('8ball', syntax='<question>', help=create_translate_callable('builtin_command_help_message_8ball'))
 async def cmd_8ball(msg: Message, *args):
     await msg.reply(translate('8ball_result', mention=msg.mention, value=translate(choice(magic_8_ball_messages))))
