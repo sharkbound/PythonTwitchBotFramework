@@ -225,5 +225,6 @@
   "builtin_command_help_message_starttimer": "starts a message timer",
   "builtin_command_help_message_stoptimer": "stops a message timer",
   "builtin_command_help_message_deltimer": "deletes a message timer",
-  "builtin_command_help_message_edittimer": "edits a timer's message or interval"
+  "builtin_command_help_message_edittimer": "edits a timer's message or interval",
+  "builtin_command_help_message_listtimers": "list all message timers for the current channel"
 }
