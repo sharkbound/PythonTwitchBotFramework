@@ -52,7 +52,7 @@ async def cmd_add_timer(msg: Message, *args):
     await msg.reply(translate('addtimer_created'))
 
 
-@Command('starttimer', syntax='<name>', help=create_translate_callable('starts a message timer'), permission=TIMER_PERMISSION)
+@Command('starttimer', syntax='<name>', help=create_translate_callable('builtin_command_help_message_starttimer'), permission=TIMER_PERMISSION)
 async def cmd_start_timer(msg: Message, *args):
     if not args:
         raise InvalidArgumentsError(translate('missing_required_arguments'), cmd=cmd_start_timer)
