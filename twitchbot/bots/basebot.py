@@ -1,7 +1,9 @@
 import asyncio
 import logging
 import sys
+import os
 import warnings
+
 from asyncio import get_event_loop
 from typing import Optional, TYPE_CHECKING
 from threading import Thread
@@ -309,6 +311,7 @@ class BaseBot:
         await msg.reply(translate(
             'send_command_help_message', reason=exc.reason, cmd_fullname=cmd.fullname, command_prefix=get_command_prefix(), cmd_syntax=cmd.syntax
         ))
+
     # kept if needed later
     # def _load_overrides(self):
     #     for k, v in overrides.items():
@@ -344,16 +347,23 @@ class BaseBot:
         thread.start()
         return thread
 
-    async def _init_bot(self):
-        import os
+    def _load_builtin_commands(self):
         from ..command import load_commands_from_directory
-        from ..modloader import load_mods_from_directory, ensure_commands_folder_exists, ensure_mods_folder_exists
-        from ..command_server import start_command_server
         from ..bot_package_path import get_bot_package_path
+        load_commands_from_directory(os.path.join(get_bot_package_path(), 'builtin_commands'))
 
-        bot_package_path = get_bot_package_path()
-        load_commands_from_directory(os.path.join(bot_package_path, 'builtin_commands'))
-        load_mods_from_directory(os.path.join(bot_package_path, 'builtin_mods'))
+    def _load_builtin_mods(self):
+        from ..modloader import load_mods_from_directory
+        from ..bot_package_path import get_bot_package_path
+        load_mods_from_directory(os.path.join(get_bot_package_path(), 'builtin_mods'))
+
+    async def _init_bot(self):
+        from ..modloader import load_mods_from_directory, ensure_commands_folder_exists, ensure_mods_folder_exists
+        from ..command import load_commands_from_directory
+        from ..command_server import start_command_server
+
+        self._load_builtin_commands()
+        self._load_builtin_mods()
 
         ensure_mods_folder_exists()
         ensure_commands_folder_exists()
