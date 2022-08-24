@@ -116,3 +116,4 @@ mods
 /commands/
 DEBUG_LOGS/
 /cc.bat
+/gen_token_url.py

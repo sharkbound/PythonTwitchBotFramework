@@ -375,7 +375,19 @@ async def cmd_duel(msg: Message, *args):
     except IndexError:
         bet = 10
 
-    target_balance = get_balance(msg.channel_name, target, create_if_missing=False)
+    if bet <= 0:
+        raise InvalidArgumentsError(reason=translate('duel_negative_or_zero_bet'), cmd=cmd_duel)
+
+    caller_balance = get_balance(msg.channel_name, msg.author, create_if_missing=True)
+    if caller_balance.balance < bet:
+        raise InvalidArgumentsError(
+            reason=translate(
+                'duel_cannot_send_not_enough_balance',
+                bet=bet, curname=get_currency_name(msg.channel_name).name),
+            cmd=cmd_duel
+        )
+
+    target_balance = get_balance(msg.channel_name, target, create_if_missing=True)
     if target_balance is None:
         raise InvalidArgumentsError(reason=translate('duel_target_no_balance', target=target), cmd=cmd_duel)
     elif target_balance.balance < bet:

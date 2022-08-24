@@ -226,5 +226,7 @@
   "builtin_command_help_message_stoptimer": "stops a message timer",
   "builtin_command_help_message_deltimer": "deletes a message timer",
   "builtin_command_help_message_edittimer": "edits a timer's message or interval",
-  "builtin_command_help_message_listtimers": "list all message timers for the current channel"
+  "builtin_command_help_message_listtimers": "list all message timers for the current channel",
+  "duel_cannot_send_not_enough_balance": "you do not have enough {curname} to send a duel request for {bet} {curname}",
+  "duel_negative_or_zero_bet": "bets must must be positive and not zero"
 }
