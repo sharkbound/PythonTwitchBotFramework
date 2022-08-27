@@ -117,3 +117,4 @@ def get_all_counters(channel: str) -> List[DBCounter]:
     retrieve all counters from the current channel
     """
     return session.query(DBCounter).filter(DBCounter.channel == channel).all()
+

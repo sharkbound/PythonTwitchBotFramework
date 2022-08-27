@@ -3,19 +3,21 @@ import typing
 from datetime import datetime
 from importlib import import_module
 from typing import Dict, Callable, Optional, List, Tuple, Union
+from inspect import getfullargspec
 
-from twitchbot.database import CustomCommand
-from twitchbot.message import Message
-from twitchbot.database.dbcounter import increment_or_add_counter
+from .database import CustomCommand
+from .message import Message
+from .database.dbcounter import increment_or_add_counter
 from .config import cfg
 from .enums import CommandContext
+from .exceptions import InvalidArgumentsError
 from .util import (
     get_py_files,
     get_file_name,
     convert_args_to_function_parameter_types,
     temp_syspath,
     AutoCastFail,
-    AutoCastError
+    AutoCastError,
 )
 
 if typing.TYPE_CHECKING:
@@ -161,11 +163,20 @@ class Command:
 
         return False
 
+    def _check_args_fulfill_required_positional_arguments(self, args, function):
+        spec = getfullargspec(function)
+        default_count = len(spec.defaults or ())
+        required_count = len(spec.args) - default_count - 1  # subtract the additional 1 because of the message parameter
+        if len(args) < required_count:
+            # todo: use translation in this function
+            raise InvalidArgumentsError(reason=f'missing required arguments, requires: {required_count}, but actually got: {len(args)}')
+
     async def execute(self, msg: Message):
         func, args = self._get_cmd_func(msg.parts[1:])
         casted_args = self._convert_args(func, args)
         if self._check_casted_args_for_auto_cast_fails(casted_args):
             return
+        self._check_args_fulfill_required_positional_arguments(args, func)
         await func(msg, *casted_args)
 
     async def has_permission_to_run_from_msg(self, origin_msg: Message):
