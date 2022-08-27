@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from inspect import getfullargspec, ismethod
-from typing import Optional, Type, ClassVar, Callable, Sequence, get_type_hints
+from typing import Optional, Type, ClassVar, Callable, Sequence, get_type_hints, List
 
 __all__ = [
     'get_callable_arg_types',
@@ -19,7 +19,7 @@ class Param:
     VARARGS: ClassVar[str] = 'varargs'
 
 
-def get_callable_arg_types(function, skip_self=True) -> Optional[list[Param]]:
+def get_callable_arg_types(function, skip_self=True) -> Optional[List[Param]]:
     try:
         fullspec = getfullargspec(function)
         typehints = get_type_hints(function)
