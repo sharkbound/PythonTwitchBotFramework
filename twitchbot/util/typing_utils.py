@@ -6,6 +6,7 @@ __all__ = [
     'get_callable_arg_types',
     'AutoCastFail',
     'convert_args_to_function_parameter_types',
+    'AutoCastError',
 ]
 
 
@@ -38,14 +39,19 @@ def get_callable_arg_types(function, skip_self=True) -> Optional[List[Param]]:
     return types
 
 
+@dataclass(frozen=True)
 class AutoCastFail:
-    def __init__(self, e, value: str, param: Param):
-        self.param = param
-        self.value = value
-        self.e: Type[Exception] = e
+    value: str
+    param: Param
+    reason: Optional[str] = None
+    exception: Optional[Exception] = None
 
-    def __repr__(self):
-        return f'<{self.__class__.__name__}: exception={self.e!r} value={self.value!r} param={self.param!r}>'
+
+class AutoCastError(Exception):
+    def __init__(self, reason: Optional[str] = None, send_reason_to_chat: bool = False):
+        super().__init__(reason)
+        self.send_reason_to_chat = send_reason_to_chat
+        self.reason: Optional[str] = reason
 
 
 def _cast_arg_to_type(arg, param: Param):
@@ -53,11 +59,21 @@ def _cast_arg_to_type(arg, param: Param):
     try:
         return converter(arg)
     except Exception as e:
-        return AutoCastFail(e, arg, param)
+        reason = None
+        if isinstance(e, AutoCastError):
+            reason = e.reason
+        return AutoCastFail(exception=e, value=arg, param=param, reason=reason)
 
 
 def convert_args_to_function_parameter_types(function: Callable, args: Sequence[str]):
+    from ..message import Message
     types = get_callable_arg_types(function, skip_self=True)
+
+    # ensure parameters are typed as Message are ignored, message is automatically passed to the command before any args are
+    for i in range(len(types) - 1, -1, -1):
+        if types[i].annotation == Message:
+            del types[i]
+
     out_args = []
     i = 0
 
