@@ -9,8 +9,14 @@ from twitchbot.message import Message
 from twitchbot.database.dbcounter import increment_or_add_counter
 from .config import cfg
 from .enums import CommandContext
-from .util import get_py_files, get_file_name
-from .util import temp_syspath
+from .util import (
+    get_py_files,
+    get_file_name,
+    convert_args_to_function_parameter_types,
+    temp_syspath,
+    AutoCastFail,
+    AutoCastError
+)
 
 if typing.TYPE_CHECKING:
     from .modloader import Mod
@@ -130,9 +136,37 @@ class Command:
 
         return self.sub_cmds[args[0].lower()].get_sub_cmd(args[1:])
 
+    def _convert_args(self, function, args):
+        casted_args = convert_args_to_function_parameter_types(function, args)
+        return casted_args
+
+    def _check_casted_args_for_auto_cast_fails(self, casted_args):
+        from .exceptions import InvalidArgumentsError
+        for arg in casted_args:
+            if not isinstance(arg, AutoCastFail):
+                continue
+
+            # handle fails caused by custom _handle_auto_cast() functions on classes
+            if isinstance(arg.exception, AutoCastError):
+                if arg.reason is not None and arg.exception.send_reason_to_chat:
+                    raise InvalidArgumentsError(reason=arg.exception.reason)
+                else:
+                    print(f'==== AUTO CAST FAIL ====\nreason = {arg.exception.reason}\n========================')
+
+                return True
+
+            # TODO: use translation in this function
+            if arg.param.annotation in (int, float):
+                raise InvalidArgumentsError(reason=f'"{arg.value}" is not a valid number for parameter "{arg.param.name}"')
+
+        return False
+
     async def execute(self, msg: Message):
         func, args = self._get_cmd_func(msg.parts[1:])
-        await func(msg, *args)
+        casted_args = self._convert_args(func, args)
+        if self._check_casted_args_for_auto_cast_fails(casted_args):
+            return
+        await func(msg, *casted_args)
 
     async def has_permission_to_run_from_msg(self, origin_msg: Message):
         from .event_util import forward_event_with_results
