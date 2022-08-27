@@ -1,9 +1,8 @@
 import traceback
 from datetime import datetime
 from itertools import islice
-from typing import List, Tuple, TYPE_CHECKING, Optional, Callable, Awaitable, FrozenSet, Union
+from typing import List, Tuple, TYPE_CHECKING, Optional, Callable, Awaitable, Union
 
-from twitchbot import get_bot
 from .util import get_message_mentions
 from .channel import Channel, channels
 from .regex import RE_PRIVMSG, RE_WHISPER, RE_USER_JOIN, RE_USERNOTICE, RE_USER_PART, RE_NOTICE, RE_TIMEOUT_DURATION
@@ -12,8 +11,9 @@ from .util import split_message
 from .tags import Tags
 from .emote import emotes, Emote
 from .config import cfg
-from .util import strip_twitch_command_prefix, normalize_string
+from .util import strip_twitch_command_prefix, normalize_string, AutoCastError
 from .cached_property import cached_property
+from .translations import translate
 
 if TYPE_CHECKING:
     from .irc import Irc
@@ -35,7 +35,7 @@ class Message:
         self.irc: 'Irc' = irc
         self.tags: 'Tags' = Tags('')
         self.emotes: List[Emote] = []
-        self.mentions: Tuple[str] = ()
+        self.mentions: Tuple[str, ...] = ()
         self.system_message: Optional[str] = None
         self.bot: 'BaseBot' = bot
         self.reward: Optional[str] = None
@@ -43,6 +43,15 @@ class Message:
         self.timeout_seconds: Optional[int] = None
 
         self._parse()
+
+    @classmethod
+    def _handle_auto_cast(cls, value):
+        if isinstance(value, Message):
+            return value
+        raise AutoCastError(
+            reason='could not convert argument to Message, ensure that `msg` is the first argument in the function definition (after self/cls if applicable), '
+                   'and no other arguments are typed as `Message`'
+        )
 
     def _get_channel_or_default(self, channel_name: str, default=None):
         return channels.get(channel_name, default)
