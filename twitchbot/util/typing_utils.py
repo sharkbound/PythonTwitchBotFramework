@@ -1,11 +1,11 @@
-from typing import Optional, Type, ClassVar, Callable
 from dataclasses import dataclass
-from typing import get_type_hints
 from inspect import getfullargspec, ismethod
+from typing import Optional, Type, ClassVar, Callable, Sequence, get_type_hints
 
 __all__ = [
     'get_callable_arg_types',
     'AutoCastFail',
+    'convert_args_to_function_parameter_types',
 ]
 
 
@@ -39,13 +39,13 @@ def get_callable_arg_types(function, skip_self=True) -> Optional[list[Param]]:
 
 
 class AutoCastFail:
-    def __init__(self, e, arg: str, param: Param):
+    def __init__(self, e, value: str, param: Param):
         self.param = param
-        self.arg = arg
+        self.value = value
         self.e: Type[Exception] = e
 
     def __repr__(self):
-        return f'<{self.__class__.__name__}: exception={self.e!r} arg={self.arg!r} param={self.param!r}>'
+        return f'<{self.__class__.__name__}: exception={self.e!r} value={self.value!r} param={self.param!r}>'
 
 
 def _cast_arg_to_type(arg, param: Param):
@@ -56,7 +56,7 @@ def _cast_arg_to_type(arg, param: Param):
         return AutoCastFail(e, arg, param)
 
 
-def process_arg_types(function: Callable, args: str):
+def convert_args_to_function_parameter_types(function: Callable, args: Sequence[str]):
     types = get_callable_arg_types(function, skip_self=True)
     out_args = []
     i = 0
@@ -78,13 +78,6 @@ def process_arg_types(function: Callable, args: str):
 
     return out_args
 
-
-class C:
-    def basic_command(self, z: int, b: float, c: float, *a: float):
-        pass
-
-
-process_arg_types(C().basic_command, ('1', '2', '6', 'testing'))
 # """FullArgSpec(
 #     args=['a', 'b'],
 #     varargs='args',
