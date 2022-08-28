@@ -66,6 +66,11 @@ def _cast_arg_to_type(arg, param: Param):
         return AutoCastFail(exception=e, value=arg, param=param, reason=reason)
 
 
+class AutoCastHandler:
+    def _handle_auto_cast(self, value: str):
+        pass
+
+
 def convert_args_to_function_parameter_types(function: Callable, args: Sequence[str]):
     from ..message import Message
     types = get_callable_arg_types(function, skip_self=True)
