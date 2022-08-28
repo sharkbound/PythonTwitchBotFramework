@@ -8,6 +8,7 @@ __all__ = [
     'convert_args_to_function_parameter_types',
     'AutoCastError',
     'Param',
+    'AutoCastHandler',
 ]
 
 
