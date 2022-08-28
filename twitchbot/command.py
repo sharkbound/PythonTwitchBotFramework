@@ -20,9 +20,6 @@ from .util import (
     AutoCastError,
 )
 
-if typing.TYPE_CHECKING:
-    from .modloader import Mod
-
 DEFAULT_COOLDOWN_BYPASS = 'bypass_cooldown'
 DEFAULT_COOLDOWN = 0
 
@@ -138,10 +135,6 @@ class Command:
 
         return self.sub_cmds[args[0].lower()].get_sub_cmd(args[1:])
 
-    def _convert_args(self, function, args):
-        casted_args = convert_args_to_function_parameter_types(function, args)
-        return casted_args
-
     def _check_casted_args_for_auto_cast_fails(self, casted_args):
         from .exceptions import InvalidArgumentsError
         for arg in casted_args:
@@ -171,13 +164,16 @@ class Command:
             # todo: use translation in this function
             raise InvalidArgumentsError(reason=f'missing required arguments, requires: {required_count}, but actually got: {len(args)}')
 
-    async def execute(self, msg: Message):
-        func, args = self._get_cmd_func(msg.parts[1:])
-        casted_args = self._convert_args(func, args)
+    def _process_command_args_for_func(self, func, args):
+        casted_args = convert_args_to_function_parameter_types(func, args)
         if self._check_casted_args_for_auto_cast_fails(casted_args):
             return
         self._check_args_fulfill_required_positional_arguments(args, func)
-        await func(msg, *casted_args)
+        return casted_args
+
+    async def execute(self, msg: Message):
+        func, args = self._get_cmd_func(msg.parts[1:])
+        await func(msg, *self._process_command_args_for_func(func, args))
 
     async def has_permission_to_run_from_msg(self, origin_msg: Message):
         from .event_util import forward_event_with_results
