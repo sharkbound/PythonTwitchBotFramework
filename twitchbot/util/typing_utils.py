@@ -68,7 +68,8 @@ def _cast_arg_to_type(arg, param: Param):
 
 
 class AutoCastHandler:
-    def _handle_auto_cast(self, value: str):
+    @classmethod
+    def _handle_auto_cast(cls, value: str):
         pass
 
 
