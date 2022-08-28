@@ -219,10 +219,6 @@ class SubCommand(Command):
         super().__init__(name=name, prefix='', func=func, permission=permission, syntax=syntax, help=help,
                          global_command=False, cooldown=cooldown, cooldown_bypass=cooldown_bypass, hidden=hidden, parent=parent)
 
-        # self.parent: Command = parent
-        # self.update_parent_command(parent)
-        # self.parent.sub_cmds[self.name] = self
-
 
 class DummyCommand(Command):
     def __init__(self, name: str, prefix: str = None, global_command: bool = True,
