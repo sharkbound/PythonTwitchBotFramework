@@ -50,7 +50,8 @@ class Message:
             return value
         raise AutoCastError(
             reason='could not convert argument to Message, ensure that `msg` is the first argument in the function definition (after self/cls if applicable), '
-                   'and no other arguments are typed as `Message`'
+                   'and no other arguments are typed as `Message`',
+            send_reason_to_chat=False
         )
 
     def _get_channel_or_default(self, channel_name: str, default=None):
