@@ -59,7 +59,8 @@ async def cmd_del_counter(msg: Message, *args):
     await msg.reply(translate('delcounter_deleted', counter_id=counter.id, counter_alias=counter.alias))
 
 
-@Command('setcounter', permission='manage_counter', syntax='<alias_or_id> <new_value>', help=create_translate_callable('builtin_command_help_message_setcounter'))
+@Command('setcounter', permission='manage_counter', syntax='<alias_or_id> <new_value>',
+         help=create_translate_callable('builtin_command_help_message_setcounter'))
 async def cmd_set_counter(msg: Message, *args):
     if len(args) != 2:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_set_counter)
