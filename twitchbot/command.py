@@ -158,8 +158,13 @@ class Command:
 
     def _check_args_fulfill_required_positional_arguments(self, args, function):
         spec = getfullargspec(function)
+        if spec.args and spec.args[0].casefold() in ('self', 'cls'):
+            offset = 2
+        else:
+            offset = 1
+
         default_count = len(spec.defaults or ())
-        required_count = len(spec.args) - default_count - 1  # subtract the additional 1 because of the message parameter
+        required_count = len(spec.args) - default_count - offset  # subtract the additional 1 because of the message parameter
         if len(args) < required_count:
             # todo: use translation in this function
             raise InvalidArgumentsError(reason=f'missing required arguments, requires: {required_count}, but actually got: {len(args)}')
@@ -297,6 +302,7 @@ class ModCommand(Command):
 
     async def execute(self, msg: Message):
         func, args = self._get_cmd_func(msg.parts[1:])
+        args = self._process_command_args_for_func(func, args)
         if 'self' in func.__code__.co_varnames:
             await func(self.mod, msg, *args)
         else:
