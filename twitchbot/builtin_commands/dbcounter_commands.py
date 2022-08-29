@@ -20,20 +20,15 @@ from twitchbot import (
 PREFIX = cfg.prefix
 
 
-@Command('addcounter', permission='manage_counter', syntax='<ALIAS>', help=create_translate_callable('builtin_command_help_message_addcounter'))
-async def cmd_add_counter(msg: Message, *args):
-    if not args:
-        raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_add_counter)
-
-    alias = args[0]
-
-    m = re.search(r'([\d\w]+)', alias)
-    if not m:
+@Command('addcounter', permission='manage_counter', help=create_translate_callable('builtin_command_help_message_addcounter'))
+async def cmd_add_counter(msg: Message, alias: str):
+    m = re.search(r'([\d\w_]+)', alias)
+    if not m or len(m.group(1)) != len(alias):
         raise InvalidArgumentsError(
             reason=translate('addcounter_invalid_alias'),
-            cmd=cmd_add_counter)
+            cmd=cmd_add_counter
+        )
 
-    alias = m.group(1)
     if get_counter_by_alias(msg.channel_name, alias) is not None:
         raise InvalidArgumentsError(reason=translate('addcounter_duplicate_alias'), cmd=cmd_add_counter)
 
