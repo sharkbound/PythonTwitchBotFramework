@@ -45,7 +45,7 @@ def get_callable_arg_types(function, skip_self=True) -> Optional[List[Param]]:
         types = types[1:]
 
     if fullspec.varargs is not None:
-        types.append(Param('*' + fullspec.varargs, getparamtype(fullspec.varargs), Param.VARARGS))
+        types.append(Param(fullspec.varargs, getparamtype(fullspec.varargs), Param.VARARGS))
 
     if fullspec.defaults:
         for i in range(len(fullspec.defaults) - 1, -1, -1):
