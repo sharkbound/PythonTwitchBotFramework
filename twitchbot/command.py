@@ -18,6 +18,8 @@ from .util import (
     temp_syspath,
     AutoCastFail,
     AutoCastError,
+    get_callable_arg_types,
+    Param,
 )
 
 DEFAULT_COOLDOWN_BYPASS = 'bypass_cooldown'
@@ -64,6 +66,9 @@ class Command:
         self.sub_cmds: Dict[str, Command] = {}
         self.parent: Optional[Command] = None
         self.update_parent_command(parent)
+
+        if not self.syntax and self.func is not None:
+            self.syntax = self._generate_syntax_string()
 
         if global_command:
             commands[self.fullname] = self
@@ -178,6 +183,22 @@ class Command:
         self._check_args_fulfill_required_positional_arguments(args, func)
         return casted_args
 
+    def _generate_syntax_string(self):
+        if self.func is None:
+            return ''
+
+        args = get_callable_arg_types(self.func, skip_self=True)[1:]
+        syntax_parts = []
+        for arg in args:
+            if arg.type == Param.VARARGS:
+                syntax_parts.append(f'({arg.name}...)')
+            elif arg.has_default_value:
+                syntax_parts.append(f'({arg.name}: {arg.default})')
+            else:
+                syntax_parts.append(f'<{arg.name}>')
+
+        return ' '.join(syntax_parts)
+
     async def execute(self, msg: Message):
         func, args = self._get_cmd_func(msg.parts[1:])
         await func(msg, *self._process_command_args_for_func(func, args))
@@ -204,6 +225,8 @@ class Command:
     # decorator support
     def __call__(self, func) -> 'Command':
         self.func = func
+        if not self.syntax:
+            self.syntax = self._generate_syntax_string()
         return self
 
     def __str__(self):
