@@ -173,7 +173,9 @@ class Command:
 
         if len(args) < required_count:
             raise InvalidArgumentsError(
-                reason=translate('args_does_not_fulfill_required_position_args', required_count=required_count, args_len=len(args)))
+                reason=translate('args_does_not_fulfill_required_position_args', required_count=required_count, args_len=len(args)),
+                cmd=self
+            )
 
     def _process_command_args_for_func(self, func, args):
         casted_args = convert_args_to_function_parameter_types(func, args)
