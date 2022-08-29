@@ -158,13 +158,15 @@ class Command:
 
     def _check_args_fulfill_required_positional_arguments(self, args, function):
         spec = getfullargspec(function)
+        # always subtract 1 because of msg parameter all commands have
+        # additionally, subtract an additional 1 if it's a mod command (has self/cls as its first parameter)
         if spec.args and spec.args[0].casefold() in ('self', 'cls'):
             offset = 2
         else:
             offset = 1
 
-        default_count = len(spec.defaults or ())
-        required_count = len(spec.args) - default_count - offset  # subtract the additional 1 because of the message parameter
+        required_count = len(spec.args) - len(spec.defaults or ()) - offset
+
         if len(args) < required_count:
             # todo: use translation in this function
             raise InvalidArgumentsError(reason=f'missing required arguments, requires: {required_count}, but actually got: {len(args)}')
