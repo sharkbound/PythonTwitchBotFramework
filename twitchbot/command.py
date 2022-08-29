@@ -1,5 +1,4 @@
 import os
-import typing
 from datetime import datetime
 from importlib import import_module
 from typing import Dict, Callable, Optional, List, Tuple, Union
@@ -11,6 +10,7 @@ from .database.dbcounter import increment_or_add_counter
 from .config import cfg
 from .enums import CommandContext
 from .exceptions import InvalidArgumentsError
+from .translations import translate
 from .util import (
     get_py_files,
     get_file_name,
@@ -155,9 +155,8 @@ class Command:
 
                 return True
 
-            # TODO: use translation in this function
             if arg.param.annotation in (int, float):
-                raise InvalidArgumentsError(reason=f'"{arg.value}" is not a valid number for parameter "{arg.param.name}"')
+                raise InvalidArgumentsError(reason=translate('auto_cast_fail_number', arg_value=arg.value, arg_param_name=arg.param.name))
 
         return False
 
@@ -173,8 +172,8 @@ class Command:
         required_count = len(spec.args) - len(spec.defaults or ()) - offset
 
         if len(args) < required_count:
-            # todo: use translation in this function
-            raise InvalidArgumentsError(reason=f'missing required arguments, requires: {required_count}, but actually got: {len(args)}')
+            raise InvalidArgumentsError(
+                reason=translate('args_does_not_fulfill_required_position_args', required_count=required_count, args_len=len(args)))
 
     def _process_command_args_for_func(self, func, args):
         casted_args = convert_args_to_function_parameter_types(func, args)
