@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from inspect import getfullargspec
-from typing import Optional, Type, ClassVar, Callable, Sequence, get_type_hints, List
+from typing import Optional, Type, ClassVar, Callable, Sequence, get_type_hints, List, Any
 
 __all__ = [
     'get_callable_arg_types',
@@ -12,14 +12,20 @@ __all__ = [
 ]
 
 
-@dataclass(frozen=True)
+@dataclass
 class Param:
+    POSITIONAL: ClassVar[str] = 'positional'
+    VARARGS: ClassVar[str] = 'varargs'
+    NO_DEFAULT_SET: ClassVar[object] = object()
+
     name: str
     annotation: Type
     type: str
+    default: Optional[Any] = NO_DEFAULT_SET
 
-    POSITIONAL: ClassVar[str] = 'positional'
-    VARARGS: ClassVar[str] = 'varargs'
+    @property
+    def has_default_value(self):
+        return self.default is not Param.NO_DEFAULT_SET
 
 
 def get_callable_arg_types(function, skip_self=True) -> Optional[List[Param]]:
@@ -40,6 +46,10 @@ def get_callable_arg_types(function, skip_self=True) -> Optional[List[Param]]:
 
     if fullspec.varargs is not None:
         types.append(Param('*' + fullspec.varargs, getparamtype(fullspec.varargs), Param.VARARGS))
+
+    if fullspec.defaults:
+        for i in range(len(fullspec.defaults) - 1, -1, -1):
+            types[len(types) - len(fullspec.defaults) + i].default = fullspec.defaults[i]
 
     return types
 
