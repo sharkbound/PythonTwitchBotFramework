@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from inspect import getfullargspec, ismethod
+from inspect import getfullargspec
 from typing import Optional, Type, ClassVar, Callable, Sequence, get_type_hints, List
 
 __all__ = [
@@ -32,7 +32,10 @@ def get_callable_arg_types(function, skip_self=True) -> Optional[List[Param]]:
     getparamtype = lambda param: typehints.get(param, None) or fullspec.annotations.get(param, None)
 
     types = [Param(param, getparamtype(param), Param.POSITIONAL) for param in fullspec.args]
-    if skip_self and ismethod(function):
+    # skipping self/cls is important when dealing with ModCommands, and other bound methods.
+    # and also basic command functions as well
+    # reason for this is when checking required positional arguments count, as both `self/cls` and `msg` are included in that count otherwise
+    if skip_self and types and types[0].name.casefold() in ('self', 'cls'):
         types = types[1:]
 
     if fullspec.varargs is not None:
