@@ -228,5 +228,7 @@
   "builtin_command_help_message_edittimer": "edits a timer's message or interval",
   "builtin_command_help_message_listtimers": "list all message timers for the current channel",
   "duel_cannot_send_not_enough_balance": "you do not have enough {curname} to send a duel request for {bet} {curname}",
-  "duel_negative_or_zero_bet": "bets must must be positive and not zero"
+  "duel_negative_or_zero_bet": "bets must must be positive and not zero",
+  "auto_cast_fail_number": "\"{arg_value}\" is not a valid number for parameter \"{arg_param_name}\"",
+  "args_does_not_fulfill_required_position_args": "missing required arguments, requires: {required_count}, but actually got: {args_len}"
 }

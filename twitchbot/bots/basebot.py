@@ -309,14 +309,12 @@ class BaseBot:
 
     async def _send_cmd_help(self, msg: Message, cmd: Command, exc: InvalidArgumentsError):
         await msg.reply(translate(
-            'send_command_help_message', reason=exc.reason, cmd_fullname=cmd.fullname, command_prefix=get_command_prefix(), cmd_syntax=cmd.syntax
+            'send_command_help_message',
+            reason=exc.reason,
+            cmd_fullname=cmd.fullname,
+            command_prefix=get_command_prefix(),
+            cmd_syntax=(cmd.syntax or '')
         ))
-
-    # kept if needed later
-    # def _load_overrides(self):
-    #     for k, v in overrides.items():
-    #         if k.value in self.__class__.__dict__ and k.value.startswith('on'):
-    #             setattr(self, k.value, v)
 
     async def shutdown(self):
         await forward_event_with_results(Event.on_bot_shutdown)
