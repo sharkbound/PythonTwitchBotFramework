@@ -1,7 +1,8 @@
 import os
+from dataclasses import dataclass
 from datetime import datetime
 from importlib import import_module
-from typing import Dict, Callable, Optional, List, Tuple, Union
+from typing import Dict, Callable, Optional, List, Tuple, Union, Sequence
 from inspect import getfullargspec
 
 from .database import CustomCommand
@@ -26,10 +27,26 @@ DEFAULT_COOLDOWN_BYPASS = 'bypass_cooldown'
 DEFAULT_COOLDOWN = 0
 
 __all__ = (
-    'Command', 'commands', 'command_exist', 'load_commands_from_directory', 'DummyCommand', 'CustomCommandAction',
-    'ModCommand', 'SubCommand', 'get_command', 'CUSTOM_COMMAND_PLACEHOLDERS', 'command_last_execute',
-    'get_time_since_execute', 'reset_command_last_execute', 'is_command_off_cooldown', 'is_command_on_cooldown',
-    'update_command_last_execute', 'set_command_permission')
+    'Command',
+    'commands',
+    'command_exist',
+    'load_commands_from_directory',
+    'DummyCommand',
+    'CustomCommandAction',
+    'ModCommand',
+    'SubCommand',
+    'get_command',
+    'CUSTOM_COMMAND_PLACEHOLDERS',
+    'command_last_execute',
+    'get_time_since_execute',
+    'reset_command_last_execute',
+    'is_command_off_cooldown',
+    'is_command_on_cooldown',
+    'update_command_last_execute',
+    'set_command_permission',
+    'get_command_chain_from_args',
+    'CommandChainResult',
+)
 
 
 class Command:
@@ -129,7 +146,7 @@ class Command:
 
     def get_sub_cmd(self, args) -> Tuple['Command', Tuple[str]]:
         """
-        returns the final command in a sub-command chain from the args passed to this function
+        returns the final command in a sub-command chain from the args passed to this function, as well as the remaining args
 
         the sub-command chain is based off of the current command this function is called on
 
@@ -411,3 +428,31 @@ def set_command_permission(cmd: str, new_permission: Optional[str]) -> bool:
 
     command.permission = new_permission
     return True
+
+
+@dataclass(frozen=True)
+class CommandChainResult:
+    first: Command
+    last: Command
+    chain: Tuple[Command]
+    original_args: Tuple[str]
+    remaining_args: Tuple[str]
+
+
+def get_command_chain_from_args(args: Sequence[str]) -> Optional[CommandChainResult]:
+    if not args:
+        return None
+
+    cmd = get_command(args[0])
+    if not cmd:
+        return None
+
+    final_cmd, remaining_args = cmd.get_sub_cmd(args[1:])
+
+    return CommandChainResult(
+        first=cmd,
+        last=final_cmd,
+        chain=tuple(final_cmd.parent_chain()),
+        original_args=tuple(args),
+        remaining_args=tuple(remaining_args)
+    )
