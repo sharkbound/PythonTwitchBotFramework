@@ -129,7 +129,7 @@ class Command:
 
     def get_sub_cmd(self, args) -> Tuple['Command', Tuple[str]]:
         """
-        returns the final command in a sub-command chain from the args passed to the this function
+        returns the final command in a sub-command chain from the args passed to this function
 
         the sub-command chain is based off of the current command this function is called on
 
