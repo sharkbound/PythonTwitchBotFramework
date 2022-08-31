@@ -12,6 +12,8 @@ from twitchbot import (
     is_command_whitelisted,
     translate,
     create_translate_callable,
+    cfg,
+    get_command_chain_from_args,
 )
 
 
@@ -60,11 +62,12 @@ async def cmd_help(msg: Message, *args):
     if not args:
         raise InvalidArgumentsError(reason=translate('missing_required_arguments'), cmd=cmd_help)
 
-    cmd = get_command(args[0])
-    if not cmd:
+    chain = get_command_chain_from_args(args)
+    if chain is None:
         raise InvalidArgumentsError(reason=translate('command_not_found', name=args[0]), cmd=cmd_help)
 
-    await msg.reply(msg=translate('help_success', fullname=cmd.fullname, syntax=cmd.syntax, help=cmd.help))
+    fullname = cfg.prefix + ' '.join(c.name for c in chain.chain)
+    await msg.reply(msg=translate('help_success', fullname=fullname, syntax=chain.last.syntax, help=chain.last.help))
 
 
 @Command(name='findperm', syntax='<command>', help=create_translate_callable('builtin_command_help_message_findperm'))
