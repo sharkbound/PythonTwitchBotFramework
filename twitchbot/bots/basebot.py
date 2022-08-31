@@ -303,7 +303,7 @@ class BaseBot:
             if not has_cooldown_bypass_permission:
                 update_command_last_execute(msg.channel_name, cmd.fullname)
         except InvalidArgumentsError as e:
-            await self._send_cmd_help(msg, cmd, e)
+            await self._send_cmd_help(msg, cmd.get_sub_cmd(msg.args)[0], e)
         else:
             forward_event(Event.on_after_command_execute, msg, cmd, channel=msg.channel_name)
 
