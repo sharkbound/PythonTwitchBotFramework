@@ -11,16 +11,33 @@ install from pip: `pip install PythonTwitchBotFramework`
 
 fully async twitchbot framework/library compatible with python 3.6+
 
-### how to stop the bot
+First and foremost, I want to thank anyone who uses this, or even is just reading this readme,
+and to any contributors who have helped with updates/features.
+
+## Note about the wiki and readme right now:
+
+I am in the process of adding missing info to the wiki/readme,
+and also updating to show the new command argument handling added in 2.7.0+.
+(referring to the fact the command system now supporting and enforcing typehints, and not requiring *args anymore)
+
+As well as some features i didn't put in the wiki or readme yet.
+
+If you are any version earlier than 2.7.0, some things showcased/described on the wiki may not work for you.
+
+## How to stop the bot
 
 to stop the bot running, do any of these commands:
 
-`!shutdown` `!stop` or `!s` in the twitch chat of the channel its in, this command tries to properly shutdown all the
+`!shutdown` or `!stop` in the twitch chat of the channel its in, this command tries to properly shutdown all the
 tasks the bot is currently running and gives time to stop/cancel
 
-these commands requires the caller have permission to execute them
+these commands require the caller have permission to execute them
 
-# Quick Links
+# Note:
+
+### This readme only goes over basic info meant to help quickly get something working, the [GITHUB WIKI](https://github.com/sharkbound/PythonTwitchBotFramework/wiki) goes more in depth.
+
+# Index
 
 * [Quick Start](#quick-start)
 * [Overriding Events](#overriding-events)
@@ -38,7 +55,7 @@ these commands requires the caller have permission to execute them
 * [Command Whitelist](#command-whitelist)
 * [Twitch PubSub Client](#twitch-pubsub-client)
 
-# basic info
+# Basic info
 
 This is a fully async twitch bot framework complete with:
 
@@ -82,7 +99,7 @@ if __name__ == '__main__':
 
 the bots events are overridable via the following 2 ways:
 
-## using decorators:
+## Using decorators:
 
 ```python
 from twitchbot import event_handler, Event, Message
@@ -93,7 +110,7 @@ async def on_privmsg_received(msg: Message):
     print(f'{msg.author} sent message {msg.content} to channel {msg.channel_name}')
 ```
 
-## subclassing BaseBot
+## Subclassing BaseBot
 
 ```python
 from twitchbot import BaseBot, Message
@@ -124,7 +141,8 @@ from twitchbot import Event
 
 Event.on_connected: (self)
 Event.on_permission_check: (self, msg
-                            : Message, cmd: Command) -> Optional[bool]  # return False to deny permission to execute the cmd, Return None to ignore and continue
+                            : Message, cmd: Command) -> Optional[
+    bool]  # return False to deny permission to execute the cmd, Return None to ignore and continue
 Event.on_after_command_execute: (self, msg: Message, cmd: Command)
 Event.on_before_command_execute: (self, msg: Message, cmd: Command) -> bool  # return False to cancel command
 Event.on_bits_donated: (self, msg: Message, bits: int)
@@ -165,14 +183,14 @@ as the bot is used it will also generate channel permission files in the `config
 
 to register your own commands use the Command decorator:
 
-* using decorators
+* Using decorators
 
 ```python
-from twitchbot import Command
+from twitchbot import Command, Message
 
 
 @Command('COMMAND_NAME')
-async def cmd_function(msg, *args):
+async def cmd_function(msg: Message):
     await msg.reply('i was called!')
 ```
 
@@ -180,12 +198,12 @@ async def cmd_function(msg, *args):
   (default is channel chat only)
 
 ```python
-from twitchbot import Command, CommandContext
+from twitchbot import Command, CommandContext, Message
 
 
 # other options are CommandContext.BOTH and CommandContext.WHISPER
 @Command('COMMAND_NAME', context=CommandContext.CHANNEL)  # this is the default command context
-async def cmd_function(msg, *args):
+async def cmd_function(msg: Message):
     await msg.reply('i was called!')
 ```
 
@@ -193,11 +211,11 @@ async def cmd_function(msg, *args):
   can call the command):
 
 ```python
-from twitchbot import Command
+from twitchbot import Command, Message
 
 
 @Command('COMMAND_NAME', permission='PERMISSION_NAME')
-async def cmd_function(msg, *args):
+async def cmd_function(msg: Message):
     await msg.reply('i was called!')
 ```
 
@@ -208,7 +226,7 @@ from twitchbot import Command, Message
 
 
 @Command('COMMAND_NAME', help='this command does a very important thing!', syntax='<name>')
-async def cmd_function(msg: Message, *args):
+async def cmd_function(msg: Message):
     await msg.reply('i was called!')
 ```
 
@@ -232,7 +250,7 @@ from twitchbot import Command, Message
          help='this command does a very important thing!',
          syntax='<name>',
          aliases=['COMMAND_NAME_2', 'COMMAND_NAME_3'])
-async def cmd_function(msg: Message, *args):
+async def cmd_function(msg: Message):
     await msg.reply('i was called!')
 ```
 
@@ -249,11 +267,11 @@ example: `!say` could be its own command, then it could have the sub-commands `!
 you can implements this using something like this:
 
 ```python
-from twitchbot import Command
+from twitchbot import Command, Message
 
 
 @Command('say')
-async def cmd_say(msg, *args):
+async def cmd_say(msg: Message, *args):
     # args is empty
     if not args:
         await msg.reply("you didn't give me any arguments :(")
@@ -272,25 +290,25 @@ async def cmd_say(msg, *args):
 
 ```
 
-that works, but i would be done in a nicer way using the `SubCommand` class:
+that works, but it can be done in a nicer way using the `SubCommand` class:
 
 ```python
-from twitchbot import Command, SubCommand
+from twitchbot import Command, SubCommand, Message
 
 
 @Command('say')
-async def cmd_say(msg, *args):
+async def cmd_say(msg: Message, *args):
     await msg.reply(' '.join(args))
 
 
 # we pass the parent command as the first parameter   
 @SubCommand(cmd_say, 'myname')
-async def cmd_say_myname(msg, *args):
+async def cmd_say_myname(msg: Message):
     await msg.reply(f'hello {msg.mention}!')
 
 
 @SubCommand(cmd_say, 'motd')
-async def cmd_say_motd(msg, *args):
+async def cmd_say_motd(msg: Message):
     await msg.reply('the message of the day is: python is awesome')
 ```
 
@@ -313,19 +331,19 @@ but if a command is found it executes that command
 say you want a command to greet someone, but you always want to pass the language, you can do this:
 
 ```python
-from twitchbot import DummyCommand, SubCommand
+from twitchbot import DummyCommand, SubCommand, Message
 
 # cmd_greet does nothing itself when called
 cmd_greet = DummyCommand('greet')
 
 
 @SubCommand(cmd_greet, 'english')
-async def cmd_greet_english(msg, *args):
+async def cmd_greet_english(msg: Message):
     await msg.reply(f'hello {msg.mention}!')
 
 
 @SubCommand(cmd_greet, 'spanish')
-async def cmd_greet_spanish(msg, *args):
+async def cmd_greet_spanish(msg: Message):
     await msg.reply(f'hola {msg.mention}!')
 ```
 
