@@ -308,10 +308,11 @@ class BaseBot:
             forward_event(Event.on_after_command_execute, msg, cmd, channel=msg.channel_name)
 
     async def _send_cmd_help(self, msg: Message, cmd: Command, exc: InvalidArgumentsError):
+        cmd_chain_str = ' '.join((c.name for c in cmd.parent_chain()))
         await msg.reply(translate(
             'send_command_help_message',
             reason=exc.reason,
-            cmd_fullname=cmd.fullname,
+            cmd_fullname=cmd_chain_str,
             command_prefix=get_command_prefix(),
             cmd_syntax=(cmd.syntax or '')
         ))
