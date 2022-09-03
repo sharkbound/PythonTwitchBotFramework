@@ -17,7 +17,7 @@ from .util import (
     get_file_name,
     convert_args_to_function_parameter_types,
     temp_syspath,
-    AutoCastFail,
+    AutoCastResult,
     AutoCastError,
     get_callable_arg_types,
     Param,
@@ -160,7 +160,7 @@ class Command:
     def _check_casted_args_for_auto_cast_fails(self, casted_args):
         from .exceptions import InvalidArgumentsError
         for arg in casted_args:
-            if not isinstance(arg, AutoCastFail):
+            if not isinstance(arg, AutoCastResult):
                 continue
 
             # handle fails caused by custom _handle_auto_cast() functions on classes
