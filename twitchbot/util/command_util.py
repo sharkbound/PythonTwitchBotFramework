@@ -1,11 +1,18 @@
 import re
 from asyncio import get_event_loop
-from typing import List, TYPE_CHECKING, Type
+from typing import List, TYPE_CHECKING, Type, Union, Callable, Any, Optional
+from ..exceptions import InvalidArgumentsError
 
 if TYPE_CHECKING:
     from ..message import Message
+    from ..command import Command
 
-__all__ = ['run_command', 'strip_twitch_command_prefix', 'RE_TWITCH_COMMAND_PREFIX']
+__all__ = [
+    'run_command',
+    'strip_twitch_command_prefix',
+    'RE_TWITCH_COMMAND_PREFIX',
+    'raise_invalid_arguments_error_if_falsy'
+]
 
 
 async def run_command(name: str, msg: 'Message', args: List[str] = None, blocking: bool = True, msg_class: Type['Message'] = None):
@@ -54,3 +61,13 @@ RE_TWITCH_COMMAND_PREFIX = re.compile(r'^[./]+')
 
 def strip_twitch_command_prefix(string: str) -> str:
     return RE_TWITCH_COMMAND_PREFIX.sub('', string)
+
+
+def raise_invalid_arguments_error_if_falsy(value, message: Union[str, Callable[[Any], str]], cmd: Optional['Command'] = None):
+    if value:
+        return
+
+    if isinstance(message, str):
+        raise InvalidArgumentsError(reason=message, cmd=cmd)
+    else:
+        raise InvalidArgumentsError(reason=message(value), cmd=cmd)
