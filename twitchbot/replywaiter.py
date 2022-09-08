@@ -91,7 +91,8 @@ def custom_async_predicate(msg: Message, custom_predicate: Callable[[Message], A
 
 
 class ReplyResult:
-    def __init__(self, data, default=None):
+    def __init__(self, data, default=None, timed_out=False):
+        self.timed_out = timed_out
         self.default_value = default
         self.raw_value = data
         self.has_value = data is not None
@@ -133,15 +134,17 @@ async def wait_for_reply(predicate: TYPE_CALLABLE_PREDICATE = None, timeout=30, 
     """
 
     async def _timeout_defaulter():
+        timed_out = False
         try:
             value = await asyncio.wait_for(future, timeout)
         except TimeoutError:
+            timed_out = True
             if raise_on_timeout:
                 raise
             else:
                 value = default
 
-        return ReplyResult(value, default=default)
+        return ReplyResult(value, default=default, timed_out=timed_out)
 
     # ensures that the predicate is a coroutine (aka awaitable)
     if not inspect.iscoroutinefunction(predicate):
