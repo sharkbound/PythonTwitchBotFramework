@@ -24,7 +24,8 @@ def get_translation(key):
     if key in _fallback_translations_config:
         return _fallback_translations_config[key]
 
-    raise ValueError(f'Translation not found: "{key}"')
+    # raise ValueError(f'Translation not found: "{key}"') # disabled for time being because of key errors when they should not happen
+    return f'<TRANSLATION "{key}" NOT FOUND>'
 
 
 def _ensure_json_extension(file):
