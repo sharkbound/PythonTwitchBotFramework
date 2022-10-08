@@ -21,5 +21,6 @@ setup(
     install_requires=requirements,
     scripts=[
         'util/command_console.py',
-    ]
+    ],
+    include_package_data=True
 )
