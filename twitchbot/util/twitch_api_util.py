@@ -137,7 +137,7 @@ async def get_user_data(user: str, headers: dict = None) -> dict:
 
 
 async def get_user_id(user: str, headers: dict = None, verbose=True) -> int:
-    # shortcut if the this user's id was already requested
+    # shortcut if the user's id was already requested
     if user in user_id_cache:
         return user_id_cache[user]
 
