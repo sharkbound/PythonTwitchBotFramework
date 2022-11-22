@@ -97,7 +97,7 @@ class Message:
     def normalized_args(self) -> Tuple[str]:
         """
         parts of the message starting at index 1,
-        but they are are stripped of any leading or trailing whitespace
+        but they are stripped of any leading or trailing whitespace
         and converted to lowercase
         """
         return tuple(map(self._normalize, islice(self.parts, 1, None)))
