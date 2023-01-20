@@ -22,7 +22,10 @@ class CooldownManager:
         return datetime.now() - self.get(key, datetime.min)
 
     def on_cooldown(self, key: Hashable, required_min_seconds: Union[int, float, Decimal]) -> bool:
-        return self.elapsed_seconds(key) < required_min_seconds
+        if key not in self:
+            return False
+        else:
+            return self.elapsed_seconds(key) < required_min_seconds
 
     def seconds_left(self, key: Hashable, required_min_seconds: Union[int, float, Decimal]):
         return required_min_seconds - (datetime.now() - self.get(key, datetime.now())).total_seconds()
