@@ -19,7 +19,8 @@ class Tags:
         self.user_type: int = self.all_tags.get('user-type')
         self.bits: int = _try_parse_int(self.all_tags.get('bits'))
         self.bits_leader: int = self.all_tags.get('bits-leader', None)
-
+        
+        self.moderator: int = self.badges.get('moderator', 0)
         self.broadcaster: int = self.badges.get('broadcaster', 0)
         self.vip: int = self.badges.get('vip', 0)
 

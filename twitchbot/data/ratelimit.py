@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing import NamedTuple, Optional
 
 __all__ = [
     'RateLimit'
@@ -11,7 +11,7 @@ class RateLimit(NamedTuple):
     reset: int
 
     @staticmethod
-    def from_headers_or_none(headers: dict):
+    def from_headers_or_none(headers: dict) -> Optional['RateLimit']:
         """
         :param headers: dict of headers from the twitch response, expects these keys to be present: ('Ratelimit-Limit', 'Ratelimit-Reset', 'Ratelimit-Remaining')
         :return:
@@ -23,7 +23,7 @@ class RateLimit(NamedTuple):
                 return None
 
         return RateLimit(
-            limit=int(headers.get('Ratelimit-Limit')),
-            remaining=int(headers.get('Ratelimit-Remaining')),
-            reset=int(headers.get('Ratelimit-Reset'))
+            limit=headers['Ratelimit-Limit'],
+            remaining=headers['Ratelimit-Remaining'],
+            reset=headers['Ratelimit-Reset']
         )
