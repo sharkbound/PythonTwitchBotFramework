@@ -11,6 +11,9 @@ class Scopes:
     WHISPERS_READ = 'whispers:read'
     WHISPERS_EDIT = 'whispers:edit'
     CHANNEL_EDITOR = 'channel_editor'
+    MODERATOR_ANNOUNCEMENT_MANAGE = 'moderator:manage:announcements'
+    MODERATOR_SHOUTOUT_MANAGE = 'moderator:manage:shoutouts'
+    MODERATOR_BAN_MANAGE = 'moderator:manage:banned_users'
 
 
 VALIDATE_URL = 'https://id.twitch.tv/oauth2/validate'
@@ -23,7 +26,8 @@ def generate_auth_url(client_id, redirect, *scopes):
 
 def generate_irc_oauth(client_id, redirect, *extra_scopes):
     return generate_auth_url(client_id, redirect, Scopes.CHAT_READ, Scopes.CHAT_EDIT, Scopes.CHANNEL_MODERATE, Scopes.WHISPERS_READ,
-                             Scopes.WHISPERS_EDIT, Scopes.CHANNEL_EDITOR, *extra_scopes)
+                             Scopes.WHISPERS_EDIT, Scopes.CHANNEL_EDITOR, Scopes.MODERATOR_ANNOUNCEMENT_MANAGE, Scopes.MODERATOR_SHOUTOUT_MANAGE, 
+                             Scopes.MODERATOR_BAN_MANAGE, *extra_scopes)
 
 
 def join_scopes(*scopes):
