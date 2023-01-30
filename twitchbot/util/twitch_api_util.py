@@ -2,19 +2,19 @@ import warnings
 from collections import namedtuple
 from datetime import datetime
 from json import JSONDecodeError
-from typing import Dict, Tuple, NamedTuple, Optional
+from typing import Dict, Tuple, NamedTuple, Optional, Any
 
 from aiohttp import ClientSession, ClientResponse, ContentTypeError
 from async_timeout import timeout
 
-from ..config import get_client_id, get_oauth, DEFAULT_CLIENT_ID
+from ..config import get_client_id, get_oauth, get_nick, DEFAULT_CLIENT_ID
 from ..data import UserFollowers, UserInfo, Follower
 
 __all__ = ('CHANNEL_CHATTERS_URL', 'get_channel_chatters', 'get_stream_data', 'get_url', 'get_user_data', 'get_user_id',
            'STREAM_API_URL', 'USER_API_URL', 'get_user_followers', 'USER_FOLLOWERS_API_URL', 'get_headers',
            'get_user_info', 'USER_ACCOUNT_AGE_API', 'CHANNEL_INFO_API', 'get_channel_info', 'ChannelInfo',
            'get_channel_name_from_user_id', 'OauthTokenInfo', 'get_oauth_token_info', '_check_token', 'post_url', 'USER_FOLLOWAGE_API_URL',
-           'get_user_followage')
+           'get_user_followage', 'send_shoutout', 'send_announcement')
 
 USER_API_URL = 'https://api.twitch.tv/helix/users?login={}'
 STREAM_API_URL = 'https://api.twitch.tv/helix/streams?user_login={}'
@@ -24,6 +24,7 @@ USER_ACCOUNT_AGE_API = 'https://api.twitch.tv/kraken/users/{}'
 CHANNEL_INFO_API = 'https://api.twitch.tv/helix/channels?broadcaster_id={}'
 USER_FOLLOWAGE_API_URL = 'https://api.twitch.tv/helix/users/follows?to_id={}&from_id={}'
 SHOUTOUT_API_URL = 'https://api.twitch.tv/helix/chat/shoutouts?from_broadcaster_id={}&to_broadcaster_id={}&moderator_id={}'
+ANNOUNCEMENTS_API_URL = 'https://api.twitch.tv/helix/chat/announcements?broadcaster_id={}&moderator_id={}'
 
 user_id_cache: Dict[str, int] = {}
 
@@ -36,11 +37,11 @@ async def get_url(url: str, headers: dict = None) -> Tuple[ClientResponse, dict]
                 return await _extract_response_and_json_from_request(resp)
 
 
-async def post_url(url: str, headers: dict = None) -> Tuple[ClientResponse, dict]:
+async def post_url(url: str, headers: dict = None, body: Any  = None) -> Tuple[ClientResponse, dict]:
     headers = headers if headers is not None else get_headers()
     async with ClientSession(headers=headers) as session:
         async with timeout(10):
-            async with session.post(url) as resp:
+            async with session.post(url, data=body) as resp:
                 return await _extract_response_and_json_from_request(resp)
 
 
@@ -137,8 +138,26 @@ async def send_shoutout(channel_name: str, target_name: str, headers: dict = Non
 
     if (_.status != 204):
         warnings.warn(f'Shoutout failed with error code: {_.status}. See "https://dev.twitch.tv/docs/api/reference/#send-a-shoutout"')
+
     return
 
+
+async def send_announcement(channel_name: str, body: Any = None, headers: dict = None) -> None:
+    headers = headers if headers is not None else get_headers()
+    if not _check_headers_has_auth(headers):
+        warnings.warn('[ANNOUNCEMENT] headers for the twitch api request are missing authorization')
+    
+    channel_id = await get_user_id(channel_name, headers)
+    moderator_id = await get_user_id(get_nick(), headers)
+
+    headers.update({'Content-Type': 'application/json'})
+    _, json = await post_url(ANNOUNCEMENTS_API_URL.format(channel_id, moderator_id), headers, body=body)
+
+    if (_.status != 204):
+        warnings.warn(f'Announcement failed with error code: {_.status}. See "https://dev.twitch.tv/docs/api/reference/#send-chat-announcement"')
+
+    return
+    
 
 async def get_user_data(user: str, headers: dict = None) -> dict:
     headers = headers if headers is not None else get_headers()
