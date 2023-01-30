@@ -182,7 +182,6 @@ async def send_ban(channel_name: str, username: str, reason: str = None, timeout
     user_id = await get_user_id(username, headers)
     moderator_id = await get_user_id(get_nick(), headers)
 
-    # WARNING: Untested Code!
     if len(reason) > 500:
         reason = reason[:500]
         warnings.warn(f'[BAN] reasons above 500 Characters is limited by Twitch and will be trunscated. Given length is {len(reason)}.')
