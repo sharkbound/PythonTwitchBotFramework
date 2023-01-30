@@ -1,6 +1,8 @@
 import asyncio
 import time
 import typing
+import warnings
+from json import JSONEncoder
 from datetime import datetime
 from typing import Dict
 
@@ -10,7 +12,7 @@ from .config import get_nick, get_client_id
 from .data import UserFollowers
 from .permission import perms
 from .shared import get_bot
-from .util import get_user_followers, get_headers, strip_twitch_command_prefix, normalize_string
+from .util import get_user_followers, get_headers, strip_twitch_command_prefix, normalize_string, send_announcement, send_shoutout
 
 if typing.TYPE_CHECKING:
     from .bots import BaseBot
@@ -83,6 +85,28 @@ class Channel:
     async def color(self, color: str):
         """sets the bots chat color"""
         await self.send_command(f'color {color}')
+    
+    async def shoutout(self, target: str):
+        """
+        Sends a shoutout to another streamer
+        """
+        await send_shoutout(self.name, target)
+
+    async def announcement(self, message:str, color:str = None):
+        """
+        Creates an announcement with a message of maximum 500 chars and optional a color: blue, green, orange, purple
+        """
+        if len(message) > 500:
+            warnings.warn(f'Announcements messages above 500 Characters are trunscated by Twitch. Given length is {len(message)}')
+
+        if not color in ['blue', 'green', 'orange', 'purple']:
+            warnings.warn(f'Announcements color can only be blue, green, orange or purple. Given color is {color} defaulting to primary')
+            color = 'primary'
+        
+        jEncoder = JSONEncoder()
+        body = jEncoder.encode({'message': message, 'color': color})
+
+        await send_announcement(self.name, body=body)
 
     def __str__(self):
         return f'<Channel name={repr(self.name)}>'
