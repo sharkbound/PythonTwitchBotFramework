@@ -23,6 +23,7 @@ USER_FOLLOWERS_API_URL = 'https://api.twitch.tv/helix/users/follows?to_id={}'
 USER_ACCOUNT_AGE_API = 'https://api.twitch.tv/kraken/users/{}'
 CHANNEL_INFO_API = 'https://api.twitch.tv/helix/channels?broadcaster_id={}'
 USER_FOLLOWAGE_API_URL = 'https://api.twitch.tv/helix/users/follows?to_id={}&from_id={}'
+SHOUTOUT_API_URL = 'https://api.twitch.tv/helix/chat/shoutouts?from_broadcaster_id={}&to_broadcaster_id={}&moderator_id={}'
 
 user_id_cache: Dict[str, int] = {}
 
@@ -122,6 +123,22 @@ async def get_user_followage(channel_name: str, follower: str, headers: dict = N
                     # datetime format: 2019-10-23T23:12:06Z
                     followed_at=datetime.fromisoformat(json['data'][0]['followed_at'][:-1]))
 
+
+async def send_shoutout(channel_name: str, target_name: str, headers: dict = None) -> None:
+    headers = headers if headers is not None else get_headers()
+    if not _check_headers_has_auth(headers):
+        warnings.warn('[GET_USER_FOLLOWAGE] headers for the twitch api request are missing authorization')
+    
+    channel_id = await get_user_id(channel_name, headers)
+    target_id = await get_user_id(target_name, headers)
+    moderator_id = await get_user_id(get_nick(), headers)
+
+    _, json = await post_url(SHOUTOUT_API_URL.format(channel_id, target_id, moderator_id), headers)
+
+    if (_.status != 204):
+        warnings.warn(f'Shoutout failed with error code: {_.status}. See "https://dev.twitch.tv/docs/api/reference/#send-a-shoutout"')
+    return
+    
 
 async def get_user_data(user: str, headers: dict = None) -> dict:
     headers = headers if headers is not None else get_headers()
