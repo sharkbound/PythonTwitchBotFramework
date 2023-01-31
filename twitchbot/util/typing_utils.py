@@ -121,6 +121,7 @@ def convert_args_to_function_parameter_types(function: Callable, args: Sequence[
     for arg, param in zip(args, types):
         if param.type == Param.POSITIONAL:
             if param.annotation is not None:
+                # todo: fax optaonal annotations, right now they cause an error that says "cannot instantiate Union types"
                 out_args.append(_cast_arg_to_parameter_type(arg, param))
             else:
                 out_args.append(arg)
