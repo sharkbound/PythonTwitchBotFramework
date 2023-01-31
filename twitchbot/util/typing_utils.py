@@ -99,11 +99,19 @@ def cast_value_to_type(arg, type_: Type, reason: Optional[Union[str, Callable[[E
         reason = reason(exception, arg) if (not isinstance(reason, Exception) and callable(reason)) else str(reason).format(value=arg)
         return AutoCastResult(value=arg, param=None, reason=reason, exception=exception, casted_value=None)
 
-
+# todo: use the new methods to handle auto casting when no param is passed to an arg that has a default
 class AutoCastHandler:
     @classmethod
     def _handle_auto_cast(cls, value: str):
         pass
+
+    @classmethod
+    def _has_auto_cast_default(cls) -> bool:
+        return False
+
+    @classmethod
+    def _get_auto_cast_default(cls) -> Any:
+        return None
 
 
 def convert_args_to_function_parameter_types(function: Callable, args: Sequence[str]):
