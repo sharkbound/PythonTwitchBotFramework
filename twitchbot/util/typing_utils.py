@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from inspect import getfullargspec
 from typing import Optional, Type, ClassVar, Callable, Sequence, get_type_hints, List, Any, Union
-from ..exceptions import InvalidArgumentsError
 
 __all__ = [
     'get_callable_arg_types',
@@ -9,7 +8,6 @@ __all__ = [
     'convert_args_to_function_parameter_types',
     'AutoCastError',
     'Param',
-    'AutoCastHandler',
     'cast_value_to_type',
 ]
 
@@ -100,18 +98,6 @@ def cast_value_to_type(arg, type_: Type, reason: Optional[Union[str, Callable[[E
         return AutoCastResult(value=arg, param=None, reason=reason, exception=exception, casted_value=None)
 
 # todo: use the new methods to handle auto casting when no param is passed to an arg that has a default
-class AutoCastHandler:
-    @classmethod
-    def _handle_auto_cast(cls, value: str):
-        pass
-
-    @classmethod
-    def _has_auto_cast_default(cls) -> bool:
-        return False
-
-    @classmethod
-    def _get_auto_cast_default(cls) -> Any:
-        return None
 
 
 def convert_args_to_function_parameter_types(function: Callable, args: Sequence[str]):
@@ -129,7 +115,7 @@ def convert_args_to_function_parameter_types(function: Callable, args: Sequence[
     for arg, param in zip(args, types):
         if param.type == Param.POSITIONAL:
             if param.annotation is not None:
-                # todo: fax optaonal annotations, right now they cause an error that says "cannot instantiate Union types"
+                # todo: fix optional annotations, right now they cause an error that says "cannot instantiate Union types"
                 out_args.append(_cast_arg_to_parameter_type(arg, param))
             else:
                 out_args.append(arg)
