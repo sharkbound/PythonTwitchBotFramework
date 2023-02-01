@@ -22,6 +22,7 @@ from .util import (
     get_callable_arg_types,
     Param,
 )
+from .auto_cast_handler import has_auto_cast_default
 
 DEFAULT_COOLDOWN_BYPASS = 'bypass_cooldown'
 DEFAULT_COOLDOWN = 0
@@ -177,28 +178,10 @@ class Command:
 
         return False
 
-    def _check_args_fulfill_required_positional_arguments(self, args, function):
-        spec = getfullargspec(function)
-        # always subtract 1 because of msg parameter all commands have
-        # additionally, subtract an additional 1 if it's a mod command (has self/cls as its first parameter)
-        if spec.args and spec.args[0].casefold() in ('self', 'cls'):
-            offset = 2
-        else:
-            offset = 1
-
-        required_count = len(spec.args) - len(spec.defaults or ()) - offset
-
-        if len(args) < required_count:
-            raise InvalidArgumentsError(
-                reason=translate('args_does_not_fulfill_required_position_args', required_count=required_count, args_len=len(args)),
-                cmd=self
-            )
-
     def _process_command_args_for_func(self, func, args):
         casted_args = convert_args_to_function_parameter_types(func, args)
         if self._check_casted_args_for_auto_cast_fails(casted_args):
             return
-        self._check_args_fulfill_required_positional_arguments(args, func)
         return casted_args
 
     def _generate_syntax_string(self):
@@ -210,8 +193,8 @@ class Command:
         for arg in args:
             if arg.type == Param.VARARGS:
                 syntax_parts.append(f'({arg.name}...)')
-            elif arg.has_default_value:
-                syntax_parts.append(f'({arg.name}: {arg.default})')
+            elif arg.has_default_value or has_auto_cast_default(arg.annotation):
+                syntax_parts.append(f'({arg.name})')
             else:
                 syntax_parts.append(f'<{arg.name}>')
 

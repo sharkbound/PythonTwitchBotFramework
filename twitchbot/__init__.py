@@ -1,6 +1,6 @@
 from .bot_package_path import _set_bot_package_path, get_bot_package_path
 
-BOT_VERSION = (2, 7, 8)
+BOT_VERSION = (2, 8, 0)
 _set_bot_package_path(__path__[0])
 
 from .arena import *
@@ -35,3 +35,5 @@ from .event_util import *
 from .extra_configs import *
 from .pubsub import *
 from .translations import *
+from .argument_annotations import *
+from .auto_cast_handler import *
