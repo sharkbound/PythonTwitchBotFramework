@@ -118,9 +118,6 @@ def cast_value_to_type(arg, type_: Type, reason: Optional[Union[str, Callable[[E
         return AutoCastResult(value=arg, param=None, reason=reason, exception=exception, casted_value=None)
 
 
-# todo: use the new methods to handle auto casting when no param is passed to an arg that has a default
-
-
 def convert_args_to_function_parameter_types(function: Callable, args: Sequence[str], origin_cmd: 'Command' = None):
     from ..message import Message
     params = get_callable_arg_types(function, skip_self=True)
