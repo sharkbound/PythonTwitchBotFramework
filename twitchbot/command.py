@@ -179,7 +179,7 @@ class Command:
         return False
 
     def _process_command_args_for_func(self, func, args):
-        casted_args = convert_args_to_function_parameter_types(func, args)
+        casted_args = convert_args_to_function_parameter_types(func, args, remove_first_arg=True)
         if self._check_casted_args_for_auto_cast_fails(casted_args):
             return
         return casted_args

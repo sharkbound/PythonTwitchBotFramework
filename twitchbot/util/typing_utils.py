@@ -118,15 +118,14 @@ def cast_value_to_type(arg, type_: Type, reason: Optional[Union[str, Callable[[E
         return AutoCastResult(value=arg, param=None, reason=reason, exception=exception, casted_value=None)
 
 
-def convert_args_to_function_parameter_types(function: Callable, args: Sequence[str], origin_cmd: 'Command' = None):
+def convert_args_to_function_parameter_types(function: Callable, args: Sequence[str], origin_cmd: 'Command' = None, remove_first_arg: bool = False):
     from ..message import Message
     params = get_callable_arg_types(function, skip_self=True)
 
-    # ensure parameters are typed as Message are ignored, message is automatically passed to the command before any args are
-    for i in range(len(params) - 1, -1, -1):
-        if params[i].annotation is Message:
-            del params[i]
-
+    if remove_first_arg:
+        # remove the `msg` parameter, it is automatically passed first
+        params = params[1:]
+        
     out_args = []
     i = 0
 
@@ -134,14 +133,13 @@ def convert_args_to_function_parameter_types(function: Callable, args: Sequence[
     for required_idx, param in enumerate(params):
         if not param.has_default_value and not has_auto_cast_default(param.annotation) and param.type == Param.POSITIONAL:
             required_count = required_idx + 1
+    required_count = max(required_count, 0)
 
     for arg, param in zip_longest(args, params, fillvalue=None):
-        # no more params left to fulfill
-        if param is None and arg is not None:
+        if param is None or param.type == Param.VARARGS:
             break
-
-        # params are left, but no more args are remaining
-        elif arg is None and param is not None and param.type == Param.POSITIONAL:
+        
+        elif arg is None and param.type == Param.POSITIONAL:
             if is_auto_cast_handler(param.annotation):
                 info = get_auto_cast_handler_info(param.annotation)
 
@@ -165,12 +163,13 @@ def convert_args_to_function_parameter_types(function: Callable, args: Sequence[
             i += 1
             continue
 
-        elif arg is not None and param is not None and param.type == Param.POSITIONAL:
+        elif arg is not None and param.type == Param.POSITIONAL:
             if param.annotation is not None:
                 out_args.append(_cast_arg_to_parameter_type(arg, param))
             else:
                 out_args.append(arg)
             i += 1
+            continue
 
     vararg_type = next((p for p in params if p.type == Param.VARARGS), None)
     if vararg_type is not None:
