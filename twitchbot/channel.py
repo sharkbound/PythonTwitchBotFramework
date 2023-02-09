@@ -1,6 +1,8 @@
 import asyncio
 import time
 import typing
+import warnings
+from json import JSONEncoder
 from datetime import datetime
 from typing import Dict
 
@@ -10,7 +12,7 @@ from .config import get_nick, get_client_id
 from .data import UserFollowers
 from .permission import perms
 from .shared import get_bot
-from .util import get_user_followers, get_headers, strip_twitch_command_prefix, normalize_string
+from .util import get_user_followers, get_headers, strip_twitch_command_prefix, normalize_string, send_announcement, send_shoutout, send_ban
 
 if typing.TYPE_CHECKING:
     from .bots import BaseBot
@@ -66,6 +68,11 @@ class Channel:
         """purges a user's messages then permabans them from the channel"""
         await self.send_command(f'ban {user} {reason}')
 
+    async def ban2(self, user: str, reason: str = '', timeout: int = None):
+        """purges a user's messages then bans a user a given time in seconds (1 - 1209600 [2 weeks]; default permanent) from the channel using twitch API"""
+        await send_ban(self.name, user, reason, timeout)
+        
+
     async def timeout(self, user: str, duration: int = 600):
         """
         purges a user's messages then times out the user (makes them unable to chat)
@@ -83,6 +90,18 @@ class Channel:
     async def color(self, color: str):
         """sets the bots chat color"""
         await self.send_command(f'color {color}')
+    
+    async def shoutout(self, target: str):
+        """
+        Sends a shoutout to another streamer
+        """
+        await send_shoutout(self.name, target)
+
+    async def announcement(self, message:str, color:str = None):
+        """
+        Creates an announcement with a message of maximum 500 chars and optional a color: blue, green, orange, purple
+        """
+        await send_announcement(self.name, message, color)
 
     def __str__(self):
         return f'<Channel name={repr(self.name)}>'

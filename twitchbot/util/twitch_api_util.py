@@ -1,20 +1,21 @@
 import warnings
 from collections import namedtuple
 from datetime import datetime
-from json import JSONDecodeError
-from typing import Dict, Tuple, NamedTuple, Optional
+from json import JSONDecodeError, JSONEncoder
+from typing import Dict, Tuple, NamedTuple, Optional, Any 
 
 from aiohttp import ClientSession, ClientResponse, ContentTypeError
 from async_timeout import timeout
+from .typing_utils import AutoCastResult
 
-from ..config import get_client_id, get_oauth, DEFAULT_CLIENT_ID
+from ..config import get_client_id, get_oauth, get_nick, DEFAULT_CLIENT_ID
 from ..data import UserFollowers, UserInfo, Follower
 
 __all__ = ('CHANNEL_CHATTERS_URL', 'get_channel_chatters', 'get_stream_data', 'get_url', 'get_user_data', 'get_user_id',
            'STREAM_API_URL', 'USER_API_URL', 'get_user_followers', 'USER_FOLLOWERS_API_URL', 'get_headers',
            'get_user_info', 'USER_ACCOUNT_AGE_API', 'CHANNEL_INFO_API', 'get_channel_info', 'ChannelInfo',
            'get_channel_name_from_user_id', 'OauthTokenInfo', 'get_oauth_token_info', '_check_token', 'post_url', 'USER_FOLLOWAGE_API_URL',
-           'get_user_followage')
+           'get_user_followage', 'send_shoutout', 'send_announcement', 'send_ban')
 
 USER_API_URL = 'https://api.twitch.tv/helix/users?login={}'
 STREAM_API_URL = 'https://api.twitch.tv/helix/streams?user_login={}'
@@ -23,6 +24,9 @@ USER_FOLLOWERS_API_URL = 'https://api.twitch.tv/helix/users/follows?to_id={}'
 USER_ACCOUNT_AGE_API = 'https://api.twitch.tv/kraken/users/{}'
 CHANNEL_INFO_API = 'https://api.twitch.tv/helix/channels?broadcaster_id={}'
 USER_FOLLOWAGE_API_URL = 'https://api.twitch.tv/helix/users/follows?to_id={}&from_id={}'
+SHOUTOUT_API_URL = 'https://api.twitch.tv/helix/chat/shoutouts?from_broadcaster_id={}&to_broadcaster_id={}&moderator_id={}'
+ANNOUNCEMENTS_API_URL = 'https://api.twitch.tv/helix/chat/announcements?broadcaster_id={}&moderator_id={}'
+BAN_API_URL = 'https://api.twitch.tv/helix/moderation/bans?broadcaster_id={}&moderator_id={}'
 
 user_id_cache: Dict[str, int] = {}
 
@@ -35,11 +39,11 @@ async def get_url(url: str, headers: dict = None) -> Tuple[ClientResponse, dict]
                 return await _extract_response_and_json_from_request(resp)
 
 
-async def post_url(url: str, headers: dict = None) -> Tuple[ClientResponse, dict]:
+async def post_url(url: str, headers: dict = None, body: Any  = None) -> Tuple[ClientResponse, dict]:
     headers = headers if headers is not None else get_headers()
     async with ClientSession(headers=headers) as session:
         async with timeout(10):
-            async with session.post(url) as resp:
+            async with session.post(url, data=body) as resp:
                 return await _extract_response_and_json_from_request(resp)
 
 
@@ -122,6 +126,91 @@ async def get_user_followage(channel_name: str, follower: str, headers: dict = N
                     # datetime format: 2019-10-23T23:12:06Z
                     followed_at=datetime.fromisoformat(json['data'][0]['followed_at'][:-1]))
 
+
+async def send_shoutout(channel_name: str, target_name: str, headers: dict = None) -> None:
+    headers = headers if headers is not None else get_headers()
+    if not _check_headers_has_auth(headers):
+        warnings.warn('[SHOUTOUT] headers for the twitch api request are missing authorization')
+    
+    channel_id = await get_user_id(channel_name, headers)
+    target_id = await get_user_id(target_name, headers)
+    moderator_id = await get_user_id(get_nick(), headers)
+
+    _, json = await post_url(SHOUTOUT_API_URL.format(channel_id, target_id, moderator_id), headers)
+
+    if (_.status != 204):
+        warnings.warn(f'Shoutout failed with error code: {_.status}. See "https://dev.twitch.tv/docs/api/reference/#send-a-shoutout"')
+
+    return
+
+
+async def send_announcement(channel_name: str, message: str, color: str = None, headers: dict = None) -> None:
+    headers = headers if headers is not None else get_headers()
+    if not _check_headers_has_auth(headers):
+        warnings.warn('[ANNOUNCEMENT] headers for the twitch api request are missing authorization')
+    
+    channel_id = await get_user_id(channel_name, headers)
+    moderator_id = await get_user_id(get_nick(), headers)
+
+    if len(message) > 500:
+        warnings.warn(f'Announcements messages above 500 Characters are trunscated by Twitch. Given length is {len(message)}')
+
+    if not color in ['blue', 'green', 'orange', 'purple']:
+        warnings.warn(f'Announcements color can only be blue, green, orange or purple. Given color is {color} defaulting to primary')
+        color = 'primary'
+    
+    jEncoder = JSONEncoder()
+    body = jEncoder.encode({'message': message, 'color': color})
+
+    headers.update({'Content-Type': 'application/json'})
+    _, json = await post_url(ANNOUNCEMENTS_API_URL.format(channel_id, moderator_id), headers, body=body)
+
+    if (_.status != 204):
+        warnings.warn(f'Announcement failed with error code: {_.status}. See "https://dev.twitch.tv/docs/api/reference/#send-chat-announcement"')
+
+    return
+
+
+async def send_ban(channel_name: str, username: str, reason: str = None, timeout: int = None, headers: dict = None) -> None:
+    headers = headers if headers is not None else get_headers()
+    if not _check_headers_has_auth(headers):
+        warnings.warn('[BAN] headers for the twitch api request are missing authorization')
+    
+    jEncoder = JSONEncoder()
+
+    channel_id = await get_user_id(channel_name, headers)
+    user_id = await get_user_id(username, headers)
+    moderator_id = await get_user_id(get_nick(), headers)
+
+    if len(reason) > 500:
+        reason = reason[:500]
+        warnings.warn(f'[BAN] reasons above 500 Characters is limited by Twitch and will be trunscated. Given length is {len(reason)}.')
+
+    # Split it into two If-statements for better understanding
+    if timeout is not None:
+        # Just for safety
+        if not isinstance(timeout, int):
+            warnings.warn(f'[BAN] timeout need to be of type integer. Given type is {type(timeout)}. ABORTING!')
+            return
+        elif not 1 <= timeout <= 1209600:
+            warnings.warn(f'[BAN] timeout needs to be between 1 or 1209600 Seconds (2 Weeks). Given timout is {timeout}, setting to 600 Seconds.')
+            timeout = 600
+        
+        body = jEncoder.encode({'data': {'user_id': user_id, 'duration': timeout, 'reason': reason}})
+    else:
+        #Permanent Ban
+        body = jEncoder.encode({'data': {'user_id': user_id, 'reason': reason}})
+
+    headers.update({'Content-Type': 'application/json'})
+    _, json = await post_url(BAN_API_URL.format(channel_id, moderator_id), headers, body=body)
+    
+
+    if (_.status != 200):
+        returnMessage = json['message']
+        warnings.warn(f'Ban failed with error code: {_.status} with message "{returnMessage}". See "https://dev.twitch.tv/docs/api/reference/#ban-user"')
+
+    return
+    
 
 async def get_user_data(user: str, headers: dict = None) -> dict:
     headers = headers if headers is not None else get_headers()
