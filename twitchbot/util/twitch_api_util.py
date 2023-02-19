@@ -1,12 +1,12 @@
 import warnings
+
+from typing import Dict, Tuple, NamedTuple, Optional, Any
 from collections import namedtuple
 from datetime import datetime
 from json import JSONDecodeError, JSONEncoder
-from typing import Dict, Tuple, NamedTuple, Optional, Any 
 
 from aiohttp import ClientSession, ClientResponse, ContentTypeError
 from async_timeout import timeout
-from .typing_utils import AutoCastResult
 
 from ..config import get_client_id, get_oauth, get_nick, DEFAULT_CLIENT_ID
 from ..data import UserFollowers, UserInfo, Follower
@@ -39,7 +39,7 @@ async def get_url(url: str, headers: dict = None) -> Tuple[ClientResponse, dict]
                 return await _extract_response_and_json_from_request(resp)
 
 
-async def post_url(url: str, headers: dict = None, body: Any  = None) -> Tuple[ClientResponse, dict]:
+async def post_url(url: str, headers: dict = None, body: Any = None) -> Tuple[ClientResponse, dict]:
     headers = headers if headers is not None else get_headers()
     async with ClientSession(headers=headers) as session:
         async with timeout(10):
@@ -131,7 +131,7 @@ async def send_shoutout(channel_name: str, target_name: str, headers: dict = Non
     headers = headers if headers is not None else get_headers()
     if not _check_headers_has_auth(headers):
         warnings.warn('[SHOUTOUT] headers for the twitch api request are missing authorization')
-    
+
     channel_id = await get_user_id(channel_name, headers)
     target_id = await get_user_id(target_name, headers)
     moderator_id = await get_user_id(get_nick(), headers)
@@ -148,7 +148,7 @@ async def send_announcement(channel_name: str, message: str, color: str = None, 
     headers = headers if headers is not None else get_headers()
     if not _check_headers_has_auth(headers):
         warnings.warn('[ANNOUNCEMENT] headers for the twitch api request are missing authorization')
-    
+
     channel_id = await get_user_id(channel_name, headers)
     moderator_id = await get_user_id(get_nick(), headers)
 
@@ -158,7 +158,7 @@ async def send_announcement(channel_name: str, message: str, color: str = None, 
     if not color in ['blue', 'green', 'orange', 'purple']:
         warnings.warn(f'Announcements color can only be blue, green, orange or purple. Given color is {color} defaulting to primary')
         color = 'primary'
-    
+
     jEncoder = JSONEncoder()
     body = jEncoder.encode({'message': message, 'color': color})
 
@@ -175,7 +175,7 @@ async def send_ban(channel_name: str, username: str, reason: str = None, timeout
     headers = headers if headers is not None else get_headers()
     if not _check_headers_has_auth(headers):
         warnings.warn('[BAN] headers for the twitch api request are missing authorization')
-    
+
     jEncoder = JSONEncoder()
 
     channel_id = await get_user_id(channel_name, headers)
@@ -195,22 +195,22 @@ async def send_ban(channel_name: str, username: str, reason: str = None, timeout
         elif not 1 <= timeout <= 1209600:
             warnings.warn(f'[BAN] timeout needs to be between 1 or 1209600 Seconds (2 Weeks). Given timout is {timeout}, setting to 600 Seconds.')
             timeout = 600
-        
+
         body = jEncoder.encode({'data': {'user_id': user_id, 'duration': timeout, 'reason': reason}})
     else:
-        #Permanent Ban
+        # Permanent Ban
         body = jEncoder.encode({'data': {'user_id': user_id, 'reason': reason}})
 
     headers.update({'Content-Type': 'application/json'})
     _, json = await post_url(BAN_API_URL.format(channel_id, moderator_id), headers, body=body)
-    
 
     if (_.status != 200):
         returnMessage = json['message']
-        warnings.warn(f'Ban failed with error code: {_.status} with message "{returnMessage}". See "https://dev.twitch.tv/docs/api/reference/#ban-user"')
+        warnings.warn(
+            f'Ban failed with error code: {_.status} with message "{returnMessage}". See "https://dev.twitch.tv/docs/api/reference/#ban-user"')
 
     return
-    
+
 
 async def get_user_data(user: str, headers: dict = None) -> dict:
     headers = headers if headers is not None else get_headers()
