@@ -3,7 +3,7 @@ import warnings
 from typing import Dict, Tuple, NamedTuple, Optional, Any
 from collections import namedtuple
 from datetime import datetime
-from json import JSONDecodeError, JSONEncoder
+from json import JSONDecodeError, JSONEncoder, dumps as json_dumps
 
 from aiohttp import ClientSession, ClientResponse, ContentTypeError
 from async_timeout import timeout
@@ -136,10 +136,10 @@ async def send_shoutout(channel_name: str, target_name: str, headers: dict = Non
     target_id = await get_user_id(target_name, headers)
     moderator_id = await get_user_id(get_nick(), headers)
 
-    _, json = await post_url(SHOUTOUT_API_URL.format(channel_id, target_id, moderator_id), headers)
+    resp, json = await post_url(SHOUTOUT_API_URL.format(channel_id, target_id, moderator_id), headers)
 
-    if (_.status != 204):
-        warnings.warn(f'Shoutout failed with error code: {_.status}. See "https://dev.twitch.tv/docs/api/reference/#send-a-shoutout"')
+    if (resp.status != 204):
+        warnings.warn(f'Shoutout failed with error code: {resp.status}. See "https://dev.twitch.tv/docs/api/reference/#send-a-shoutout"')
 
     return
 
@@ -159,14 +159,13 @@ async def send_announcement(channel_name: str, message: str, color: str = None, 
         warnings.warn(f'Announcements color can only be blue, green, orange or purple. Given color is {color} defaulting to primary')
         color = 'primary'
 
-    jEncoder = JSONEncoder()
-    body = jEncoder.encode({'message': message, 'color': color})
+    body = json_dumps({'message': message, 'color': color})
 
     headers.update({'Content-Type': 'application/json'})
-    _, json = await post_url(ANNOUNCEMENTS_API_URL.format(channel_id, moderator_id), headers, body=body)
+    resp, json = await post_url(ANNOUNCEMENTS_API_URL.format(channel_id, moderator_id), headers, body=body)
 
-    if (_.status != 204):
-        warnings.warn(f'Announcement failed with error code: {_.status}. See "https://dev.twitch.tv/docs/api/reference/#send-chat-announcement"')
+    if (resp.status != 204):
+        warnings.warn(f'Announcement failed with error code: {resp.status}. See "https://dev.twitch.tv/docs/api/reference/#send-chat-announcement"')
 
     return
 
@@ -175,8 +174,6 @@ async def send_ban(channel_name: str, username: str, reason: str = None, timeout
     headers = headers if headers is not None else get_headers()
     if not _check_headers_has_auth(headers):
         warnings.warn('[BAN] headers for the twitch api request are missing authorization')
-
-    jEncoder = JSONEncoder()
 
     channel_id = await get_user_id(channel_name, headers)
     user_id = await get_user_id(username, headers)
@@ -192,22 +189,23 @@ async def send_ban(channel_name: str, username: str, reason: str = None, timeout
         if not isinstance(timeout, int):
             warnings.warn(f'[BAN] timeout need to be of type integer. Given type is {type(timeout)}. ABORTING!')
             return
+
         elif not 1 <= timeout <= 1209600:
             warnings.warn(f'[BAN] timeout needs to be between 1 or 1209600 Seconds (2 Weeks). Given timout is {timeout}, setting to 600 Seconds.')
             timeout = 600
 
-        body = jEncoder.encode({'data': {'user_id': user_id, 'duration': timeout, 'reason': reason}})
+        body = json_dumps({'data': {'user_id': user_id, 'duration': timeout, 'reason': reason}})
     else:
         # Permanent Ban
-        body = jEncoder.encode({'data': {'user_id': user_id, 'reason': reason}})
+        body = json_dumps({'data': {'user_id': user_id, 'reason': reason}})
 
     headers.update({'Content-Type': 'application/json'})
-    _, json = await post_url(BAN_API_URL.format(channel_id, moderator_id), headers, body=body)
+    resp, json = await post_url(BAN_API_URL.format(channel_id, moderator_id), headers, body=body)
 
-    if (_.status != 200):
+    if (resp.status != 200):
         returnMessage = json['message']
         warnings.warn(
-            f'Ban failed with error code: {_.status} with message "{returnMessage}". See "https://dev.twitch.tv/docs/api/reference/#ban-user"')
+            f'Ban failed with error code: {resp.status} with message "{returnMessage}". See "https://dev.twitch.tv/docs/api/reference/#ban-user"')
 
     return
 
@@ -218,7 +216,10 @@ async def get_user_data(user: str, headers: dict = None) -> dict:
         warnings.warn('[GET_USER_DATA] headers for the twitch api request are missing authorization')
         return {}
 
-    _, json = await get_url(USER_API_URL.format(user), headers)
+    # _, json = await get_url(USER_API_URL.format(user), headers)
+    from ..ratelimit_twitch_api_queue import enqueue_twitch_api_request, PendingTwitchAPIRequestMode
+    _, json = await enqueue_twitch_api_request(USER_API_URL.format(user), headers, PendingTwitchAPIRequestMode.GET)
+    
     if not json.get('data'):
         return {}
 

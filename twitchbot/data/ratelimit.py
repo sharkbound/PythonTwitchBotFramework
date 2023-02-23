@@ -1,8 +1,10 @@
-from typing import NamedTuple, Optional
+from typing import NamedTuple, Optional, Union
 
 __all__ = [
     'RateLimit'
 ]
+
+from multidict import CIMultiDictProxy
 
 
 class RateLimit(NamedTuple):
@@ -11,7 +13,7 @@ class RateLimit(NamedTuple):
     reset: int
 
     @staticmethod
-    def from_headers_or_none(headers: dict) -> Optional['RateLimit']:
+    def from_headers_or_none(headers: Union[dict, CIMultiDictProxy[str]]) -> Optional['RateLimit']:
         """
         :param headers: dict of headers from the twitch response, expects these keys to be present: ('Ratelimit-Limit', 'Ratelimit-Reset', 'Ratelimit-Remaining')
         :return:
@@ -23,7 +25,7 @@ class RateLimit(NamedTuple):
                 return None
 
         return RateLimit(
-            limit=headers['Ratelimit-Limit'],
-            remaining=headers['Ratelimit-Remaining'],
-            reset=headers['Ratelimit-Reset']
+            limit=int(headers['Ratelimit-Limit']),
+            remaining=int(headers['Ratelimit-Remaining']),
+            reset=int(headers['Ratelimit-Reset'])
         )

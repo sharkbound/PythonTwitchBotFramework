@@ -395,11 +395,15 @@ class BaseBot:
         self._create_channels()
 
         await self.irc.connect_to_twitch()
-
+        
+        from ..ratelimit_twitch_api_queue import start_twitch_api_queue_send_handler_loop
+        start_twitch_api_queue_send_handler_loop()
+        
         await self.on_connected()
+        
         await trigger_mod_event(Event.on_connected)
         await trigger_event(Event.on_connected)
-
+        
         await self._read_process_loop()
 
         # clean up mods when the bot is exiting
@@ -417,6 +421,7 @@ class BaseBot:
         while self._running:
             try:
                 raw_msg = await self.irc.get_next_message()
+                print(raw_msg)
             except BotNotRunningError:
                 return
 
