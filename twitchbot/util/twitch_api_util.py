@@ -201,6 +201,7 @@ async def send_ban(channel_name: str, username: str, reason: str = None, timeout
 
     headers.update({'Content-Type': 'application/json'})
     resp, json = await post_url(BAN_API_URL.format(channel_id, moderator_id), headers, body=body)
+    # resp, json = await post_url(BAN_API_URL.format(channel_id, moderator_id), headers, body=body)
 
     if (resp.status != 200):
         returnMessage = json['message']

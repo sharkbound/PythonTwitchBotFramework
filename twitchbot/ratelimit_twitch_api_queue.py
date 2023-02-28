@@ -14,7 +14,6 @@ __all__ = [
     'twitch_api_queue_send_handler',
     'RATELIMITED_TWITCH_API_QUEUE_SEND_HANDLER_LOOP_TASK_NAME',
     'enqueue_twitch_api_request',
-
 ]
 
 if typing.TYPE_CHECKING:
