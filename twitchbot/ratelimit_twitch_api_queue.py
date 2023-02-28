@@ -48,8 +48,6 @@ class TwitchApiRatelimitQueue:
         self.ratelimit_reset = ratelimit.reset
         self.requests_left = ratelimit.remaining
         self.limit = ratelimit.limit
-        # debug
-        print(f'Ratelimit reset: {self.ratelimit_reset}, Ratelimit remaining: {time.time() - self.requests_left}, Ratelimit limit: {self.limit}')
 
     @property
     def is_currently_ratelimited(self):
@@ -65,8 +63,6 @@ class TwitchApiRatelimitQueue:
     def append_url_request(self, url: str, headers: dict, mode: PendingTwitchAPIRequestMode) -> asyncio.Future:
         fut = asyncio.Future()
         self.queue.put_nowait(_PendingTwitchApiRequest(url=url, headers=headers, future=fut, mode=mode))
-        # debug
-        print(f'Enqueued {url} with headers {headers}')
         return fut
 
     async def next_request(self) -> typing.Optional[_PendingTwitchApiRequest]:
