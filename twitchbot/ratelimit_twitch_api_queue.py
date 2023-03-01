@@ -3,6 +3,9 @@ import time
 import typing
 import enum
 from typing import NamedTuple
+
+from aiohttp import ClientResponse
+
 from .data import RateLimit
 from .util import post_url, get_url, add_task
 
@@ -30,6 +33,7 @@ class _PendingTwitchApiRequest(NamedTuple):
     headers: dict
     mode: PendingTwitchAPIRequestMode
     future: asyncio.Future
+    body: typing.Optional[typing.Any] = None
 
 
 class TwitchApiRatelimitQueue:
@@ -59,9 +63,15 @@ class TwitchApiRatelimitQueue:
 
         return False
 
-    def append_url_request(self, url: str, headers: dict, mode: PendingTwitchAPIRequestMode) -> asyncio.Future:
+    def append_url_request(
+            self,
+            url: str,
+            headers: dict,
+            mode: PendingTwitchAPIRequestMode,
+            body: typing.Optional[typing.Any] = None
+    ) -> asyncio.Future[typing.Tuple[typing.Optional[ClientResponse], typing.Optional[dict[str, typing.Any]]]]:
         fut = asyncio.Future()
-        self.queue.put_nowait(_PendingTwitchApiRequest(url=url, headers=headers, future=fut, mode=mode))
+        self.queue.put_nowait(_PendingTwitchApiRequest(url=url, headers=headers, future=fut, mode=mode, body=body))
         return fut
 
     async def next_request(self) -> typing.Optional[_PendingTwitchApiRequest]:
@@ -88,8 +98,14 @@ class TwitchApiQueueSendHandler:
     def is_currently_ratelimited(self):
         return self.queue.is_currently_ratelimited
 
-    def enqueue_url_request(self, url: str, headers: dict, mode: PendingTwitchAPIRequestMode) -> asyncio.Future:
-        return self.queue.append_url_request(url, headers, mode)
+    def enqueue_url_request(
+            self,
+            url: str,
+            headers: dict,
+            mode: PendingTwitchAPIRequestMode,
+            body: typing.Optional[typing.Any] = None
+    ) -> asyncio.Future[typing.Tuple[typing.Optional[ClientResponse], typing.Optional[dict[str, typing.Any]]]]:
+        return self.queue.append_url_request(url=url, headers=headers, mode=mode, body=body)
 
     async def handle_next_request(self):
         if not self.has_next_request or self.queue.is_currently_ratelimited:
@@ -101,7 +117,7 @@ class TwitchApiQueueSendHandler:
 
         request = await self.queue.next_request()
         if request.mode is PendingTwitchAPIRequestMode.POST:
-            resp, json = await post_url(request.url, headers=request.headers)
+            resp, json = await post_url(request.url, headers=request.headers, body=request.body)
 
         elif request.mode is PendingTwitchAPIRequestMode.GET:
             resp, json = await get_url(request.url, headers=request.headers)
@@ -143,5 +159,6 @@ def start_twitch_api_queue_send_handler_loop():
     add_task(RATELIMITED_TWITCH_API_QUEUE_SEND_HANDLER_LOOP_TASK_NAME, asyncio.get_event_loop().create_task(_request_process_loop()))
 
 
-def enqueue_twitch_api_request(url: str, headers: dict, mode: PendingTwitchAPIRequestMode):
+def enqueue_twitch_api_request(url: str, headers: dict, mode: PendingTwitchAPIRequestMode, body: typing.Optional[typing.Any] = None) \
+        -> asyncio.Future[typing.Tuple[typing.Optional[ClientResponse], typing.Optional[dict[str, typing.Any]]]]:
     return twitch_api_queue_send_handler.enqueue_url_request(url, headers, mode)

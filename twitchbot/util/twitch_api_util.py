@@ -136,7 +136,13 @@ async def send_shoutout(channel_name: str, target_name: str, headers: dict = Non
     target_id = await get_user_id(target_name, headers)
     moderator_id = await get_user_id(get_nick(), headers)
 
-    resp, json = await post_url(SHOUTOUT_API_URL.format(channel_id, target_id, moderator_id), headers)
+    from ..ratelimit_twitch_api_queue import enqueue_twitch_api_request, PendingTwitchAPIRequestMode
+    resp, json = await enqueue_twitch_api_request(
+        SHOUTOUT_API_URL.format(channel_id, target_id, moderator_id),
+        headers=headers,
+        mode=PendingTwitchAPIRequestMode.POST
+    )
+    # resp, json = await post_url(SHOUTOUT_API_URL.format(channel_id, target_id, moderator_id), headers)
 
     if (resp.status != 204):
         warnings.warn(f'Shoutout failed with error code: {resp.status}. See "https://dev.twitch.tv/docs/api/reference/#send-a-shoutout"')
@@ -162,7 +168,14 @@ async def send_announcement(channel_name: str, message: str, color: str = None, 
     body = json_dumps({'message': message, 'color': color})
 
     headers.update({'Content-Type': 'application/json'})
-    resp, json = await post_url(ANNOUNCEMENTS_API_URL.format(channel_id, moderator_id), headers, body=body)
+    from ..ratelimit_twitch_api_queue import enqueue_twitch_api_request, PendingTwitchAPIRequestMode
+    resp, json = await enqueue_twitch_api_request(
+        ANNOUNCEMENTS_API_URL.format(channel_id, moderator_id),
+        headers=headers,
+        body=body,
+        mode=PendingTwitchAPIRequestMode.POST
+    )
+    # resp, json = await post_url(ANNOUNCEMENTS_API_URL.format(channel_id, moderator_id), headers, body=body)
 
     if (resp.status != 204):
         warnings.warn(f'Announcement failed with error code: {resp.status}. See "https://dev.twitch.tv/docs/api/reference/#send-chat-announcement"')
@@ -200,15 +213,22 @@ async def send_ban(channel_name: str, username: str, reason: str = None, timeout
         body = json_dumps({'data': {'user_id': user_id, 'reason': reason}})
 
     headers.update({'Content-Type': 'application/json'})
-    resp, json = await post_url(BAN_API_URL.format(channel_id, moderator_id), headers, body=body)
+    from ..ratelimit_twitch_api_queue import enqueue_twitch_api_request, PendingTwitchAPIRequestMode
+    # fixme: UserWarning: Ban failed with error code: 400 with message "Missing required parameter "user_id"". See "https://dev.twitch.tv/docs/api/reference/#ban-user"
+    resp, json = await enqueue_twitch_api_request(
+        BAN_API_URL.format(channel_id, moderator_id),
+        headers=headers,
+        body=body,
+        mode=PendingTwitchAPIRequestMode.POST
+    )
     # resp, json = await post_url(BAN_API_URL.format(channel_id, moderator_id), headers, body=body)
 
-    if (resp.status != 200):
+    if (resp is not None and resp.status != 200):
         returnMessage = json['message']
         warnings.warn(
             f'Ban failed with error code: {resp.status} with message "{returnMessage}". See "https://dev.twitch.tv/docs/api/reference/#ban-user"')
 
-    return
+    return resp
 
 
 async def get_user_data(user: str, headers: dict = None) -> dict:
@@ -220,7 +240,7 @@ async def get_user_data(user: str, headers: dict = None) -> dict:
     # _, json = await get_url(USER_API_URL.format(user), headers)
     from ..ratelimit_twitch_api_queue import enqueue_twitch_api_request, PendingTwitchAPIRequestMode
     _, json = await enqueue_twitch_api_request(USER_API_URL.format(user), headers, PendingTwitchAPIRequestMode.GET)
-    
+
     if not json.get('data'):
         return {}
 
