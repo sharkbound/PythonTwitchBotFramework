@@ -128,7 +128,7 @@ async def get_user_followage(channel_name: str, follower: str, headers: dict = N
 
 
 async def send_shoutout(channel_name: str, target_name: str, headers: dict = None) -> None:
-    headers = headers if headers is not None else get_headers()
+    headers = (headers if headers is not None else get_headers())
     if not _check_headers_has_auth(headers):
         warnings.warn('[SHOUTOUT] headers for the twitch api request are missing authorization')
 
@@ -145,7 +145,7 @@ async def send_shoutout(channel_name: str, target_name: str, headers: dict = Non
     # resp, json = await post_url(SHOUTOUT_API_URL.format(channel_id, target_id, moderator_id), headers)
 
     if (resp.status != 204):
-        warnings.warn(f'Shoutout failed with error code: {resp.status}. See "https://dev.twitch.tv/docs/api/reference/#send-a-shoutout"')
+        warnings.warn(f'Shoutout failed with error code: {resp.status}.\nResponse: {await resp.text("utf-8")}\nSee "https://dev.twitch.tv/docs/api/reference/#send-a-shoutout"')
 
     return
 
