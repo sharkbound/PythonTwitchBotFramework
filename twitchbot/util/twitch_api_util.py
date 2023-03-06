@@ -142,7 +142,6 @@ async def send_shoutout(channel_name: str, target_name: str, headers: dict = Non
         headers=headers,
         mode=PendingTwitchAPIRequestMode.POST
     )
-    # resp, json = await post_url(SHOUTOUT_API_URL.format(channel_id, target_id, moderator_id), headers)
 
     if (resp.status != 204):
         warnings.warn(f'Shoutout failed with error code: {resp.status}.\nResponse: {await resp.text("utf-8")}\nSee "https://dev.twitch.tv/docs/api/reference/#send-a-shoutout"', stacklevel=2)
@@ -178,7 +177,7 @@ async def send_announcement(channel_name: str, message: str, color: str = None, 
     # resp, json = await post_url(ANNOUNCEMENTS_API_URL.format(channel_id, moderator_id), headers, body=body)
 
     if (resp.status != 204):
-        warnings.warn(f'Announcement failed with error code: {resp.status}.\n Response Text: {await resp.text()}.\n See "https://dev.twitch.tv/docs/api/reference/#send-chat-announcement"', stacklevel=2)
+        warnings.warn(f'Announcement failed with error code: {resp.status}.\nResponse Text: {await resp.text()}.\nSee "https://dev.twitch.tv/docs/api/reference/#send-chat-announcement"', stacklevel=2)
 
     return
 
@@ -221,7 +220,6 @@ async def send_ban(channel_name: str, username: str, reason: str = None, timeout
         body=body,
         mode=PendingTwitchAPIRequestMode.POST
     )
-    # resp, json = await post_url(BAN_API_URL.format(channel_id, moderator_id), headers, body=body)
 
     if (resp is not None and resp.status != 200):
         returnMessage = json['message']
