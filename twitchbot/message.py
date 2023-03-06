@@ -1,4 +1,5 @@
 import traceback
+import warnings
 from datetime import datetime
 from itertools import islice
 from typing import List, Tuple, TYPE_CHECKING, Optional, Callable, Awaitable, Union
@@ -289,6 +290,8 @@ class Message:
         return tags is not None and all((tags.display_name, self.content is not None, tags.id, tags.user_id, self.author))
 
     async def send_command(self, msg: str = '', whisper=False):
+        warnings.warn('twitch moved commands to API Calls, sending them via chat commands using IRC no longer works,'
+                      ' instead use the `send_` functions from the twitchbot import', DeprecationWarning, stacklevel=2)
         msg = f'/{strip_twitch_command_prefix(msg)}'
         await self.reply(msg=msg, whisper=whisper, strip_command_prefix=False)
 
