@@ -61,7 +61,7 @@ async def _extract_response_and_json_from_request(resp):
 async def get_user_info(user: str) -> UserInfo:
     headers = get_headers()
     if not _check_headers_has_auth(headers):
-        warnings.warn('[GET_USER_INFO] headers for the twitch api request are missing authorization')
+        warnings.warn('[GET_USER_INFO] headers for the twitch api request are missing authorization', stacklevel=2)
         return UserInfo(-1, '', '', '', '', '', '', '', -1)
 
     _, json = await get_url(USER_API_URL.format(user), headers)
@@ -86,7 +86,7 @@ async def get_user_info(user: str) -> UserInfo:
 async def get_user_followers(user: str, headers: dict = None) -> UserFollowers:
     headers = headers if headers is not None else get_headers()
     if not _check_headers_has_auth(headers):
-        warnings.warn('[GET_USER_FOLLOWERS] headers for the twitch api request are missing authorization')
+        warnings.warn('[GET_USER_FOLLOWERS] headers for the twitch api request are missing authorization', stacklevel=2)
         return UserFollowers(-1, '', -1, '', -1, [])
 
     user_id = await get_user_id(user, headers)
@@ -107,7 +107,7 @@ async def get_user_followers(user: str, headers: dict = None) -> UserFollowers:
 async def get_user_followage(channel_name: str, follower: str, headers: dict = None) -> Follower:
     headers = headers if headers is not None else get_headers()
     if not _check_headers_has_auth(headers):
-        warnings.warn('[GET_USER_FOLLOWAGE] headers for the twitch api request are missing authorization')
+        warnings.warn('[GET_USER_FOLLOWAGE] headers for the twitch api request are missing authorization', stacklevel=2)
         return Follower(-1, '', -1, '', datetime.min)
 
     channel_id = await get_user_id(channel_name, headers)
@@ -130,7 +130,7 @@ async def get_user_followage(channel_name: str, follower: str, headers: dict = N
 async def send_shoutout(channel_name: str, target_name: str, headers: dict = None) -> None:
     headers = (headers.copy() if headers is not None else get_headers())
     if not _check_headers_has_auth(headers):
-        warnings.warn('[SHOUTOUT] headers for the twitch api request are missing authorization')
+        warnings.warn('[SHOUTOUT] headers for the twitch api request are missing authorization', stacklevel=2)
 
     channel_id = await get_user_id(channel_name, headers)
     target_id = await get_user_id(target_name, headers)
@@ -145,7 +145,7 @@ async def send_shoutout(channel_name: str, target_name: str, headers: dict = Non
     # resp, json = await post_url(SHOUTOUT_API_URL.format(channel_id, target_id, moderator_id), headers)
 
     if (resp.status != 204):
-        warnings.warn(f'Shoutout failed with error code: {resp.status}.\nResponse: {await resp.text("utf-8")}\nSee "https://dev.twitch.tv/docs/api/reference/#send-a-shoutout"')
+        warnings.warn(f'Shoutout failed with error code: {resp.status}.\nResponse: {await resp.text("utf-8")}\nSee "https://dev.twitch.tv/docs/api/reference/#send-a-shoutout"', stacklevel=2)
 
     return
 
@@ -153,16 +153,16 @@ async def send_shoutout(channel_name: str, target_name: str, headers: dict = Non
 async def send_announcement(channel_name: str, message: str, color: str = None, headers: dict = None) -> None:
     headers = headers.copy() if headers is not None else get_headers()
     if not _check_headers_has_auth(headers):
-        warnings.warn('[ANNOUNCEMENT] headers for the twitch api request are missing authorization')
+        warnings.warn('[ANNOUNCEMENT] headers for the twitch api request are missing authorization', stacklevel=2)
 
     channel_id = await get_user_id(channel_name, headers)
     moderator_id = await get_user_id(get_nick(), headers)
 
     if len(message) > 500:
-        warnings.warn(f'Announcements messages above 500 Characters are trunscated by Twitch. Given length is {len(message)}')
+        warnings.warn(f'Announcements messages above 500 Characters are trunscated by Twitch. Given length is {len(message)}', stacklevel=2)
 
-    if not color in ['blue', 'green', 'orange', 'purple']:
-        warnings.warn(f'Announcements color can only be blue, green, orange or purple. Given color is {color} defaulting to primary')
+    if color not in {'blue', 'green', 'orange', 'purple'}:
+        warnings.warn(f'Announcements color can only be blue, green, orange or purple. Given color is {color} defaulting to primary', stacklevel=2)
         color = 'primary'
 
     body = json_dumps({'message': message, 'color': color})
@@ -178,7 +178,7 @@ async def send_announcement(channel_name: str, message: str, color: str = None, 
     # resp, json = await post_url(ANNOUNCEMENTS_API_URL.format(channel_id, moderator_id), headers, body=body)
 
     if (resp.status != 204):
-        warnings.warn(f'Announcement failed with error code: {resp.status}. See "https://dev.twitch.tv/docs/api/reference/#send-chat-announcement"')
+        warnings.warn(f'Announcement failed with error code: {resp.status}.\n Response Text: {await resp.text()}.\n See "https://dev.twitch.tv/docs/api/reference/#send-chat-announcement"', stacklevel=2)
 
     return
 
@@ -186,7 +186,7 @@ async def send_announcement(channel_name: str, message: str, color: str = None, 
 async def send_ban(channel_name: str, username: str, reason: str = None, timeout: int = None, headers: dict = None) -> None:
     headers = headers.copy() if headers is not None else get_headers()
     if not _check_headers_has_auth(headers):
-        warnings.warn('[BAN] headers for the twitch api request are missing authorization')
+        warnings.warn('[BAN] headers for the twitch api request are missing authorization', stacklevel=2)
 
     channel_id = await get_user_id(channel_name, headers)
     user_id = await get_user_id(username, headers)
@@ -194,17 +194,17 @@ async def send_ban(channel_name: str, username: str, reason: str = None, timeout
 
     if len(reason) > 500:
         reason = reason[:500]
-        warnings.warn(f'[BAN] reasons above 500 Characters is limited by Twitch and will be trunscated. Given length is {len(reason)}.')
+        warnings.warn(f'[BAN] reasons above 500 Characters is limited by Twitch and will be trunscated. Given length is {len(reason)}.', stacklevel=2)
 
     # Split it into two If-statements for better understanding
     if timeout is not None:
         # Just for safety
         if not isinstance(timeout, int):
-            warnings.warn(f'[BAN] timeout need to be of type integer. Given type is {type(timeout)}. ABORTING!')
+            warnings.warn(f'[BAN] timeout need to be of type integer. Given type is {type(timeout)}. ABORTING!', stacklevel=2)
             return
 
         elif not 1 <= timeout <= 1209600:
-            warnings.warn(f'[BAN] timeout needs to be between 1 or 1209600 Seconds (2 Weeks). Given timout is {timeout}, setting to 600 Seconds.')
+            warnings.warn(f'[BAN] timeout needs to be between 1 or 1209600 Seconds (2 Weeks). Given timout is {timeout}, setting to 600 Seconds.', stacklevel=2)
             timeout = 600
 
         body = json_dumps({'data': {'user_id': user_id, 'duration': timeout, 'reason': reason}})
@@ -226,7 +226,7 @@ async def send_ban(channel_name: str, username: str, reason: str = None, timeout
     if (resp is not None and resp.status != 200):
         returnMessage = json['message']
         warnings.warn(
-            f'Ban failed with error code: {resp.status} with message "{returnMessage}". See "https://dev.twitch.tv/docs/api/reference/#ban-user"')
+            f'Ban failed with error code: {resp.status} with message "{returnMessage}". See "https://dev.twitch.tv/docs/api/reference/#ban-user"', stacklevel=2)
 
     return resp
 
@@ -234,7 +234,7 @@ async def send_ban(channel_name: str, username: str, reason: str = None, timeout
 async def get_user_data(user: str, headers: dict = None) -> dict:
     headers = headers if headers is not None else get_headers()
     if not _check_headers_has_auth(headers):
-        warnings.warn('[GET_USER_DATA] headers for the twitch api request are missing authorization')
+        warnings.warn('[GET_USER_DATA] headers for the twitch api request are missing authorization', stacklevel=2)
         return {}
 
     # _, json = await get_url(USER_API_URL.format(user), headers)
@@ -254,14 +254,14 @@ async def get_user_id(user: str, headers: dict = None, verbose=True) -> int:
 
     headers = headers if headers is not None else get_headers()
     if not _check_headers_has_auth(headers):
-        warnings.warn('[GET_USER_DATA] headers for the twitch api request are missing authorization')
+        warnings.warn('[GET_USER_DATA] headers for the twitch api request are missing authorization', stacklevel=2)
         return -1
 
     data = await get_user_data(user, headers)
 
     if not data:
         if verbose:
-            warnings.warn(f'[GET_USER_ID] unable to get user_id for username "{user}"')
+            warnings.warn(f'[GET_USER_ID] unable to get user_id for username "{user}"', stacklevel=2)
         return -1
 
     user_id_cache[user] = data['id']
@@ -271,7 +271,7 @@ async def get_user_id(user: str, headers: dict = None, verbose=True) -> int:
 async def get_stream_data(user_id: str, headers: dict = None) -> dict:
     headers = headers if headers is not None else get_headers()
     if not _check_headers_has_auth(headers):
-        warnings.warn('[GET_STREAM_DATA] headers for the twitch api request are missing authorization')
+        warnings.warn('[GET_STREAM_DATA] headers for the twitch api request are missing authorization', stacklevel=2)
         return {}
 
     _, json = await get_url(STREAM_API_URL.format(user_id), headers)
@@ -285,7 +285,7 @@ async def get_stream_data(user_id: str, headers: dict = None) -> dict:
 async def get_channel_chatters(channel: str, headers: dict = None) -> dict:
     headers = headers if headers is not None else get_headers()
     if not _check_headers_has_auth(headers):
-        warnings.warn('[GET_CHANNEL_CHATTERS] headers for the twitch api request are missing authorization')
+        warnings.warn('[GET_CHANNEL_CHATTERS] headers for the twitch api request are missing authorization', stacklevel=2)
         return {}
 
     _, data = await get_url(CHANNEL_CHATTERS_URL.format(channel))
@@ -322,7 +322,7 @@ async def get_channel_info(broadcaster_name_or_id: str, headers: dict = None) ->
 
     headers = headers if headers is not None else get_headers()
     if not _check_headers_has_auth(headers):
-        warnings.warn('[GET_CHANNEL_INFO] headers for the twitch api request are missing authorization')
+        warnings.warn('[GET_CHANNEL_INFO] headers for the twitch api request are missing authorization', stacklevel=2)
         return None
 
     if not broadcaster_name_or_id.strip().isnumeric():
@@ -353,7 +353,7 @@ async def get_channel_name_from_user_id(user_id: str, headers: dict = None) -> s
 
     headers = headers if headers is not None else get_headers()
     if not _check_headers_has_auth(headers):
-        warnings.warn('[GET_CHANNEL_NAME_FROM_USER_ID] headers for the twitch api request are missing authorization')
+        warnings.warn('[GET_CHANNEL_NAME_FROM_USER_ID] headers for the twitch api request are missing authorization', stacklevel=2)
         return ''
 
     channel_info = await get_channel_info(user_id, headers=headers)
