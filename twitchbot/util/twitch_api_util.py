@@ -213,7 +213,6 @@ async def send_ban(channel_name: str, username: str, reason: str = None, timeout
 
     headers.update({'Content-Type': 'application/json'})
     from ..ratelimit_twitch_api_queue import enqueue_twitch_api_request, PendingTwitchAPIRequestMode
-    # fixme: UserWarning: Ban failed with error code: 400 with message "Missing required parameter "user_id"". See "https://dev.twitch.tv/docs/api/reference/#ban-user"
     resp, json = await enqueue_twitch_api_request(
         BAN_API_URL.format(channel_id, moderator_id),
         headers=headers,
