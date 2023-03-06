@@ -161,4 +161,4 @@ def start_twitch_api_queue_send_handler_loop():
 
 def enqueue_twitch_api_request(url: str, headers: dict, mode: PendingTwitchAPIRequestMode, body: typing.Optional[typing.Any] = None) \
         -> asyncio.Future[typing.Tuple[typing.Optional[ClientResponse], typing.Optional[dict[str, typing.Any]]]]:
-    return twitch_api_queue_send_handler.enqueue_url_request(url, headers, mode)
+    return twitch_api_queue_send_handler.enqueue_url_request(url, headers, mode, body=body)
