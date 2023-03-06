@@ -128,7 +128,7 @@ async def get_user_followage(channel_name: str, follower: str, headers: dict = N
 
 
 async def send_shoutout(channel_name: str, target_name: str, headers: dict = None) -> None:
-    headers = (headers if headers is not None else get_headers())
+    headers = (headers.copy() if headers is not None else get_headers())
     if not _check_headers_has_auth(headers):
         warnings.warn('[SHOUTOUT] headers for the twitch api request are missing authorization')
 
@@ -151,7 +151,7 @@ async def send_shoutout(channel_name: str, target_name: str, headers: dict = Non
 
 
 async def send_announcement(channel_name: str, message: str, color: str = None, headers: dict = None) -> None:
-    headers = headers if headers is not None else get_headers()
+    headers = headers.copy() if headers is not None else get_headers()
     if not _check_headers_has_auth(headers):
         warnings.warn('[ANNOUNCEMENT] headers for the twitch api request are missing authorization')
 
@@ -184,7 +184,7 @@ async def send_announcement(channel_name: str, message: str, color: str = None, 
 
 
 async def send_ban(channel_name: str, username: str, reason: str = None, timeout: int = None, headers: dict = None) -> None:
-    headers = headers if headers is not None else get_headers()
+    headers = headers.copy() if headers is not None else get_headers()
     if not _check_headers_has_auth(headers):
         warnings.warn('[BAN] headers for the twitch api request are missing authorization')
 
