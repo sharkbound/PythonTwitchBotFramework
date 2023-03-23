@@ -23,7 +23,6 @@ def generate_auth_url(client_id, redirect, *scopes):
     scopes = join_scopes(*scopes)
     return f'https://id.twitch.tv/oauth2/authorize?response_type=token&client_id={client_id}&redirect_uri={redirect}&scope={scopes}'
 
-
 def generate_irc_oauth(client_id, redirect, *extra_scopes):
     return generate_auth_url(client_id, redirect, Scopes.CHAT_READ, Scopes.CHAT_EDIT, Scopes.CHANNEL_MODERATE, Scopes.WHISPERS_READ,
                              Scopes.WHISPERS_EDIT, Scopes.CHANNEL_EDITOR, Scopes.MODERATOR_ANNOUNCEMENT_MANAGE, Scopes.MODERATOR_SHOUTOUT_MANAGE, 

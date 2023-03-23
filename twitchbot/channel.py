@@ -71,7 +71,6 @@ class Channel:
     async def ban2(self, user: str, reason: str = '', timeout: int = None):
         """purges a user's messages then bans a user a given time in seconds (1 - 1209600 [2 weeks]; default permanent) from the channel using twitch API"""
         await send_ban(self.name, user, reason, timeout)
-        
 
     async def timeout(self, user: str, duration: int = 600):
         """
@@ -90,14 +89,14 @@ class Channel:
     async def color(self, color: str):
         """sets the bots chat color"""
         await self.send_command(f'color {color}')
-    
+
     async def shoutout(self, target: str):
         """
         Sends a shoutout to another streamer
         """
         await send_shoutout(self.name, target)
 
-    async def announcement(self, message:str, color:str = None):
+    async def announcement(self, message: str, color: str = None):
         """
         Creates an announcement with a message of maximum 500 chars and optional a color: blue, green, orange, purple
         """

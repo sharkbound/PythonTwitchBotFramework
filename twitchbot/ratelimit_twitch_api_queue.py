@@ -7,7 +7,7 @@ from typing import NamedTuple
 from aiohttp import ClientResponse
 
 from .data import RateLimit
-from .util import post_url, get_url, add_task
+from .util import post_url, get_url, add_task, delete_url
 
 __all__ = [
     'TwitchApiRatelimitQueue',
@@ -26,6 +26,7 @@ if typing.TYPE_CHECKING:
 class PendingTwitchAPIRequestMode(enum.Enum):
     POST = enum.auto()
     GET = enum.auto()
+    DELETE = enum.auto()
 
 
 class _PendingTwitchApiRequest(NamedTuple):
@@ -121,6 +122,9 @@ class TwitchApiQueueSendHandler:
 
         elif request.mode is PendingTwitchAPIRequestMode.GET:
             resp, json = await get_url(request.url, headers=request.headers)
+        
+        elif request.mode is PendingTwitchAPIRequestMode.DELETE:
+            resp, json = await delete_url(request.url, headers=request.headers)
 
         if resp is not None and json is not None:
             request.future.set_result((resp, json))

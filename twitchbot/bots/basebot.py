@@ -421,7 +421,6 @@ class BaseBot:
         while self._running:
             try:
                 raw_msg = await self.irc.get_next_message()
-                print(raw_msg)
             except BotNotRunningError:
                 return
 
