@@ -80,19 +80,19 @@ class Channel:
         """purges a user's messages then bans a user a given time in seconds (1 - 1209600 [2 weeks]; default permanent) from the channel using twitch API"""
         return await send_ban(self.name, user, reason, timeout)
 
-    async def timeout(self, user: str, duration: int = 600):
+    async def timeout(self, user: str, duration: int = 600, reason: str = '') -> 'SendTwitchApiResponseStatus':
         """
         purges a user's messages then times out the user (makes them unable to chat)
         for the specified duration (default 600 seconds)
         """
-        await self.send_command(f'timeout {user} {duration}')
+        return await send_ban(self.name, user, reason, duration)
 
-    async def purge(self, user: str):
+    async def purge(self, user: str) -> 'SendTwitchApiResponseStatus':
         """
         purges a user in the room (removes their messages via a 1 second timeout)
         :param user: user to purge
         """
-        await self.timeout(user, 1)
+        return await self.timeout(user, 1)
 
     async def color(self, color: str):
         """sets the bots chat color"""
