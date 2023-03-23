@@ -17,6 +17,7 @@ from .util import get_user_followers, get_headers, strip_twitch_command_prefix, 
 if typing.TYPE_CHECKING:
     from .bots import BaseBot
     from .irc import Irc
+    from .util import SendTwitchApiResponseStatus
 
 
 class Channel:
@@ -98,17 +99,17 @@ class Channel:
         """sets the bots chat color"""
         await self.send_command(f'color {color}')
 
-    async def shoutout(self, target: str):
+    async def shoutout(self, target: str) -> 'SendTwitchApiResponseStatus':
         """
         Sends a shoutout to another streamer
         """
-        await send_shoutout(self.name, target)
+        return await send_shoutout(self.name, target)
 
-    async def announcement(self, message: str, color: str = None):
+    async def announcement(self, message: str, color: str = None) -> 'SendTwitchApiResponseStatus':
         """
         Creates an announcement with a message of maximum 500 chars and optional a color: blue, green, orange, purple
         """
-        await send_announcement(self.name, message, color)
+        return await send_announcement(self.name, message, color)
 
     def __str__(self):
         return f'<Channel name={repr(self.name)}>'
