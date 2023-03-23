@@ -15,7 +15,7 @@ __all__ = ('CHANNEL_CHATTERS_URL', 'get_channel_chatters', 'get_stream_data', 'g
            'STREAM_API_URL', 'USER_API_URL', 'get_user_followers', 'USER_FOLLOWERS_API_URL', 'get_headers',
            'get_user_info', 'USER_ACCOUNT_AGE_API', 'CHANNEL_INFO_API', 'get_channel_info', 'ChannelInfo',
            'get_channel_name_from_user_id', 'OauthTokenInfo', 'get_oauth_token_info', '_check_token', 'post_url', 'USER_FOLLOWAGE_API_URL',
-           'get_user_followage', 'send_shoutout', 'send_announcement', 'send_ban', 'delete_url')
+           'get_user_followage', 'send_shoutout', 'send_announcement', 'send_ban', 'delete_url', 'send_unban')
 
 USER_API_URL = 'https://api.twitch.tv/helix/users?login={}'
 STREAM_API_URL = 'https://api.twitch.tv/helix/streams?user_login={}'
@@ -27,7 +27,7 @@ USER_FOLLOWAGE_API_URL = 'https://api.twitch.tv/helix/users/follows?to_id={}&fro
 SHOUTOUT_API_URL = 'https://api.twitch.tv/helix/chat/shoutouts?from_broadcaster_id={}&to_broadcaster_id={}&moderator_id={}'
 ANNOUNCEMENTS_API_URL = 'https://api.twitch.tv/helix/chat/announcements?broadcaster_id={}&moderator_id={}'
 BAN_API_URL = 'https://api.twitch.tv/helix/moderation/bans?broadcaster_id={}&moderator_id={}'
-UNBAN_API_URL = 'https://api.twitch.tv/helix/moderation/bans'
+UNBAN_API_URL = 'https://api.twitch.tv/helix/moderation/bans?broadcaster_id={}&moderator_id={}&user_id={}'
 
 user_id_cache: Dict[str, int] = {}
 
@@ -202,7 +202,6 @@ async def send_announcement(channel_name: str, message: str, color: str = None, 
         body=body,
         mode=PendingTwitchAPIRequestMode.POST
     )
-    # resp, json = await post_url(ANNOUNCEMENTS_API_URL.format(channel_id, moderator_id), headers, body=body)
 
     if (resp.status != 204):
         warnings.warn(
@@ -217,11 +216,35 @@ async def send_announcement(channel_name: str, message: str, color: str = None, 
         json=json
     )
 
-    return
+
+async def send_unban(channel_name: str, username: str, headers: dict = None) -> SendTwitchApiResponseStatus:
+    headers = headers.copy() if headers is not None else get_headers()
+    if not _check_headers_has_auth(headers):
+        warnings.warn('[UNBAN] headers for the twitch api request are missing authorization', stacklevel=2)
+
+    moderator_id = await get_user_id(get_nick(), headers)
+    broadcaster_id = await get_user_id(channel_name, headers)
+    user_id = await get_user_id(username, headers)
+    #                                                broadcaster_id={}&moderator_id={}&user_id={}
+    resp, json = await delete_url(UNBAN_API_URL.format(broadcaster_id, moderator_id, user_id))
+
+    if resp.status != 204:
+        warnings.warn(
+            f'[UNBAN] Unban failed with error code: {resp.status}.\nResponse Text: {await resp.text()}.\nSee "https://dev.twitch.tv/docs/api/reference/#unban-user"',
+            stacklevel=2)
+
+    return SendTwitchApiResponseStatus(
+        success=resp.status == 204,
+        status_code=resp.status,
+        resp=resp,
+        text=await resp.text(),
+        json=json,
+    )
 
 
-
-async def send_ban(channel_name: str, username: str, reason: str = None, timeout: int = None, headers: dict = None) -> SendTwitchApiResponseStatus:
+async def send_ban(
+        channel_name: str, username: str, reason: str = None, timeout: int = None, headers: dict = None
+) -> Optional[SendTwitchApiResponseStatus]:
     headers = headers.copy() if headers is not None else get_headers()
     if not _check_headers_has_auth(headers):
         warnings.warn('[BAN] headers for the twitch api request are missing authorization', stacklevel=2)
@@ -229,7 +252,10 @@ async def send_ban(channel_name: str, username: str, reason: str = None, timeout
     channel_id = await get_user_id(channel_name, headers)
     user_id = await get_user_id(username, headers)
     moderator_id = await get_user_id(get_nick(), headers)
-
+    
+    if reason is None:
+        reason = ''
+        
     if len(reason) > 500:
         reason = reason[:500]
         warnings.warn(f'[BAN] reasons above 500 Characters is limited by Twitch and will be truncated. Given length is {len(reason)}.', stacklevel=2)
@@ -239,7 +265,7 @@ async def send_ban(channel_name: str, username: str, reason: str = None, timeout
         # Just for safety
         if not isinstance(timeout, int):
             warnings.warn(f'[BAN] timeout need to be of type integer. Given type is {type(timeout)}. ABORTING!', stacklevel=2)
-            return
+            return None
 
         elif not 1 <= timeout <= 1209600:
             warnings.warn(f'[BAN] timeout needs to be between 1 or 1209600 Seconds (2 Weeks). Given timout is {timeout}, setting to 600 Seconds.',
