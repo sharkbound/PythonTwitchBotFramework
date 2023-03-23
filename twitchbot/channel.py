@@ -66,11 +66,19 @@ class Channel:
 
     async def ban(self, user: str, reason: str = ''):
         """purges a user's messages then permabans them from the channel"""
-        await self.send_command(f'ban {user} {reason}')
+        warnings.warn(
+            'sending bans via IRC is deprecated, please use `ban2` instead, which sends a twitch api request instead. If you are migrating from '
+            'a previous PythonTwitchBotFramework version, the irc oauth may need to be regenerated via the token_utils.py script\nFor the api '
+            'reference for the new ban endpoint see https://dev.twitch.tv/docs/api/reference/#ban-user', DeprecationWarning, stacklevel=2)
 
-    async def ban2(self, user: str, reason: str = '', timeout: int = None):
+        raise RuntimeError(
+            'sending bans via IRC is deprecated, please use `ban2` instead, which sends a twitch api request instead. If you are migrating from '
+            'a previous PythonTwitchBotFramework version, the irc oauth may need to be regenerated via the token_utils.py script\nFor the api '
+            'reference for the new ban endpoint see https://dev.twitch.tv/docs/api/reference/#ban-user')
+
+    async def ban2(self, user: str, reason: str = '', timeout: int = None) -> 'SendTwitchApiResponseStatus':
         """purges a user's messages then bans a user a given time in seconds (1 - 1209600 [2 weeks]; default permanent) from the channel using twitch API"""
-        await send_ban(self.name, user, reason, timeout)
+        return await send_ban(self.name, user, reason, timeout)
 
     async def timeout(self, user: str, duration: int = 600):
         """
