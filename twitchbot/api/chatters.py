@@ -49,10 +49,14 @@ class Chatters:
             self.all_viewers = self.vips | self.mods | self.staff | self.admins | self.global_mods | self.viewers | {
                 self.channel}
         except Exception as e:
-            print(f'\nCHATTERS API ERROR\n')
-            print(f'json received: {json}\nexception ({type(e)}): {e}\n')
-            print(f'stack trace:\n{traceback.format_exc()}')
-            print('END CHATTERS API ERROR\n')
+            # twitch seems to have removed the chatters from the response from the API for some reason
+            # don't want to spam the user with this error again and again, so until a better solution is found for 
+            # tracking viewers for the loyalty ticker, just pass for now.
+            pass
+            # print(f'\nCHATTERS API ERROR\n')
+            # print(f'json received: {json}\nexception ({type(e)}): {e}\n')
+            # print(f'stack trace:\n{traceback.format_exc()}')
+            # print('END CHATTERS API ERROR\n')
 
     def __contains__(self, item):
         return item.lower() in self.all_viewers
