@@ -164,8 +164,9 @@ async def send_shoutout(channel_name: str, target_name: str, headers: dict = Non
     )
 
     if (resp.status != 204):
+        resp_text = await resp.text("utf-8")
         warnings.warn(
-            f'Shoutout failed with error code: {resp.status}.\nResponse: {await resp.text("utf-8")}\nSee "https://dev.twitch.tv/docs/api/reference/#send-a-shoutout"',
+            f'Shoutout failed with error code: {resp.status}.\nResponse: {resp_text}\nSee "https://dev.twitch.tv/docs/api/reference/#send-a-shoutout"',
             stacklevel=2)
 
     return SendTwitchApiResponseStatus(
@@ -204,8 +205,9 @@ async def send_announcement(channel_name: str, message: str, color: str = None, 
     )
 
     if (resp.status != 204):
+        resp_text  = await resp.text("utf-8")
         warnings.warn(
-            f'Announcement failed with error code: {resp.status}.\nResponse Text: {await resp.text()}.\nSee "https://dev.twitch.tv/docs/api/reference/#send-chat-announcement"',
+            f'Announcement failed with error code: {resp.status}.\nResponse Text: {resp_text}.\nSee "https://dev.twitch.tv/docs/api/reference/#send-chat-announcement"',
             stacklevel=2)
 
     return SendTwitchApiResponseStatus(
@@ -229,8 +231,9 @@ async def send_unban(channel_name: str, username: str, headers: dict = None) -> 
     resp, json = await delete_url(UNBAN_API_URL.format(broadcaster_id, moderator_id, user_id))
 
     if resp.status != 204:
+        resp_text = await resp.text()
         warnings.warn(
-            f'[UNBAN] Unban failed with error code: {resp.status}.\nResponse Text: {await resp.text()}.\nSee "https://dev.twitch.tv/docs/api/reference/#unban-user"',
+            f'[UNBAN] Unban failed with error code: {resp.status}.\nResponse Text: {resp_text}.\nSee "https://dev.twitch.tv/docs/api/reference/#unban-user"',
             stacklevel=2)
 
     return SendTwitchApiResponseStatus(

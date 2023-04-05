@@ -13,7 +13,7 @@ class RateLimit(NamedTuple):
     reset: int
 
     @staticmethod
-    def from_headers_or_none(headers: Union[dict, CIMultiDictProxy[str]]) -> Optional['RateLimit']:
+    def from_headers_or_none(headers: Union[dict, CIMultiDictProxy]) -> Optional['RateLimit']:
         """
         :param headers: dict of headers from the twitch response, expects these keys to be present: ('Ratelimit-Limit', 'Ratelimit-Reset', 'Ratelimit-Remaining')
         :return:
