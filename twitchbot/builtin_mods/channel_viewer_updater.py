@@ -16,8 +16,9 @@ class ChannelViewUpdaterMod(Mod):
             for channel in tuple(channels.values()):
                 await channel.chatters.update()
                 await channel.stats.update()
-                channel.is_mod = get_nick().lower() in channel.chatters.mods
-                channel.is_vip = get_nick().lower() in channel.chatters.vips
+                # TODO: set is_mod and is_vip based on chat tags maybe? maybe an API call?
+                # channel.is_mod = get_nick().lower() in channel.chatters.mods
+                # channel.is_vip = get_nick().lower() in channel.chatters.vips
                 await asyncio.sleep(5)  # delay each updates between channels to avoid sending too many requests too quick
             await asyncio.sleep(120)  # only update channels every 2 minutes
 

@@ -11,7 +11,7 @@ from async_timeout import timeout
 from ..config import get_client_id, get_oauth, get_nick, DEFAULT_CLIENT_ID
 from ..data import UserFollowers, UserInfo, Follower
 
-__all__ = ('CHANNEL_CHATTERS_URL', 'get_channel_chatters', 'get_stream_data', 'get_url', 'get_user_data', 'get_user_id',
+__all__ = ('CHANNEL_CHATTERS_API_URL', 'get_channel_chatters', 'get_stream_data', 'get_url', 'get_user_data', 'get_user_id',
            'STREAM_API_URL', 'USER_API_URL', 'get_user_followers', 'USER_FOLLOWERS_API_URL', 'get_headers',
            'get_user_info', 'USER_ACCOUNT_AGE_API', 'CHANNEL_INFO_API', 'get_channel_info', 'ChannelInfo',
            'get_channel_name_from_user_id', 'OauthTokenInfo', 'get_oauth_token_info', '_check_token', 'post_url', 'USER_FOLLOWAGE_API_URL',
@@ -19,7 +19,7 @@ __all__ = ('CHANNEL_CHATTERS_URL', 'get_channel_chatters', 'get_stream_data', 'g
 
 USER_API_URL = 'https://api.twitch.tv/helix/users?login={}'
 STREAM_API_URL = 'https://api.twitch.tv/helix/streams?user_login={}'
-CHANNEL_CHATTERS_URL = 'https://tmi.twitch.tv/group/user/{}/chatters'
+CHANNEL_CHATTERS_API_URL = 'https://api.twitch.tv/helix/chat/chatters?moderator_id={}&broadcaster_id={}'
 USER_FOLLOWERS_API_URL = 'https://api.twitch.tv/helix/users/follows?to_id={}'
 USER_ACCOUNT_AGE_API = 'https://api.twitch.tv/kraken/users/{}'
 CHANNEL_INFO_API = 'https://api.twitch.tv/helix/channels?broadcaster_id={}'
@@ -205,7 +205,7 @@ async def send_announcement(channel_name: str, message: str, color: str = None, 
     )
 
     if (resp.status != 204):
-        resp_text  = await resp.text("utf-8")
+        resp_text = await resp.text("utf-8")
         warnings.warn(
             f'Announcement failed with error code: {resp.status}.\nResponse Text: {resp_text}.\nSee "https://dev.twitch.tv/docs/api/reference/#send-chat-announcement"',
             stacklevel=2)
@@ -255,10 +255,10 @@ async def send_ban(
     channel_id = await get_user_id(channel_name, headers)
     user_id = await get_user_id(username, headers)
     moderator_id = await get_user_id(get_nick(), headers)
-    
+
     if reason is None:
         reason = ''
-        
+
     if len(reason) > 500:
         reason = reason[:500]
         warnings.warn(f'[BAN] reasons above 500 Characters is limited by Twitch and will be truncated. Given length is {len(reason)}.', stacklevel=2)
@@ -356,12 +356,22 @@ async def get_stream_data(user_id: str, headers: dict = None) -> dict:
 
 
 async def get_channel_chatters(channel: str, headers: dict = None) -> dict:
-    headers = headers if headers is not None else get_headers()
+    headers = headers.copy() if headers is not None else get_headers()
+    
     if not _check_headers_has_auth(headers):
         warnings.warn('[GET_CHANNEL_CHATTERS] headers for the twitch api request are missing authorization', stacklevel=2)
         return {}
 
-    _, data = await get_url(CHANNEL_CHATTERS_URL.format(channel))
+    resp, data = await get_url(CHANNEL_CHATTERS_API_URL.format(await get_user_id(get_nick(), headers), await get_user_id(channel, headers)))
+    
+    if resp.status == 403:
+        print(f'[GET_CHANNEL_CHATTERS] Failed to get channel chatters for channel "{channel}"; Twitch responded with 403 (Forbidden).\n\t'
+              f'Make sure that provided token has the scope access `moderator:read:chatters` for channel "{channel}"')
+        return {}
+
+    if resp.status != 200 or data.get('error') is not None:
+        return {}
+
     return data
 
 
