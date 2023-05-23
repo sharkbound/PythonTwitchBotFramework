@@ -357,13 +357,17 @@ async def get_stream_data(user_id: str, headers: dict = None) -> dict:
 
 async def get_channel_chatters(channel: str, headers: dict = None) -> dict:
     headers = headers.copy() if headers is not None else get_headers()
-    
+
     if not _check_headers_has_auth(headers):
         warnings.warn('[GET_CHANNEL_CHATTERS] headers for the twitch api request are missing authorization', stacklevel=2)
         return {}
 
-    resp, data = await get_url(CHANNEL_CHATTERS_API_URL.format(await get_user_id(get_nick(), headers), await get_user_id(channel, headers)))
-    
+    from ..ratelimit_twitch_api_queue import enqueue_twitch_api_request, PendingTwitchAPIRequestMode
+    resp, data = await enqueue_twitch_api_request(
+        CHANNEL_CHATTERS_API_URL.format(await get_user_id(get_nick(), headers), await get_user_id(channel, headers)), headers,
+        PendingTwitchAPIRequestMode.GET
+    )
+
     if resp.status == 403:
         print(f'[GET_CHANNEL_CHATTERS] Failed to get channel chatters for channel "{channel}"; Twitch responded with 403 (Forbidden).\n\t'
               f'Make sure that provided token has the scope access `moderator:read:chatters` for channel "{channel}"')

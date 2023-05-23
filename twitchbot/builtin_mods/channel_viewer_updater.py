@@ -3,7 +3,7 @@ import asyncio
 from twitchbot import Mod, channels, get_nick, add_task, stop_task
 
 
-class ChannelViewUpdaterMod(Mod):
+class ChannelStatUpdaterMod(Mod):
     name = 'channelviewerupdater'
     TASK_NAME = 'channelviewerupdateloop'
 
@@ -14,12 +14,9 @@ class ChannelViewUpdaterMod(Mod):
 
             # convert channels.values() to a tuple to be sure it will not resize while iterating over it
             for channel in tuple(channels.values()):
-                await channel.chatters.update()
-                await channel.stats.update()
-                # TODO: set is_mod and is_vip based on chat tags maybe? maybe an API call?
-                # channel.is_mod = get_nick().lower() in channel.chatters.mods
-                # channel.is_vip = get_nick().lower() in channel.chatters.vips
-                await asyncio.sleep(5)  # delay each updates between channels to avoid sending too many requests too quick
+                # await channel.chatters.update()
+                await channel.stats.update() # todo: check this uses queued api requests
+                await asyncio.sleep(3)  # delay each updates between channels to avoid sending too many requests too quick
             await asyncio.sleep(120)  # only update channels every 2 minutes
 
     async def loaded(self):
