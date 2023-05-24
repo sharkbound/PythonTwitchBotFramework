@@ -346,8 +346,9 @@ async def get_stream_data(user_id: str, headers: dict = None) -> dict:
     if not _check_headers_has_auth(headers):
         warnings.warn('[GET_STREAM_DATA] headers for the twitch api request are missing authorization', stacklevel=2)
         return {}
-
-    _, json = await get_url(STREAM_API_URL.format(user_id), headers)
+    
+    from ..ratelimit_twitch_api_queue import enqueue_twitch_api_request, PendingTwitchAPIRequestMode
+    _, json = await enqueue_twitch_api_request(STREAM_API_URL.format(user_id), headers, PendingTwitchAPIRequestMode.GET)
 
     if not json.get('data'):
         return {}
@@ -418,8 +419,9 @@ async def get_channel_info(broadcaster_name_or_id: str, headers: dict = None) ->
             return None
     else:
         user_id = broadcaster_name_or_id
-
-    _, json = await get_url(CHANNEL_INFO_API.format(user_id), headers=headers)
+        
+    from ..ratelimit_twitch_api_queue import enqueue_twitch_api_request, PendingTwitchAPIRequestMode
+    _, json =  await enqueue_twitch_api_request(CHANNEL_INFO_API.format(user_id), headers, PendingTwitchAPIRequestMode.GET)
     data = dict_get_value(json, 'data', 0)
 
     if not data:
