@@ -1,4 +1,5 @@
 from asyncio import Task
+from typing import ClassVar
 
 from sqlalchemy import Column, Integer, String, Float, Boolean
 
@@ -92,7 +93,7 @@ class MessageTimer(Base):
     message = Column(String(520), nullable=False)
     interval = Column(Float, nullable=False)
     active = Column(Boolean, nullable=False, default=False)
-    task: Task = None
+    task: ClassVar[Task] = None
 
     @property
     def running(self):
