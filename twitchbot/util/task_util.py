@@ -1,13 +1,22 @@
 from asyncio import ensure_future, Task, sleep, get_event_loop, Future
 from typing import Dict, Coroutine, Optional, Tuple
 
-__all__ = ('active_tasks', 'add_task', 'get_task', 'task_running', 'stop_task', 'task_exist', 'stop_all_tasks', 'add_nameless_task')
+__all__ = (
+    'active_tasks',
+    'add_task',
+    'get_task',
+    'task_running',
+    'stop_task',
+    'task_exist',
+    'stop_all_tasks',
+    'add_nameless_task',
+)
 
 active_tasks: Dict[str, Task] = {}
 
 
 def add_task(name: str, coro: Coroutine):
-    # stop any task matching the name name
+    # stop any task matching the name
     # this ensures that there are not duplicated "floating" tasks that should not be there
     if task_running(name):
         stop_task(name)
