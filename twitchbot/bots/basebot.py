@@ -324,6 +324,7 @@ class BaseBot:
             await self.irc.send(f'PART #{channel}')
             await asyncio.sleep(.4)
         await self.irc.send('QUIT')
+        await self.irc.try_close_connection()
         self._running = False
 
     def _get_event_loop(self):
@@ -395,15 +396,15 @@ class BaseBot:
         self._create_channels()
 
         await self.irc.connect_to_twitch()
-        
+
         from ..ratelimit_twitch_api_queue import start_twitch_api_queue_send_handler_loop
         start_twitch_api_queue_send_handler_loop()
-        
+
         await self.on_connected()
-        
+
         await trigger_mod_event(Event.on_connected)
         await trigger_event(Event.on_connected)
-        
+
         await self._read_process_loop()
 
         # clean up mods when the bot is exiting

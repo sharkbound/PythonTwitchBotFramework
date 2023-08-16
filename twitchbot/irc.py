@@ -54,6 +54,10 @@ class Irc:
     def connected(self):
         return self.socket and self.socket.open
 
+    async def try_close_connection(self):
+        if self.connected:
+            await self.socket.close()
+
     async def connect_to_twitch(self):
         """
         connects to twitch and verifies the connection
