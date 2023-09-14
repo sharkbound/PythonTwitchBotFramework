@@ -122,7 +122,6 @@ async def get_user_followage(channel_name: str, follower: str, headers: dict = N
     channel_id = await get_user_id(channel_name, headers)
     follower_id = await get_user_id(follower, headers)
     _, json = await get_url(USER_FOLLOWAGE_API_URL.format(channel_id, follower_id), headers)
-    warnings.warn(f'{json}', stacklevel=2)
 
     # verify that the api response has data, and its total is not 0
     if not json or not json.get('total', 0) or not json.get('data'):
