@@ -23,7 +23,7 @@ CHANNEL_CHATTERS_API_URL = 'https://api.twitch.tv/helix/chat/chatters?moderator_
 USER_FOLLOWERS_API_URL = 'https://api.twitch.tv/helix/users/follows?to_id={}'
 USER_ACCOUNT_AGE_API = 'https://api.twitch.tv/kraken/users/{}'
 CHANNEL_INFO_API = 'https://api.twitch.tv/helix/channels?broadcaster_id={}'
-USER_FOLLOWAGE_API_URL = 'https://api.twitch.tv/helix/users/follows?to_id={}&from_id={}'
+USER_FOLLOWAGE_API_URL = 'https://api.twitch.tv/helix/channels/followers?broadcaster_id={}&user_id={}'
 SHOUTOUT_API_URL = 'https://api.twitch.tv/helix/chat/shoutouts?from_broadcaster_id={}&to_broadcaster_id={}&moderator_id={}'
 ANNOUNCEMENTS_API_URL = 'https://api.twitch.tv/helix/chat/announcements?broadcaster_id={}&moderator_id={}'
 BAN_API_URL = 'https://api.twitch.tv/helix/moderation/bans?broadcaster_id={}&moderator_id={}'
@@ -131,7 +131,7 @@ async def get_user_followage(channel_name: str, follower: str, headers: dict = N
     return Follower(following=channel_name,
                     following_id=channel_id,
                     id=follower_id,
-                    name=json['data'][0]['from_name'],
+                    name=json['data'][0]['user_name'],
                     # datetime format: 2019-10-23T23:12:06Z
                     followed_at=datetime.fromisoformat(json['data'][0]['followed_at'][:-1]))
 
