@@ -3,6 +3,7 @@ from asyncio import sleep, get_event_loop
 import typing
 from collections import defaultdict
 from datetime import datetime
+from .util import add_nameless_task
 
 if typing.TYPE_CHECKING:
     from .channel import Channel
@@ -81,5 +82,5 @@ async def whisper_sent_reset_loop():
         await sleep(1)
 
 
-get_event_loop().create_task(privmsg_sent_reset_loop())
-get_event_loop().create_task(whisper_sent_reset_loop())
+add_nameless_task(privmsg_sent_reset_loop())
+add_nameless_task(whisper_sent_reset_loop())
