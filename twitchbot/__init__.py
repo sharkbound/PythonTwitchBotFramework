@@ -1,6 +1,6 @@
 from .bot_package_path import _set_bot_package_path, get_bot_package_path
 
-BOT_VERSION = (2, 11, 4)
+BOT_VERSION = (2, 11, 5)
 _set_bot_package_path(__path__[0])
 
 from .arena import *
