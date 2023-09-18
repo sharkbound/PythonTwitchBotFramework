@@ -46,6 +46,7 @@ class BaseBot:
         self.irc = Irc()
         self._running = False
         self.pubsub = PubSubClient()
+        self.mainloop_task: Optional[asyncio.Task] = None
         set_bot(self)
 
     # region events
@@ -339,7 +340,7 @@ class BaseBot:
 
     def run_in_async_task(self):
         """runs the bot in a separate asyncio task to allow other async bot/systems to run along side it"""
-        self._get_event_loop().create_task(self.mainloop())
+        self.mainloop_task = self._get_event_loop().create_task(self.mainloop())
 
     def run_threaded(self) -> Thread:
         """runs/starts the bot in its own thread, this is a NON-BLOCKING function that starts the mainloop"""
