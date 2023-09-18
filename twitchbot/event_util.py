@@ -65,11 +65,11 @@ def forward_event(event: Event, *args: Any, channel: Union['Channel', 'Message',
     forwards a event to all event systems
     """
     channel = _get_channel_name(channel)
-
-    loop = get_event_loop()
-    loop.create_task(trigger_event(event, *args))
-    loop.create_task(trigger_mod_event(event, *args, channel=channel))
-    loop.create_task(_get_bot_event(event)(*args))
+    
+    from .util.task_util import add_nameless_task
+    add_nameless_task(trigger_event(event, *args))
+    add_nameless_task(trigger_mod_event(event, *args, channel=channel))
+    add_nameless_task(_get_bot_event(event)(*args))
 
 
 async def forward_event_with_results(
