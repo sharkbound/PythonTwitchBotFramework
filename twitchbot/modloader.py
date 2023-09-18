@@ -23,7 +23,7 @@ from .enums import Event
 from .events import trigger_event, AsyncEventWrapper
 from .message import Message
 from .shared import get_bot
-from .util import temp_syspath, get_py_files, get_file_name
+from .util import temp_syspath, get_py_files, get_file_name, add_nameless_task
 from .translations import translate
 
 __all__ = ('ensure_mods_folder_exists', 'Mod', 'register_mod', 'trigger_mod_event', 'mods',
@@ -270,7 +270,7 @@ def register_mod(mod: Mod) -> bool:
         return False
 
     mods[mod.name_or_class_name()] = mod
-    get_event_loop().create_task(mod.loaded())
+    add_nameless_task(mod.loaded())
     return True
 
 
@@ -283,7 +283,7 @@ def unregister_mod(mod: Mod) -> bool:
     if mod.name_or_class_name() not in mods:
         return False
 
-    get_event_loop().create_task(mod.unloaded())
+    add_nameless_task(mod.unloaded())
     del mods[mod.name_or_class_name()]
     return True
 
@@ -396,6 +396,8 @@ def iter_mods_from_directory(fullpath, predicate: Callable[[str, Any], bool] = N
                     yield obj
 
 
+
+
 def reload_mod(mod_name: str):
     mod = mods.get(mod_name)
     if mod is None:
@@ -426,9 +428,9 @@ def reload_mod(mod_name: str):
                             var.unregister()
 
                     # trigger events
-                    get_event_loop().create_task(trigger_mod_event(Event.on_mod_reloaded, reloaded_mod))
-                    get_event_loop().create_task(get_bot().on_mod_reloaded(reloaded_mod))
-                    get_event_loop().create_task(trigger_event(Event.on_mod_reloaded, reloaded_mod))
+                    add_nameless_task(trigger_mod_event(Event.on_mod_reloaded, reloaded_mod))
+                    add_nameless_task(get_bot().on_mod_reloaded(reloaded_mod))
+                    add_nameless_task(trigger_event(Event.on_mod_reloaded, reloaded_mod))
                     return True
 
     except Exception as e:
