@@ -82,8 +82,9 @@ async def _remove_done_tasks():
         done_tasks = tuple(k for k, t in active_tasks.items() if t.done())
         for k in done_tasks:
             del active_tasks[k]
+            # print(f'[REMOVE_DONE_TASKS] removed task with name "{k}"')
 
         await sleep(15)
 
 
-get_event_loop().create_task(_remove_done_tasks())
+add_nameless_task(_remove_done_tasks())
