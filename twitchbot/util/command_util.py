@@ -2,6 +2,7 @@ import re
 from asyncio import get_event_loop
 from typing import List, TYPE_CHECKING, Type, Union, Callable, Any, Optional
 from ..exceptions import InvalidArgumentsError
+from .task_util import add_nameless_task
 
 if TYPE_CHECKING:
     from ..message import Message
@@ -53,7 +54,7 @@ async def run_command(name: str, msg: 'Message', args: List[str] = None, blockin
     if blocking:
         await cmd.execute(new_msg)
     else:
-        get_event_loop().create_task(cmd.execute(new_msg))
+        add_nameless_task(cmd.execute(new_msg))
 
 
 RE_TWITCH_COMMAND_PREFIX = re.compile(r'^[./]+')
