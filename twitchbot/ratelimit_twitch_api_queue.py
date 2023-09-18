@@ -165,7 +165,7 @@ RATELIMITED_TWITCH_API_QUEUE_SEND_HANDLER_LOOP_TASK_NAME = 'ratelimited_twitch_a
 
 
 def start_twitch_api_queue_send_handler_loop():
-    add_task(RATELIMITED_TWITCH_API_QUEUE_SEND_HANDLER_LOOP_TASK_NAME, asyncio.get_event_loop().create_task(_request_process_loop()))
+    add_task(RATELIMITED_TWITCH_API_QUEUE_SEND_HANDLER_LOOP_TASK_NAME, _request_process_loop())
 
 
 def enqueue_twitch_api_request(url: str, headers: dict, mode: PendingTwitchAPIRequestMode, body: Optional[Any] = None) \
