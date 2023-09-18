@@ -1,6 +1,6 @@
 from pathlib import Path
 from .config import Config
-from asyncio import get_event_loop
+from .util import add_nameless_task
 
 __all__ = ('cfg_disabled_mods', 'disable_mod', 'enable_mod', 'is_mod_disabled')
 
@@ -42,7 +42,7 @@ def disable_mod(channel: str, mod: str):
         cfg_disabled_mods[channel].append(mod)
         cfg_disabled_mods.save()
 
-    get_event_loop().create_task(mods[mod].on_disable(channel))
+    add_nameless_task(mods[mod].on_disable(channel))
 
 
 def enable_mod(channel: str, mod: str):
@@ -61,7 +61,7 @@ def enable_mod(channel: str, mod: str):
 
     cfg_disabled_mods[channel].remove(mod)
     cfg_disabled_mods.save()
-    get_event_loop().create_task(mods[mod].on_enable(channel))
+    add_nameless_task(mods[mod].on_enable(channel))
 
 
 cfg_disabled_mods = Config(Path('configs', 'disabled_mods.json'))
