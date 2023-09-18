@@ -439,7 +439,7 @@ class BaseBot:
                         or (msg.is_privmsg and cmd.context & CommandContext.CHANNEL)):
                 if logging_config.log_command_usage:
                     msg.safe_print()
-                get_event_loop().create_task(self._run_command(msg, cmd))
+                util.add_nameless_task(self._run_command(msg, cmd))
 
             elif msg.type is MessageType.WHISPER:
                 if logging_config.log_whisper:
