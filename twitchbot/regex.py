@@ -45,3 +45,13 @@ RE_NOTICE = re.compile(
 RE_TIMEOUT_DURATION = re.compile(
     r'timed out for (?P<seconds>\d+)'
 )
+
+#    @badge-info=;badges=moderator/1;color=#9ACD32;display-name=HammerheadB0t;emote-sets=0,300374282;mod=1;subscriber=0;user-type=mod :tmi.twitch.tv USERSTATE #userman2
+RE_USER_STATE = re.compile(
+    r'(?P<tags>.*?):tmi\.twitch\.tv USERSTATE #(?P<channel>[\w\d]+)'
+)
+
+#    @emote-only=0;followers-only=-1;r9k=0;room-id=35927458;slow=0;subs-only=0 :tmi.twitch.tv ROOMSTATE #userman2
+RE_ROOM_STATE = re.compile(
+    r'(?P<tags>.*?):tmi\.twitch\.tv ROOMSTATE #(?P<channel>[\w\d]+)'
+)
