@@ -31,6 +31,7 @@ class MessageType(NamedEnum):
     NOTICE = auto()
     BOT_PERMANENTLY_BANNED = auto()
     BOT_TIMED_OUT = auto()
+    USER_STATE = auto()
     NONE = auto()
 
 
