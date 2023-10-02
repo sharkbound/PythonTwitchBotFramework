@@ -289,6 +289,20 @@ class Message:
         tags = self.tags
         return tags is not None and all((tags.display_name, self.content is not None, tags.id, tags.user_id, self.author))
 
+    @property
+    def has_broadcaster_badge(self):
+        return bool(self.tags.badges.get('broadcaster'))
+
+    @property
+    def has_moderator_badge(self):
+        return bool(self.tags.badges.get('moderator'))
+
+    def has_badge(self, badge_name: str) -> bool:
+        return badge_name in self.tags.badges
+
+    def get_badge_value(self, badge_name: str) -> Optional[Union[str, int]]:
+        return self.tags.badges.get(badge_name)
+
     async def send_command(self, msg: str = '', whisper=False):
         warnings.warn('twitch moved commands to API Calls, sending them via chat commands using IRC no longer works,'
                       ' instead use the `send_` functions from the twitchbot import', DeprecationWarning, stacklevel=2)
