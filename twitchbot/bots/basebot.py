@@ -428,58 +428,62 @@ class BaseBot:
 
             if not raw_msg:
                 continue
+            
+            # split by \r\n here to handle cases when multiple messages are received in one websocket read
+            # this happens with USERSTATE and ROOMSTATE messages
+            for message in raw_msg.split('\r\n'):
+                msg = Message(message, irc=self.irc, bot=self)
+                await self.handle_incoming_message(msg)
 
-            msg = Message(raw_msg, irc=self.irc, bot=self)
+    async def handle_incoming_message(self, msg: 'Message'):
+        forward_event(Event.on_raw_message, msg, channel=msg.channel_name)
+        cmd: Command = (await self.get_command_from_msg(msg)
+                        if msg.is_user_message
+                        else None)
+        if cmd and ((msg.is_whisper and cmd.context & CommandContext.WHISPER)
+                    or (msg.is_privmsg and cmd.context & CommandContext.CHANNEL)):
+            if logging_config.log_command_usage:
+                msg.safe_print()
+            util.add_nameless_task(self._run_command(msg, cmd))
 
-            forward_event(Event.on_raw_message, msg, channel=msg.channel_name)
-            cmd: Command = (await self.get_command_from_msg(msg)
-                            if msg.is_user_message
-                            else None)
+        elif msg.type is MessageType.WHISPER:
+            if logging_config.log_whisper:
+                msg.safe_print()
+            forward_event(Event.on_whisper_received, msg, channel=msg.channel_name)
 
-            if cmd and ((msg.is_whisper and cmd.context & CommandContext.WHISPER)
-                        or (msg.is_privmsg and cmd.context & CommandContext.CHANNEL)):
-                if logging_config.log_command_usage:
-                    msg.safe_print()
-                util.add_nameless_task(self._run_command(msg, cmd))
+        elif msg.type is MessageType.PRIVMSG:
+            if logging_config.log_privmsg:
+                msg.safe_print()
+            forward_event(Event.on_privmsg_received, msg, channel=msg.channel_name)
 
-            elif msg.type is MessageType.WHISPER:
-                if logging_config.log_whisper:
-                    msg.safe_print()
-                forward_event(Event.on_whisper_received, msg, channel=msg.channel_name)
+        elif msg.type is MessageType.USER_JOIN:
+            # the bot has joined a channel
+            if msg.author == get_nick():
+                forward_event(Event.on_channel_joined, msg.channel, channel=msg.channel_name)
+            # user joined a channel the bot was in
+            else:
+                forward_event(Event.on_user_join, msg.author, msg.channel, channel=msg.channel_name)
 
-            elif msg.type is MessageType.PRIVMSG:
-                if logging_config.log_privmsg:
-                    msg.safe_print()
-                forward_event(Event.on_privmsg_received, msg, channel=msg.channel_name)
+        elif msg.type is MessageType.USER_PART:
+            forward_event(Event.on_user_part, msg.author, msg.channel, channel=msg.channel_name)
 
-            elif msg.type is MessageType.USER_JOIN:
-                # the bot has joined a channel
-                if msg.author == get_nick():
-                    forward_event(Event.on_channel_joined, msg.channel, channel=msg.channel_name)
-                # user joined a channel the bot was in
-                else:
-                    forward_event(Event.on_user_join, msg.author, msg.channel, channel=msg.channel_name)
+        elif msg.type is MessageType.SUBSCRIPTION:
+            forward_event(Event.on_channel_subscription, msg.author, msg.channel, msg, channel=msg.channel_name)
 
-            elif msg.type is MessageType.USER_PART:
-                forward_event(Event.on_user_part, msg.author, msg.channel, channel=msg.channel_name)
+        elif msg.type is MessageType.RAID:
+            forward_event(Event.on_channel_raided, msg.channel, msg.author, msg.tags.raid_viewer_count, channel=msg.channel_name)
 
-            elif msg.type is MessageType.SUBSCRIPTION:
-                forward_event(Event.on_channel_subscription, msg.author, msg.channel, msg, channel=msg.channel_name)
+        elif msg.type is MessageType.PING:
+            await self.irc.send_pong()
 
-            elif msg.type is MessageType.RAID:
-                forward_event(Event.on_channel_raided, msg.channel, msg.author, msg.tags.raid_viewer_count, channel=msg.channel_name)
+        elif msg.type is MessageType.CHANNEL_POINTS_REDEMPTION:
+            forward_event(Event.on_channel_points_redemption, msg, msg.reward, channel=msg.channel_name)
 
-            elif msg.type is MessageType.PING:
-                await self.irc.send_pong()
+        elif msg.type is MessageType.BITS:
+            forward_event(Event.on_bits_donated, msg, msg.tags.bits, channel=msg.channel_name)
 
-            elif msg.type is MessageType.CHANNEL_POINTS_REDEMPTION:
-                forward_event(Event.on_channel_points_redemption, msg, msg.reward, channel=msg.channel_name)
+        elif msg.type is MessageType.BOT_PERMANENTLY_BANNED:
+            forward_event(Event.on_bot_banned_from_channel, msg, msg.channel, channel=msg.channel_name)
 
-            elif msg.type is MessageType.BITS:
-                forward_event(Event.on_bits_donated, msg, msg.tags.bits, channel=msg.channel_name)
-
-            elif msg.type is MessageType.BOT_PERMANENTLY_BANNED:
-                forward_event(Event.on_bot_banned_from_channel, msg, msg.channel, channel=msg.channel_name)
-
-            elif msg.type is MessageType.BOT_TIMED_OUT:
-                forward_event(Event.on_bot_timed_out_from_channel, msg, msg.channel, msg.timeout_seconds, channel=msg.channel_name)
+        elif msg.type is MessageType.BOT_TIMED_OUT:
+            forward_event(Event.on_bot_timed_out_from_channel, msg, msg.channel, msg.timeout_seconds, channel=msg.channel_name)
