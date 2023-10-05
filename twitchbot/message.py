@@ -6,7 +6,7 @@ from typing import List, Tuple, TYPE_CHECKING, Optional, Callable, Awaitable, Un
 
 from .util import get_message_mentions
 from .channel import Channel, channels
-from .regex import RE_PRIVMSG, RE_WHISPER, RE_USER_JOIN, RE_USERNOTICE, RE_USER_PART, RE_NOTICE, RE_TIMEOUT_DURATION
+from .regex import RE_PRIVMSG, RE_WHISPER, RE_USER_JOIN, RE_USERNOTICE, RE_USER_PART, RE_NOTICE, RE_TIMEOUT_DURATION, RE_USER_STATE, RE_ROOM_STATE
 from .enums import MessageType
 from .util import split_message
 from .tags import Tags
@@ -132,7 +132,9 @@ class Message:
          or self._parse_whisper()
          or self._parse_user_join()
          or self._parse_user_part()
-         or self._check_ping())
+         or self._check_ping()
+         or self._parse_user_state()
+         or self._parse_room_state())
 
         if self.parts and any(p in emotes for p in self.parts):
             self.emotes = tuple(emotes[p] for p in self.parts if p in emotes)
@@ -143,6 +145,24 @@ class Message:
         self.msg_id = (self.tags.all_tags.get('msg-id')
                        if self.tags is not None
                        else None)
+
+    def _parse_user_state(self):
+        m = RE_USER_STATE.search(self.raw_msg)
+        if m:
+            self.channel = self._get_channel_or_default(m['channel'])
+            self.tags = Tags(m['tags'])
+            self.type = MessageType.USER_STATE
+
+        return bool(m)
+
+    def _parse_room_state(self):
+        m = RE_ROOM_STATE.search(self.raw_msg)
+        if m:
+            self.channel = self._get_channel_or_default(m['channel'])
+            self.tags = Tags(m['tags'])
+            self.type = MessageType.ROOM_STATE
+
+        return bool(m)
 
     def _parse_user_part(self) -> bool:
         m = RE_USER_PART.search(self.raw_msg)
