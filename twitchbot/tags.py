@@ -26,16 +26,27 @@ class Tags:
 
         self.msg_id: str = self.all_tags.get('msg-id', '')
         self.raid_viewer_count: int = _try_parse_int(self.all_tags.get('msg-param-viewerCount'))
-
+    
+        # sub related
         self.resub_months: int = 0
         self.sub_plan: int = 0
         self.sub_recipient: str = self.all_tags.get('msg-param-recipient-display-name')
-
+        
+        # reply related
         self.reply_parent_display_name: str = self.all_tags.get('reply-parent-display-name')
         self.reply_parent_msg_body: str = self.all_tags.get('reply-parent-msg-body')
         self.reply_parent_msg_id: str = self.all_tags.get('reply-parent-msg-id')
         self.reply_parent_user_id: str = self.all_tags.get('reply-parent-user-id')
         self.reply_parent_user_login: str = self.all_tags.get('reply-parent-user-login')
+        
+        # room states
+        self.emote_only: int = _try_parse_int(self.all_tags.get('emote-only', 0))
+        self.r9k: int = _try_parse_int(self.all_tags.get('r9k', 0))
+        self.followers_only: int = _try_parse_int(self.all_tags.get('followers-only', -1))
+        self.followers_only_enabled: bool = self.followers_only != -1
+        self.slow: int = _try_parse_int(self.all_tags.get('slow', 0))
+        self.subs_only: int = _try_parse_int(self.all_tags.get('subs-only', 0))
+        
 
         # twitch sends months in different tags based on event, find the actual amount of months here
         if self.all_tags.get('msg-param-cumulative-months') is not None:
@@ -66,6 +77,12 @@ class Tags:
     @property
     def is_sub_upgrade(self):
         return self.msg_id in {'anongiftpaidupgrade', 'giftpaidupgrade'}
+    
+    def has_tag(self, name: str):
+        return name in self.all_tags
+    
+    def get(self, tag: str, default=None):
+        return self.all_tags.get(tag, default)
 
 
 def _split_tags(tags: str):

@@ -428,7 +428,7 @@ class BaseBot:
 
             if not raw_msg:
                 continue
-            
+
             # split by \r\n here to handle cases when multiple messages are received in one websocket read
             # this happens with USERSTATE and ROOMSTATE messages
             for message in raw_msg.split('\r\n'):
@@ -487,3 +487,9 @@ class BaseBot:
 
         elif msg.type is MessageType.BOT_TIMED_OUT:
             forward_event(Event.on_bot_timed_out_from_channel, msg, msg.channel, msg.timeout_seconds, channel=msg.channel_name)
+
+        elif msg.type is MessageType.ROOM_STATE:
+            forward_event(Event.on_room_state, msg, channel=msg.channel_name)
+
+        elif msg.type is MessageType.USER_STATE:
+            forward_event(Event.on_user_state, msg, channel=msg.channel_name)

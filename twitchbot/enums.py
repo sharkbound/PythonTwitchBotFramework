@@ -76,6 +76,8 @@ class Event(NamedEnum):
     on_pubsub_user_follow = auto()
     on_bot_shutdown = auto()
     on_after_database_init = auto()
+    on_room_state = auto()
+    on_user_state = auto()
 
 
 class SubtractBalanceResult(NamedEnum):

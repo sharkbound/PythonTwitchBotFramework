@@ -253,6 +253,25 @@ class Mod:
         triggered AFTER the bot creates all defined tables in the database
         this event should be used when you need to do database operations as soon as possible on bot startup
         """
+    
+    async def on_user_state(self, msg: 'Message'):
+        """
+        Triggered when twitch sends a USERSTATE update to the bot account
+        
+        Useful for tracking if the bot is a moderator or not (via 'moderator' badge)
+        """
+    async def on_room_state(self, msg: 'Message'):
+        """
+        Triggered when twitch sends a ROOMSTATE update to the bot account
+        
+        Tags:
+            emote-only (0 = disabled)
+            followers-only (-1 = disabled)
+            r9k (0 = disabled)
+            slow (0 = disabled)
+            subs-only (0 = disabled)
+            
+        """
 
     # endregion
 
