@@ -1,6 +1,6 @@
 import asyncio
 
-from twitchbot import Mod, channels, get_nick, add_task, stop_task
+from twitchbot import Mod, channels, get_nick, add_task, stop_task, Message
 
 
 class ChannelStatUpdaterMod(Mod):
@@ -24,3 +24,10 @@ class ChannelStatUpdaterMod(Mod):
 
     async def unloaded(self):
         stop_task(self.TASK_NAME)
+
+    async def on_user_state(self, msg: 'Message'):
+        msg.channel.is_mod = msg.tags.moderator == 1
+        msg.channel.is_vip = msg.tags.vip == 1
+        msg.channel.is_broadcaster = msg.tags.broadcaster == 1
+        
+    
