@@ -27,6 +27,7 @@ class Channel:
         self.chatters: Chatters = Chatters(self.name)
         self.is_vip: bool = False
         self.is_mod: bool = False
+        self.is_broadcaster: bool = False
         self.stats: StreamInfoApi = StreamInfoApi(get_client_id(), self.name)
         self.bot: 'BaseBot' = get_bot()
         # epoch time of the last PRIVMSG message received on this channel
