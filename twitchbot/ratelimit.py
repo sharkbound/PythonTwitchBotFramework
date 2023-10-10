@@ -1,4 +1,4 @@
-from asyncio import sleep, get_event_loop
+from asyncio import sleep
 
 import typing
 from collections import defaultdict
@@ -34,7 +34,7 @@ whisper_sent = 0
 last_privmsg_sent_dt: typing.DefaultDict[str, datetime] = defaultdict(lambda: datetime.min)
 
 
-def _get_last_privmsg_send_dt(channel: 'Channel') -> float:
+def _get_last_privmsg_sent_diff(channel: 'Channel') -> float:
     return (datetime.now() - last_privmsg_sent_dt[channel.name]).total_seconds()
 
 
@@ -47,9 +47,9 @@ async def privmsg_ratelimit(channel: 'Channel'):
     if use_mod_limit:
         limit = PRIVMSG_MAX_MOD
 
-    while not use_mod_limit and _get_last_privmsg_send_dt(channel) < PRIVMSG_INTERVAL:
+    while not use_mod_limit and _get_last_privmsg_sent_diff(channel) < PRIVMSG_INTERVAL:
         await sleep(.3)
-
+    
     while privmsg_sent >= limit:
         await sleep(1)
 
