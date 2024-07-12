@@ -217,9 +217,9 @@ class Message:
                 return True
 
             # checking if its a channel point redemption or another special message
-            self.reward = self.tags.all_tags.get('msg-id') or self.tags.all_tags.get('custom-reward-id')
+            self.reward = self.tags.msg_id or self.tags.all_tags.get('custom-reward-id')
             # prevent power-ups and animated messages from being treated as channel point redemptions
-            if self.reward == 'animated-message':
+            if self.reward in ('animated-message', 'gigantified-emote-message'):
                 pass
             # message is not an animated message, so it's probably a channel point redemption
             elif self.reward is not None:
@@ -295,6 +295,14 @@ class Message:
     @property
     def is_animated_message(self):
         return bool(self.tags.animation_id)
+
+    @property
+    def has_gigantified_emote(self):
+        return self.tags.msg_id == 'gigantified-emote-message'
+
+    @property
+    def gigantified_emote(self):
+        return self.parts[-1]
 
     @property
     def has_power_up(self):
