@@ -42,7 +42,6 @@ class Message:
         self.reward: Optional[str] = None
         self.msg_id: Optional[str] = None
         self.timeout_seconds: Optional[int] = None
-
         self._parse()
 
     @classmethod
@@ -306,7 +305,7 @@ class Message:
 
     @property
     def has_power_up(self):
-        return self.is_animated_message
+        return self.is_animated_message or self.has_gigantified_emote
 
     @property
     def mention(self):
