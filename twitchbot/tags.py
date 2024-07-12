@@ -5,6 +5,7 @@ class Tags:
     def __init__(self, tags: str):
         self.all_tags = {name.strip().replace(' ', ''): value for name, value in _split_tags(tags)}
 
+        # chat related
         self.badges: dict = _parse_badges(self.all_tags.get('badges'))
         self.color: str = self.all_tags.get('color')
         self.display_name: str = self.all_tags.get('display-name')
@@ -19,26 +20,29 @@ class Tags:
         self.user_type: int = self.all_tags.get('user-type')
         self.bits: int = _try_parse_int(self.all_tags.get('bits'))
         self.bits_leader: int = self.all_tags.get('bits-leader', None)
-        
+
         self.moderator: int = _try_parse_int(self.badges.get('moderator', 0))
         self.broadcaster: int = _try_parse_int(self.badges.get('broadcaster', 0))
         self.vip: int = _try_parse_int(self.badges.get('vip', 0))
 
         self.msg_id: str = self.all_tags.get('msg-id', '')
         self.raid_viewer_count: int = _try_parse_int(self.all_tags.get('msg-param-viewerCount'))
-    
+
+        # power-up animated message
+        self.animation_id: str = self.all_tags.get('animation-id')
+
         # sub related
         self.resub_months: int = 0
         self.sub_plan: int = 0
         self.sub_recipient: str = self.all_tags.get('msg-param-recipient-display-name')
-        
+
         # reply related
         self.reply_parent_display_name: str = self.all_tags.get('reply-parent-display-name')
         self.reply_parent_msg_body: str = self.all_tags.get('reply-parent-msg-body')
         self.reply_parent_msg_id: str = self.all_tags.get('reply-parent-msg-id')
         self.reply_parent_user_id: str = self.all_tags.get('reply-parent-user-id')
         self.reply_parent_user_login: str = self.all_tags.get('reply-parent-user-login')
-        
+
         # room states
         self.emote_only: int = _try_parse_int(self.all_tags.get('emote-only', 0))
         self.r9k: int = _try_parse_int(self.all_tags.get('r9k', 0))
@@ -46,7 +50,6 @@ class Tags:
         self.followers_only_enabled: bool = self.followers_only != -1
         self.slow: int = _try_parse_int(self.all_tags.get('slow', 0))
         self.subs_only: int = _try_parse_int(self.all_tags.get('subs-only', 0))
-        
 
         # twitch sends months in different tags based on event, find the actual amount of months here
         if self.all_tags.get('msg-param-cumulative-months') is not None:
@@ -77,10 +80,10 @@ class Tags:
     @property
     def is_sub_upgrade(self):
         return self.msg_id in {'anongiftpaidupgrade', 'giftpaidupgrade'}
-    
+
     def has_tag(self, name: str):
         return name in self.all_tags
-    
+
     def get(self, tag: str, default=None):
         return self.all_tags.get(tag, default)
 
