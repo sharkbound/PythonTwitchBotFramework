@@ -289,6 +289,14 @@ class Message:
         return self.type is MessageType.RAID
 
     @property
+    def is_animated_message(self):
+        return bool(self.tags.animation_id)
+
+    @property
+    def has_power_up(self):
+        return self.is_animated_message
+
+    @property
     def mention(self):
         return f'@{self.tags.display_name}' if self.tags.display_name else self.mention_normalized
 
