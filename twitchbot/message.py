@@ -216,9 +216,13 @@ class Message:
                 # bits and rewards cannot be combined, so return here
                 return True
 
-            # checking if its a channel point redemption
+            # checking if its a channel point redemption or another special message
             self.reward = self.tags.all_tags.get('msg-id') or self.tags.all_tags.get('custom-reward-id')
-            if self.reward is not None:
+            # prevent power-ups and animated messages from being treated as channel point redemptions
+            if self.reward == 'animated-message':
+                pass
+            # message is not an animated message, so it's probably a channel point redemption
+            elif self.reward is not None:
                 self.type = MessageType.CHANNEL_POINTS_REDEMPTION
 
         return bool(m)
