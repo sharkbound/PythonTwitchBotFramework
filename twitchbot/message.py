@@ -326,7 +326,13 @@ class Message:
     @property
     def has_required_tags_for_twitch_reply(self):
         tags = self.tags
-        return tags is not None and all((tags.display_name, self.content is not None, tags.id, tags.user_id, self.author))
+        return tags is not None and (
+                tags.display_name
+                and self.content is not None
+                and tags.id
+                and tags.user_id
+                and self.author
+        )
 
     @property
     def has_broadcaster_badge(self):
