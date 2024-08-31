@@ -9,7 +9,7 @@ with open('README.md') as f:
 
 setup(
     name='PythonTwitchBotFramework',
-    version='.'.join(map(str, BOT_VERSION)),  # change BOT VERSION in twitchbot/__init__.py:36 when updating this
+    version='.'.join(map(str, BOT_VERSION)),
     python_requires='>=3.6',
     packages=find_packages(),
     url='https://github.com/sharkbound/PythonTwitchBotFramework',
