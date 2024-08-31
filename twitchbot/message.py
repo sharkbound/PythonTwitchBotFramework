@@ -403,9 +403,9 @@ class Message:
 
         if raise_on_timeout is False and no matching message is received, default will be returned when it times-out
 
-        default is by default is None
+        default is None unless set otherwise
         raise_on_timeout by default is False
-        predicate defaults to `same_author_predicate`
+        predicate defaults to `same_author_and_channel_predicate`
         """
 
         from .replywaiter import wait_for_reply, same_author_and_channel_predicate
