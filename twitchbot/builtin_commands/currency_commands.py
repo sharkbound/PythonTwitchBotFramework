@@ -317,7 +317,7 @@ async def cmd_arena(msg: Message, *args):
             return
 
         arena.add_user(msg.author)
-        add_balance(msg.channel_name, msg.author, -arena.entry_fee)
+        subtract_balance(msg.channel_name, msg.author, arena.entry_fee)
 
         await msg.reply(
             whisper=True,
