@@ -50,10 +50,14 @@ def get_quote(channel: str, id_or_alias: Union[str, int]) -> Optional[Quote]:
     then tries to find quote using x as a alias
     returns the quote if one exist, else None
     """
-    try:
-        return get_quote_by_id(channel, int(id_or_alias))
-    except ValueError:
-        return get_quote_by_alias(channel, str(id_or_alias))
+    # if the id_or_alias is an int, it is an id, so we try to find a quote by the id
+    if isinstance(id_or_alias, str) and id_or_alias.isnumeric():
+        id_or_alias = int(id_or_alias)
+       
+    if isinstance(id_or_alias, int):
+        return get_quote_by_id(channel, id_or_alias)
+    # id_or_alias is a string, so it is clearly an alias, so lookup a quote using the alias
+    return get_quote_by_alias(channel, str(id_or_alias))
 
 
 def delete_quote_by_id(channel: str, id: int) -> None:
