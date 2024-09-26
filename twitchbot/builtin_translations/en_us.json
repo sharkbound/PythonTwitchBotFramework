@@ -119,6 +119,7 @@
   "pollhelper_int_error": "{value} is not a valid number",
   "addquote_invalid_user": "invalid user for user=, must be a combination of digits and letters, ex: john_doe17",
   "addquote_invalid_alias": "invalid alias for alias=, must be a combination of digits and letters, ex: my_quote1",
+  "addquote_alias_cannot_be_numeric": "invalid alias for alias=, alias cannot exclusively be numeric",
   "addquote_duplicate_alias": "there is already a quote with that alias",
   "addquote_failed": "failed to add quote, already exist",
   "addquote_added": "successfully added quote #{quote_id}",
