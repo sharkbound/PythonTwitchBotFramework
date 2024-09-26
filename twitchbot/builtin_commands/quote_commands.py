@@ -43,6 +43,9 @@ async def cmd_add_quote(msg: Message, *args):
                 cmd=cmd_add_quote)
 
         alias = m.group(1)
+        if str.isnumeric(alias):
+            raise InvalidArgumentsError(reason=translate('addquote_alias_cannot_be_numeric'), cmd=cmd_add_quote)
+
         if get_quote_by_alias(msg.channel_name, alias) is not None:
             raise InvalidArgumentsError(reason=translate('addquote_duplicate_alias'), cmd=cmd_add_quote)
 
