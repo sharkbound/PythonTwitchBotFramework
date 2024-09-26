@@ -87,6 +87,7 @@ class Config:
 
     def __setitem__(self, key, value):
         self.data[key] = value
+        # TODO: add an option disable auto-save on key/value changes
         self.save()
 
     def __contains__(self, item):

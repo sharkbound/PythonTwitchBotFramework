@@ -35,6 +35,7 @@ from ..extra_configs import logging_config
 from ..irc import Irc
 from ..util import get_oauth_token_info, _check_token
 from ..translations import translate
+from ..load_translation_defaults import add_missing_translations
 
 if TYPE_CHECKING:
     from ..pubsub import PubSubData, PubSubPointRedemption, PubSubBits, PubSubModerationAction, PubSubSubscription, PubSubPollData, PubSubFollow
@@ -380,7 +381,7 @@ class BaseBot:
 
     async def mainloop(self):
         """starts the bot, connects to twitch, then starts the message event loop"""
-        self._running = True
+        add_missing_translations()
 
         print('connecting to twitch...')
         _check_token(await get_oauth_token_info(get_oauth(remove_prefix=True)))
@@ -391,6 +392,7 @@ class BaseBot:
                 'failed to generate config, ether this was the first run and the oauth was not set, OR, there was a error generating the required config files')
             return
 
+        self._running = True
         await self._init_bot()
 
         util.add_task('poll_event_processor', poll_event_processor_loop())
