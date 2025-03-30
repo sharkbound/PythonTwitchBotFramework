@@ -15,7 +15,9 @@ emotes: Dict[str, Emote] = {}
 
 
 async def update_global_emotes():
-    _, data = await get_url(GLOBAL_EMOTE_API)
+    data = None
+    # todo: find new url/api for fetching global emotes
+    # _, data = await get_url(GLOBAL_EMOTE_API)
 
     if not data or 'emotes' not in data:
         return
