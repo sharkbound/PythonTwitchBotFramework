@@ -1,1 +1,1 @@
-from .eventsubclient import EventSubClient
+from .eventsub_client import EventSubClient

@@ -118,5 +118,5 @@ DEBUG_LOGS/
 /cc.bat
 /gen_token_url.py
 /cloc-1.84.exe
-/twitchbot/eventsub/event_sub_testing.py
+/twitchbot/eventsub/eventsub_testing.py
 /twitchbot/eventsub/Event-Sub-Notes.md

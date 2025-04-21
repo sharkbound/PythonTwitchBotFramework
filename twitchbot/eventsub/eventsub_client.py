@@ -32,18 +32,5 @@ class EventSubClient:
         except asyncio.TimeoutError:
             return None
 
-    async def listen(self, access_token: str, ):
+    async def listen(self, access_token: str, channel: str, topic: str):
         pass
-
-    async def listen_loop(self):
-        while True:
-            try:
-                event = await self.ws.recv()
-            except:
-                print('Lost connection to EventSub server.')
-                return
-            # Process the event here
-            if event:
-                print('\nreceived event:', event)
-            else:
-                print(end='.')
