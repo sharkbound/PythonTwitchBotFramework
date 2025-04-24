@@ -120,3 +120,4 @@ DEBUG_LOGS/
 /cloc-1.84.exe
 /twitchbot/eventsub/eventsub_testing.py
 /twitchbot/eventsub/Event-Sub-Notes.md
+/twitchbot/eventsub_testing.py
