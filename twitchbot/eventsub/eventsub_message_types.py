@@ -1,12 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Optional
-
-
-class EventSubMessageType(Enum):
-    NOT_SET = "not_set"
-    WELCOME = "session_welcome"
+from typing import Optional, Union
 
 
 def parse_twitch_timestamp(timestamp: str) -> datetime:
@@ -48,10 +43,70 @@ def json_get_path(json_obj: dict, *key_path):
     return json_obj
 
 
+class EventSubMessageType(Enum):
+    NOT_SET = "not_set"
+    WELCOME = "session_welcome"
+
+
+GENERIC_MESSAGE_INPUT_DATA_TYPE = Optional[Union[dict, list, str, int, datetime]]
+
+
+class EventSubGenericMessage:
+    def __init__(self, json_data: GENERIC_MESSAGE_INPUT_DATA_TYPE):
+        self._raw_json_data: GENERIC_MESSAGE_INPUT_DATA_TYPE = json_data
+
+    @classmethod
+    def EMPTY(cls):
+        if hasattr(cls, '_static_empty_instance'):
+            return cls._static_empty_instance
+
+        cls._static_empty_instance = cls(None)
+        return cls._static_empty_instance
+
+    @property
+    def IS_EMPTY(self):
+        return self is self.__class__.EMPTY()
+
+    @property
+    def current_value(self):
+        return self._raw_json_data
+
+    def __getattr__(self, item):
+        if self.IS_EMPTY:
+            return self
+
+        val = None
+        if item in self.__dict__:
+            val = self.__dict__[item]
+        elif item in self._raw_json_data:
+            val = self._raw_json_data[item]
+
+        return self.EMPTY() if val is None else EventSubGenericMessage(val)
+
+    def __getitem__(self, item):
+        if self.IS_EMPTY:
+            return self
+
+        if isinstance(item, str) and isinstance(self._raw_json_data, dict):
+            if item in self._raw_json_data:
+                return EventSubGenericMessage(self._raw_json_data[item])
+            return self.__class__.EMPTY()
+
+        if isinstance(item, int) and isinstance(self._raw_json_data, list):
+            if 0 <= item < len(self._raw_json_data) or -len(self._raw_json_data) <= item < 0:
+                return EventSubGenericMessage(self._raw_json_data[item])
+            return self.__class__.EMPTY()
+
+        return self.__class__.EMPTY()
+
+
 @dataclass
 class EventSubMessage:
     raw_data: dict
     message_type: EventSubMessageType
+
+    def as_generic(self) -> 'EventSubGenericMessage':
+        return EventSubGenericMessage(self.raw_data)
 
     def as_welcome_message(self) -> Optional['EventSubWelcomeMessage']:
         if self.message_type is not EventSubMessageType.WELCOME:
