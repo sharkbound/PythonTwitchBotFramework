@@ -1,11 +1,5 @@
-from dataclasses import dataclass
+from enum import Enum
 
 
-@dataclass
-class EventSubTopic:
-    pass
-
-@dataclass
-class EventSubModeratorTopic(EventSubTopic):
-    action: str
-    initiating_user: int
+class EventSubTopics(Enum):
+    CHANNEL_MODERATE = 'channel.moderate'

@@ -9,45 +9,6 @@ class EventSubMessageType(Enum):
     WELCOME = "session_welcome"
 
 
-@dataclass
-class EventSubMessage:
-    raw_data: dict
-    message_type: EventSubMessageType
-
-
-@dataclass
-class EventSubWelcomeMessage(EventSubMessage):
-    message_id: str
-    session_id: str
-    message_type_str: str
-    message_timestamp: datetime
-    session_id: str
-    session_status: str
-    connected_at: datetime
-    keepalive_timeout_seconds: int
-    reconnect_url: str
-    recovery_url: str
-
-    @staticmethod
-    def from_json(json_data: dict) -> Optional['EventSubWelcomeMessage']:
-        if json_get_path(json_data, 'metadata', 'message_type') != 'session_welcome':
-            return None
-
-        return EventSubWelcomeMessage(
-            message_id=json_get_path(json_data, 'metadata', 'message_id'),
-            message_type_str=json_get_path(json_data, 'metadata', 'message_type'),
-            message_timestamp=parse_twitch_timestamp(json_get_path(json_data, 'metadata', 'message_timestamp')),
-            session_id=json_get_path(json_data, 'payload', 'session', 'id'),
-            session_status=json_get_path(json_data, 'payload', 'session', 'status'),
-            connected_at=parse_twitch_timestamp(json_get_path(json_data, 'payload', 'session', 'connected_at')),
-            keepalive_timeout_seconds=int(json_get_path(json_data, 'payload', 'session', 'keepalive_timeout_seconds')),
-            reconnect_url=json_get_path(json_data, 'payload', 'session', 'reconnect_url'),
-            recovery_url=json_get_path(json_data, 'payload', 'session', 'recovery_url'),
-            raw_data=json_data,
-            message_type=EventSubMessageType.WELCOME,
-        )
-
-
 def parse_twitch_timestamp(timestamp: str) -> datetime:
     # Remove the trailing 'Z' if it exists
     if timestamp.endswith('Z'):
@@ -85,3 +46,47 @@ def json_get_path(json_obj: dict, *key_path):
                 return None
 
     return json_obj
+
+
+@dataclass
+class EventSubMessage:
+    raw_data: dict
+    message_type: EventSubMessageType
+
+    def as_welcome_message(self) -> Optional['EventSubWelcomeMessage']:
+        if self.message_type is not EventSubMessageType.WELCOME:
+            return None
+        return self
+
+
+@dataclass
+class EventSubWelcomeMessage(EventSubMessage):
+    message_id: str
+    session_id: str
+    message_type_str: str
+    message_timestamp: datetime
+    session_id: str
+    session_status: str
+    connected_at: datetime
+    keepalive_timeout_seconds: int
+    reconnect_url: str
+    recovery_url: str
+
+    @staticmethod
+    def from_json(json_data: dict) -> Optional['EventSubWelcomeMessage']:
+        if json_get_path(json_data, 'metadata', 'message_type') != 'session_welcome':
+            return None
+
+        return EventSubWelcomeMessage(
+            message_id=json_get_path(json_data, 'metadata', 'message_id'),
+            message_type_str=json_get_path(json_data, 'metadata', 'message_type'),
+            message_timestamp=parse_twitch_timestamp(json_get_path(json_data, 'metadata', 'message_timestamp')),
+            session_id=json_get_path(json_data, 'payload', 'session', 'id'),
+            session_status=json_get_path(json_data, 'payload', 'session', 'status'),
+            connected_at=parse_twitch_timestamp(json_get_path(json_data, 'payload', 'session', 'connected_at')),
+            keepalive_timeout_seconds=int(json_get_path(json_data, 'payload', 'session', 'keepalive_timeout_seconds')),
+            reconnect_url=json_get_path(json_data, 'payload', 'session', 'reconnect_url'),
+            recovery_url=json_get_path(json_data, 'payload', 'session', 'recovery_url'),
+            raw_data=json_data,
+            message_type=EventSubMessageType.WELCOME,
+        )
