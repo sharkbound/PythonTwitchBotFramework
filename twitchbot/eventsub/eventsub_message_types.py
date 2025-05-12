@@ -165,10 +165,7 @@ class EventSubMessage:
 
 @dataclass
 class EventSubWelcomeMessage(EventSubMessage):
-    message_id: str
     session_id: str
-    message_type_str: str
-    message_timestamp: datetime
     session_id: str
     session_status: str
     connected_at: datetime
@@ -176,21 +173,192 @@ class EventSubWelcomeMessage(EventSubMessage):
     reconnect_url: str
     recovery_url: str
 
-    @staticmethod
-    def from_json(json_data: dict) -> Optional['EventSubWelcomeMessage']:
-        if json_get_path(json_data, 'metadata', 'message_type') != 'session_welcome':
+    @classmethod
+    def from_json(cls, json_data: dict) -> Optional["EventSubWelcomeMessage"]:
+        if json_get_path(json_data, "metadata", "message_type") != "session_welcome":
             return None
 
-        return EventSubWelcomeMessage(
-            message_id=json_get_path(json_data, 'metadata', 'message_id'),
-            message_type_str=json_get_path(json_data, 'metadata', 'message_type'),
-            message_timestamp=parse_twitch_timestamp(json_get_path(json_data, 'metadata', 'message_timestamp')),
-            session_id=json_get_path(json_data, 'payload', 'session', 'id'),
-            session_status=json_get_path(json_data, 'payload', 'session', 'status'),
-            connected_at=parse_twitch_timestamp(json_get_path(json_data, 'payload', 'session', 'connected_at')),
-            keepalive_timeout_seconds=int(json_get_path(json_data, 'payload', 'session', 'keepalive_timeout_seconds')),
-            reconnect_url=json_get_path(json_data, 'payload', 'session', 'reconnect_url'),
-            recovery_url=json_get_path(json_data, 'payload', 'session', 'recovery_url'),
+        return cls(
+            session_id=json_get_path(json_data, "payload", "session", "id"),
+            session_status=json_get_path(json_data, "payload", "session", "status"),
+            connected_at=parse_twitch_timestamp(
+                json_get_path(json_data, "payload", "session", "connected_at")
+            ),
+            keepalive_timeout_seconds=int(
+                json_get_path(
+                    json_data, "payload", "session", "keepalive_timeout_seconds"
+                )
+            ),
+            reconnect_url=json_get_path(
+                json_data, "payload", "session", "reconnect_url"
+            ),
+            recovery_url=json_get_path(json_data, "payload", "session", "recovery_url"),
             raw_data=json_data,
-            message_type=EventSubMessageType.WELCOME,
+            message_type=EventSubMessageType.SESSION_WELCOME,
         )
+
+
+@dataclass
+class EventSubSessionKeepaliveMessage(EventSubMessage):
+    @classmethod
+    def from_json(cls, json_data: dict) -> Optional["EventSubSessionKeepaliveMessage"]:
+        if json_get_path(json_data, "metadata", "message_type") != "session_keepalive":
+            return None
+
+        return cls(
+            raw_data=json_data,
+            message_type=EventSubMessageType.SESSION_KEEPALIVE,
+        )
+
+
+@dataclass
+class EventSubSessionReconnectMessage(EventSubMessage):
+    session_id: str
+    session_status: str
+    keepalive_timeout_seconds: Optional[int]
+    reconnect_url: str
+    connected_at: datetime
+
+    @classmethod
+    def from_json(cls, json_data: dict) -> Optional["EventSubSessionReconnectMessage"]:
+        if json_get_path(json_data, "metadata", "message_type") != "session_reconnect":
+            return None
+
+        return cls(
+            session_id=json_get_path(json_data, "payload", "session", "id"),
+            session_status=json_get_path(json_data, "payload", "session", "status"),
+            keepalive_timeout_seconds=json_get_path(
+                json_data, "payload", "session", "keepalive_timeout_seconds"
+            ),
+            reconnect_url=json_get_path(
+                json_data, "payload", "session", "reconnect_url"
+            ),
+            connected_at=parse_twitch_timestamp(
+                json_get_path(json_data, "payload", "session", "connected_at")
+            ),
+            raw_data=json_data,
+            message_type=EventSubMessageType.SESSION_RECONNECT,
+        )
+
+
+@dataclass
+class EventSubNotificationMessage(EventSubMessage):
+    subscription_type_str: str
+    subscription_version: str
+    condition_broadcaster_user_id: str
+    condition_moderator_user_id: str
+    condition_cost: int
+    subscription_condition_created_at: datetime
+    subscription_condition_id: str
+    subscription_condition_status: str
+    subscription_transport_method: str
+    subscription_transport_session_id: str
+
+    @classmethod
+    def from_json(cls, json_data: dict) -> Optional["EventSubNotificationMessage"]:
+        if json_get_path(json_data, "metadata", "message_type") != "notification":
+            return None
+
+        return cls(
+            raw_data=json_data,
+            # Metadata
+            message_type=EventSubMessageType.NOTIFICATION,
+            subscription_type_str=json_get_path(
+                json_data, "metadata", "subscription_type"
+            ),
+            subscription_version=json_get_path(
+                json_data, "metadata", "subscription_version"
+            ),
+            # Subscription
+            condition_broadcaster_user_id=json_get_path(
+                json_data, "subscription", "condition", "broadcaster_user_id"
+            ),
+            condition_moderator_user_id=json_get_path(
+                json_data, "subscription", "condition", "moderator_user_id"
+            ),
+            condition_cost=int(
+                json_get_path(json_data, "subscription", "condition", "cost")
+            ),
+            subscription_condition_created_at=parse_twitch_timestamp(
+                json_get_path(json_data, "subscription", "condition", "created_at")
+            ),
+            subscription_condition_id=json_get_path(
+                json_data, "subscription", "condition", "id"
+            ),
+            subscription_condition_status=json_get_path(
+                json_data, "subscription", "condition", "status"
+            ),
+            subscription_transport_method=json_get_path(
+                json_data, "subscription", "condition", "transport", "method"
+            ),
+            subscription_transport_session_id=json_get_path(
+                json_data, "subscription", "condition", "transport", "session_id"
+            ),
+        )
+
+
+"""
+'subscription': {   'condition': {   'broadcaster_user_id': '35927458',
+                                       'moderator_user_id': '35927458'},
+                                       'cost': 0,
+                                       'created_at': '2025-05-09T17:06:46.492305476Z',
+                                       'id': 'f937f342-2a71-4530-be39-619064271386',
+                                       'status': 'enabled',
+                                       'transport': {   'method': 'websocket',
+                                                        'session_id': 'AgoQ1_EgqNObSOG0zP2F1MqjrxIGY2VsbC1i'},
+                                       'type': 'channel.moderate',
+                                       'version': '2'}}
+"""
+
+# BAN
+"""
+{   'metadata': {   'message_id': 'EtLVdCLyqZ1cvyRevYe8Q1U7r5rnK_jQBGAEKbH2N3k=',
+                    'message_timestamp': '2025-05-09T17:06:52.374467456Z',
+                    'message_type': 'notification',
+                    'subscription_type': 'channel.moderate',
+                    'subscription_version': '2'},
+    'payload': {   'event': {   'action': 'ban',
+                                'automod_terms': None,
+                                'ban': {   'reason': '',
+                                           'user_id': '73633',
+                                           'user_login': 'user1',
+                                           'user_name': 'user1'},
+                                'broadcaster_user_id': '35927458',
+                                'broadcaster_user_login': 'userman2',
+                                'broadcaster_user_name': 'userman2',
+                                'delete': None,
+                                'followers': None,
+                                'mod': None,
+                                'moderator_user_id': '35927458',
+                                'moderator_user_login': 'userman2',
+                                'moderator_user_name': 'userman2',
+                                'raid': None,
+                                'shared_chat_ban': None,
+                                'shared_chat_delete': None,
+                                'shared_chat_timeout': None,
+                                'shared_chat_unban': None,
+                                'shared_chat_untimeout': None,
+                                'slow': None,
+                                'source_broadcaster_user_id': None,
+                                'source_broadcaster_user_login': None,
+                                'source_broadcaster_user_name': None,
+                                'timeout': None,
+                                'unban': None,
+                                'unban_request': None,
+                                'unmod': None,
+                                'unraid': None,
+                                'untimeout': None,
+                                'unvip': None,
+                                'vip': None,
+                                'warn': None},
+                   'subscription': {   'condition': {   'broadcaster_user_id': '35927458',
+                                                        'moderator_user_id': '35927458'},
+                                       'cost': 0,
+                                       'created_at': '2025-05-09T17:06:46.492305476Z',
+                                       'id': 'f937f342-2a71-4530-be39-619064271386',
+                                       'status': 'enabled',
+                                       'transport': {   'method': 'websocket',
+                                                        'session_id': 'AgoQ1_EgqNObSOG0zP2F1MqjrxIGY2VsbC1i'},
+                                       'type': 'channel.moderate',
+                                       'version': '2'}}}
+"""
