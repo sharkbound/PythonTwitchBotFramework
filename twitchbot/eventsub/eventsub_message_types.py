@@ -6,12 +6,12 @@ from typing import Optional, Union
 
 def parse_twitch_timestamp(timestamp: str) -> datetime:
     # Remove the trailing 'Z' if it exists
-    if timestamp.endswith('Z'):
+    if timestamp.endswith("Z"):
         timestamp = timestamp[:-1]
 
     # Split timestamp into main part and fractional part
-    if '.' in timestamp:
-        parts = timestamp.split('.', 1)
+    if "." in timestamp:
+        parts = timestamp.split(".", 1)
         main_part = parts[0]
         fractional_part = parts[1]
         # Truncate fractional part to 6 digits (microseconds)
@@ -35,7 +35,7 @@ def json_get_path(json_obj: dict, *key_path):
                 return None
 
         elif isinstance(key, int) and isinstance(json_obj, list):
-            if 0 <= key < len(json_obj):
+            if 0 <= key < len(json_obj) or -len(json_obj) <= key < 0:
                 json_obj = json_obj[key]
             else:
                 return None
@@ -44,8 +44,11 @@ def json_get_path(json_obj: dict, *key_path):
 
 
 class EventSubMessageType(Enum):
-    NOT_SET = "not_set"
-    WELCOME = "session_welcome"
+    UNKNOWN = "UNKNOWN"
+    SESSION_WELCOME = "session_welcome"
+    SESSION_KEEPALIVE = "session_keepalive"
+    SESSION_RECONNECT = "session_reconnect"
+    NOTIFICATION = "notification"
 
 
 GENERIC_MESSAGE_INPUT_DATA_TYPE = Optional[Union[dict, list, str, int, datetime]]
@@ -53,11 +56,20 @@ GENERIC_MESSAGE_INPUT_DATA_TYPE = Optional[Union[dict, list, str, int, datetime]
 
 class EventSubGenericMessage:
     def __init__(self, json_data: GENERIC_MESSAGE_INPUT_DATA_TYPE):
-        self._raw_json_data: GENERIC_MESSAGE_INPUT_DATA_TYPE = json_data
+        self._raw_value: GENERIC_MESSAGE_INPUT_DATA_TYPE = json_data
+
+    def pretty_printed_str(self):
+        import pprint
+
+        if isinstance(self._raw_value, dict):
+            return pprint.pformat(self._raw_value, indent=4)
+        return "Cannot pretty print non-dict data. Expected dict. Got: {}".format(
+            type(self._raw_value)
+        )
 
     @classmethod
     def EMPTY(cls):
-        if hasattr(cls, '_static_empty_instance'):
+        if hasattr(cls, "_static_empty_instance"):
             return cls._static_empty_instance
 
         cls._static_empty_instance = cls(None)
@@ -69,7 +81,10 @@ class EventSubGenericMessage:
 
     @property
     def current_value(self):
-        return self._raw_json_data
+        return self._raw_value
+
+    def current_value_or(self, default=None):
+        return default if self.IS_EMPTY else self._raw_value
 
     def __getattr__(self, item):
         if self.IS_EMPTY:
@@ -78,8 +93,8 @@ class EventSubGenericMessage:
         val = None
         if item in self.__dict__:
             val = self.__dict__[item]
-        elif item in self._raw_json_data:
-            val = self._raw_json_data[item]
+        elif item in self._raw_value:
+            val = self._raw_value[item]
 
         return self.EMPTY() if val is None else EventSubGenericMessage(val)
 
@@ -87,14 +102,14 @@ class EventSubGenericMessage:
         if self.IS_EMPTY:
             return self
 
-        if isinstance(item, str) and isinstance(self._raw_json_data, dict):
-            if item in self._raw_json_data:
-                return EventSubGenericMessage(self._raw_json_data[item])
+        if isinstance(item, str) and isinstance(self._raw_value, dict):
+            if item in self._raw_value:
+                return EventSubGenericMessage(self._raw_value[item])
             return self.__class__.EMPTY()
 
-        if isinstance(item, int) and isinstance(self._raw_json_data, list):
-            if 0 <= item < len(self._raw_json_data) or -len(self._raw_json_data) <= item < 0:
-                return EventSubGenericMessage(self._raw_json_data[item])
+        if isinstance(item, int) and isinstance(self._raw_value, list):
+            if 0 <= item < len(self._raw_value) or -len(self._raw_value) <= item < 0:
+                return EventSubGenericMessage(self._raw_value[item])
             return self.__class__.EMPTY()
 
         return self.__class__.EMPTY()
@@ -105,13 +120,47 @@ class EventSubMessage:
     raw_data: dict
     message_type: EventSubMessageType
 
-    def as_generic(self) -> 'EventSubGenericMessage':
+    @property
+    def message_id(self) -> Optional[str]:
+        return json_get_path(self.raw_data, "metadata", "message_id")
+
+    @property
+    def message_timestamp(self) -> Optional[datetime]:
+        timestamp = json_get_path(self.raw_data, "metadata", "message_timestamp")
+        if timestamp is not None:
+            return parse_twitch_timestamp(timestamp)
+        return None
+
+    def message_type_str(self) -> Optional[str]:
+        return json_get_path(self.raw_data, "metadata", "message_type")
+
+    def as_generic(self) -> "EventSubGenericMessage":
         return EventSubGenericMessage(self.raw_data)
 
-    def as_welcome_message(self) -> Optional['EventSubWelcomeMessage']:
-        if self.message_type is not EventSubMessageType.WELCOME:
+    def as_welcome_message(self) -> Optional["EventSubWelcomeMessage"]:
+        if self.message_type is not EventSubMessageType.SESSION_WELCOME:
             return None
         return self
+
+    @classmethod
+    def from_json(cls, json_data: dict) -> Optional["EventSubMessage"]:
+        message_type = json_get_path(json_data, "metadata", "message_type")
+        if message_type is None:
+            return EventSubMessage(json_data, EventSubMessageType.UNKNOWN)
+
+        if message_type == "session_welcome":
+            return cls(json_data, message_type=EventSubMessageType.SESSION_WELCOME)
+
+        if message_type == "session_keepalive":
+            return cls(json_data, message_type=EventSubMessageType.SESSION_KEEPALIVE)
+
+        if message_type == "session_reconnect":
+            return cls(json_data, message_type=EventSubMessageType.SESSION_RECONNECT)
+
+        if message_type == "notification":
+            return cls(json_data, message_type=EventSubMessageType.NOTIFICATION)
+
+        return cls(json_data, message_type=EventSubMessageType.UNKNOWN)
 
 
 @dataclass
