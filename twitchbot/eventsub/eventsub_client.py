@@ -1,4 +1,6 @@
 import asyncio
+import datetime
+import time
 import warnings
 from enum import Enum, auto
 from typing import Optional, TYPE_CHECKING, Iterable
@@ -11,10 +13,9 @@ from .eventsub_topics import EventSubTopics
 from ..util import get_user_id
 from ..config import get_client_id
 
-if TYPE_CHECKING:
-    from .eventsub_message_types import EventSubMessage, EventSubMessageType
+from .eventsub_message_types import EventSubMessage, EventSubMessageType
 
-EVENTSUB_WEBSOCKET_URL = 'wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=600'
+EVENTSUB_WEBSOCKET_URL = 'wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=10'
 WS_CONNECTING, WS_OPEN, WS_CLOSING, WS_CLOSED = range(4)
 
 
@@ -30,6 +31,11 @@ class EventSubClient:
     def __init__(self):
         self.ws: Optional[websockets.WebSocketClientProtocol] = None
         self.session_id: Optional[str] = None
+        self.keepalive_seconds_interval: int = 600
+        self.last_keepalive_timestamp: float = time.time()
+
+    def seconds_since_last_keepalive(self) -> int:
+        return int(time.time() - self.last_keepalive_timestamp)
 
     @property
     def websocket_connection_state(self) -> EventSubConnectionState:
@@ -58,7 +64,6 @@ class EventSubClient:
             warnings.warn(
                 "[EventSubClient.connect] Did not receive welcome message. Without it, session_id is not known, so EventSubClient cannot function.")
             return
-        self.session_id = resp.session_id
 
     async def _raw_read_next_str(self, timeout: float = 10) -> Optional[str]:
         if not self.is_connected:
@@ -69,26 +74,39 @@ class EventSubClient:
         except asyncio.TimeoutError:
             return None
 
-    async def read_next(self) -> 'EventSubMessage':
+    async def read_next(self) -> Optional['EventSubMessage']:
         val = await self._raw_read_next_str()
-        return parse_eventsub_json(val)
+        message = parse_eventsub_json(val)
+        await self._process_message(message)
+        return message
 
-    async def listen(self, access_token: str, channel_name: str, topics: Iterable[EventSubTopics]):
-        print('Getting broadcaster id for', channel_name, '...') # debug
+    async def _process_message(self, message: Optional['EventSubMessage']):
+        if message is None:
+            return
+
+        # debug
+        print(f'[EventSubClient] Received message ({message.message_type}): {message.as_generic().pretty_printed_str()}')
+
+        if message.message_type is EventSubMessageType.SESSION_WELCOME:
+            message = message.as_welcome_message()
+            self.session_id = message.session_id
+            self.keepalive_seconds_interval = message.keepalive_timeout_seconds
+            print(f'[EventSubClient] Now connected to Twitch EventSub Websocket server. Keepalive interval: {self.keepalive_seconds_interval}.')
+        elif message.message_type is EventSubMessageType.SESSION_KEEPALIVE:
+            self.last_keepalive_timestamp = time.time()
+
+    async def subscribe(self, access_token: str, channel_name: str, topics: Iterable[EventSubTopics]):
         broadcaster_id = await get_user_id(channel_name)
-        print('Broadcaster id:', broadcaster_id) # debug
         # Here for clarity. This id is the user who authorized the app to access the channel.
         # For our purposes, it is the same as the broadcaster_id.
         moderator_id = broadcaster_id
 
         if not self.is_connected:
-            print('EventSubClient is not connected. Attempting to connect now...') # debug
             await self.connect()
-            print('Connected successfully. Session ID:', self.session_id) # debug
 
         async with aiohttp.ClientSession() as session:
             for topic in topics:
-                print(f'Subscribing to {topic.name}') # debug
+                print(f'Subscribing to {topic.name}')  # debug
                 headers = {
                     'Client-Id': get_client_id(),
                     'Authorization': f'Bearer {access_token}',
@@ -106,7 +124,17 @@ class EventSubClient:
                         'session_id': self.session_id
                     }
                 }
-                resp = await session.post('https://api.twitch.tv/helix/eventsub/subscriptions', headers=headers, json=data)
-                print(await resp.json())
-
-
+                try:
+                    resp = await session.post('https://api.twitch.tv/helix/eventsub/subscriptions', headers=headers, json=data)
+                    resp_json = await resp.json()
+                    
+                    if resp.status != 202:  # Twitch returns 202 Accepted for successful subscriptions
+                        error_message = f"Failed to subscribe to {topic.name}: {resp.status} - {resp_json.get('message', 'Unknown error')}"
+                        print(f"[EventSubClient] {error_message}")
+                        # await self.on_failed_subscription(topic, resp.status, resp_json)
+                    else:
+                        print(f"[EventSubClient] Successfully subscribed to {topic.name} for {channel_name}")
+                except Exception as e:
+                    error_message = f"Exception while subscribing to {topic.name}: {str(e)}"
+                    print(f"[EventSubClient] {error_message}")
+                    # await self.on_failed_subscription(topic, None, {"error": str(e)})
