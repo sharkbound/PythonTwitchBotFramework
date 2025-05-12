@@ -11,6 +11,7 @@ pubsub_url = token_utils.generate_auth_url(
     Scopes.PUBSUB_CHANNEL_POINTS,
     Scopes.PUBSUB_BITS,
     Scopes.PUBSUB_CHANNEL_SUBSCRIPTION,
+    Scopes.PUBSUB_MODERATOR_ACTIONS
 )
 print(f'OAUTH URL: {token_utils.generate_irc_oauth(secrets["client_id"], "https://twitchapps.com/tmi/")}')
-print(f'PUBSUB: {pubsub_url}')
+print(f'EVENTSUB: {pubsub_url}')
