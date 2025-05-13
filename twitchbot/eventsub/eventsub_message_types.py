@@ -247,10 +247,10 @@ class EventSubNotificationMessage(EventSubMessage):
     subscription_version: str
     condition_broadcaster_user_id: str
     condition_moderator_user_id: str
-    condition_cost: int
-    subscription_condition_created_at: datetime
-    subscription_condition_id: str
-    subscription_condition_status: str
+    subscription_cost: int
+    subscription_created_at: datetime
+    subscription_id: str
+    subscription_status: str
     subscription_transport_method: str
     subscription_transport_session_id: str
 
@@ -271,27 +271,25 @@ class EventSubNotificationMessage(EventSubMessage):
             ),
             # Subscription
             condition_broadcaster_user_id=json_get_path(
-                json_data, "subscription", "condition", "broadcaster_user_id"
+                json_data, "payload", "subscription", "condition", "broadcaster_user_id"
             ),
             condition_moderator_user_id=json_get_path(
-                json_data, "subscription", "condition", "moderator_user_id"
+                json_data, "payload", "subscription", "condition", "moderator_user_id"
             ),
-            condition_cost=int(
-                json_get_path(json_data, "subscription", "condition", "cost")
+            subscription_cost=int(
+                json_get_path(json_data, "payload", "subscription", "cost")
             ),
-            subscription_condition_created_at=parse_twitch_timestamp(
-                json_get_path(json_data, "subscription", "condition", "created_at")
+            subscription_created_at=parse_twitch_timestamp(
+                json_get_path(json_data, "payload", "subscription", "created_at")
             ),
-            subscription_condition_id=json_get_path(
-                json_data, "subscription", "condition", "id"
-            ),
-            subscription_condition_status=json_get_path(
-                json_data, "subscription", "condition", "status"
+            subscription_id=json_get_path(json_data, "payload", "subscription", "id"),
+            subscription_status=json_get_path(
+                json_data, "payload", "subscription", "status"
             ),
             subscription_transport_method=json_get_path(
-                json_data, "subscription", "condition", "transport", "method"
+                json_data, "payload", "subscription", "transport", "method"
             ),
             subscription_transport_session_id=json_get_path(
-                json_data, "subscription", "condition", "transport", "session_id"
+                json_data, "payload", "subscription", "transport", "session_id"
             ),
         )
