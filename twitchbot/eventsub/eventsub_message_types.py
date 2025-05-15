@@ -82,6 +82,21 @@ class EventSubGenericMessage:
     @property
     def current_value(self):
         return self._raw_value
+    
+    def get(self, key: Union[str, int], default=None):
+        """
+        Gets the raw value of the current value using the provided key.
+        Returns `default` if the key is missing, not found, or is out of range of the object this `GenericMessage` has.
+        The default parameter is set to `None`, unless another value is specified.
+        """
+        if isinstance(key, str) and isinstance(self._raw_value, dict):
+            return self._raw_value.get(key, default)
+
+        if isinstance(key, int) and isinstance(self._raw_value, list):
+            if 0 <= key < len(self._raw_value) or -len(self._raw_value) <= key < 0:
+                return self._raw_value[key]
+
+        return default
 
     def current_value_or(self, default=None):
         return default if self.IS_EMPTY else self._raw_value
@@ -253,6 +268,12 @@ class EventSubNotificationMessage(EventSubMessage):
     subscription_status: str
     subscription_transport_method: str
     subscription_transport_session_id: str
+
+    def payload(self) -> Optional[dict]:
+        return json_get_path(self.raw_data, "payload")
+
+    def payload_as_generic(self) -> "EventSubGenericMessage":
+        return EventSubGenericMessage(self.payload())
 
     @classmethod
     def from_json(cls, json_data: dict) -> Optional["EventSubNotificationMessage"]:

@@ -121,3 +121,4 @@ DEBUG_LOGS/
 /twitchbot/eventsub/eventsub_testing.py
 /twitchbot/eventsub/Event-Sub-Notes.md
 /twitchbot/eventsub_testing.py
+/.vscode/launch.json
