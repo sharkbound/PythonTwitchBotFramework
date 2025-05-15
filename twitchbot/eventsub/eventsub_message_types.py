@@ -82,7 +82,7 @@ class EventSubGenericMessage:
     @property
     def current_value(self):
         return self._raw_value
-    
+
     def get(self, key: Union[str, int], default=None):
         """
         Gets the raw value of the current value using the provided key.
@@ -98,8 +98,17 @@ class EventSubGenericMessage:
 
         return default
 
+    def current_value_or_none(self):
+        if self.IS_EMPTY:
+            return None
+
+        return self._raw_value
+
     def current_value_or(self, default=None):
-        return default if self.IS_EMPTY else self._raw_value
+        if self.IS_EMPTY:
+            return default
+
+        return self._raw_value
 
     def __getattr__(self, item):
         if self.IS_EMPTY:
