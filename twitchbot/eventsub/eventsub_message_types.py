@@ -49,6 +49,7 @@ class EventSubMessageType(Enum):
     SESSION_KEEPALIVE = "session_keepalive"
     SESSION_RECONNECT = "session_reconnect"
     NOTIFICATION = "notification"
+    REVOCATION = "revocation"
 
 
 GENERIC_MESSAGE_INPUT_DATA_TYPE = Optional[Union[dict, list, str, int, datetime]]
@@ -269,8 +270,8 @@ class EventSubSessionReconnectMessage(EventSubMessage):
 class EventSubNotificationMessage(EventSubMessage):
     subscription_type_str: str
     subscription_version: str
-    condition_broadcaster_user_id: str
-    condition_moderator_user_id: str
+    subscription_broadcaster_user_id: str
+    subscription_moderator_user_id: str
     subscription_cost: int
     subscription_created_at: datetime
     subscription_id: str
@@ -300,11 +301,60 @@ class EventSubNotificationMessage(EventSubMessage):
                 json_data, "metadata", "subscription_version"
             ),
             # Subscription
-            condition_broadcaster_user_id=json_get_path(
+            subscription_broadcaster_user_id=json_get_path(
                 json_data, "payload", "subscription", "condition", "broadcaster_user_id"
             ),
-            condition_moderator_user_id=json_get_path(
+            subscription_moderator_user_id=json_get_path(
                 json_data, "payload", "subscription", "condition", "moderator_user_id"
+            ),
+            subscription_cost=int(
+                json_get_path(json_data, "payload", "subscription", "cost")
+            ),
+            subscription_created_at=parse_twitch_timestamp(
+                json_get_path(json_data, "payload", "subscription", "created_at")
+            ),
+            subscription_id=json_get_path(json_data, "payload", "subscription", "id"),
+            subscription_status=json_get_path(
+                json_data, "payload", "subscription", "status"
+            ),
+            subscription_transport_method=json_get_path(
+                json_data, "payload", "subscription", "transport", "method"
+            ),
+            subscription_transport_session_id=json_get_path(
+                json_data, "payload", "subscription", "transport", "session_id"
+            ),
+        )
+
+
+@dataclass
+class EventSubRevocationMessage(EventSubMessage):
+    subscription_type_str: str
+    subscription_version: str
+    subscription_broadcaster_user_id: str
+    subscription_cost: int
+    subscription_created_at: datetime
+    subscription_id: str
+    subscription_status: str
+    subscription_transport_method: str
+    subscription_transport_session_id: str
+
+    @classmethod
+    def from_json(cls, json_data: dict) -> Optional["EventSubRevocationMessage"]:
+        if json_get_path(json_data, "metadata", "message_type") != "revocation":
+            return None
+
+        return cls(
+            raw_data=json_data,
+            # Metadata
+            message_type=EventSubMessageType.REVOCATION,
+            subscription_type_str=json_get_path(
+                json_data, "metadata", "subscription_type"
+            ),
+            subscription_version=json_get_path(
+                json_data, "metadata", "subscription_version"
+            ),
+            subscription_broadcaster_user_id=json_get_path(
+                json_data, "payload", "subscription", "condition", "broadcaster_user_id"
             ),
             subscription_cost=int(
                 json_get_path(json_data, "payload", "subscription", "cost")
