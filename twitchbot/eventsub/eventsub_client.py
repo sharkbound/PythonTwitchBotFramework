@@ -54,16 +54,22 @@ class EventSubClient:
     def is_connected(self) -> bool:
         return self.websocket_connection_state is EventSubConnectionState.CONNECTED
 
-    async def connect(self):
+    async def connect(self) -> bool:
+        """
+        Connects to EventSub via WebSocket.
+        Returns True if connection is successful, False otherwise.
+        """
         if self.is_connected:
-            return
+            return True
 
         self.ws = await websockets.connect(EVENTSUB_WEBSOCKET_URL)
-        resp = (await self.read_next()).as_welcome_message()
+        resp = (await self.read_next())
         if resp is None:
             warnings.warn(
-                "[EventSubClient.connect] Did not receive welcome message. Without it, session_id is not known, so EventSubClient cannot function.")
-            return
+                "[EventSubClient.connect] Did not receive a welcome message. Without it, session_id is not known, so EventSubClient cannot function.")
+            return False
+
+        return True
 
     async def _raw_read_next_str(self, timeout: float = 10) -> Optional[str]:
         if not self.is_connected:
@@ -95,14 +101,21 @@ class EventSubClient:
         elif message.message_type is EventSubMessageType.SESSION_KEEPALIVE:
             self.last_keepalive_timestamp = time.time()
 
-    async def subscribe(self, access_token: str, channel_name: str, topics: Iterable[EventSubTopics]):
+    async def subscribe(self, access_token: str, channel_name: str, topics: Iterable[EventSubTopics]) -> bool:
+        """
+        Subscribes to the specified EventSub topics.
+        If the EventSub client is not connected, it will attempt to connect to EventSub via WebSocket, then try to subscribe to the EventSub topics.
+        Returns True if subscription is successful, False otherwise.
+        """
         broadcaster_id = await get_user_id(channel_name)
         # Here for clarity. This id is the user who authorized the app to access the channel.
         # For our purposes, it is the same as the broadcaster_id.
         moderator_id = broadcaster_id
 
         if not self.is_connected:
-            await self.connect()
+            connection_successful = await self.connect()
+            if not connection_successful:
+                return False
 
         async with aiohttp.ClientSession() as session:
             for topic in topics:
@@ -127,14 +140,18 @@ class EventSubClient:
                 try:
                     resp = await session.post('https://api.twitch.tv/helix/eventsub/subscriptions', headers=headers, json=data)
                     resp_json = await resp.json()
-                    
+
                     if resp.status != 202:  # Twitch returns 202 Accepted for successful subscriptions
                         error_message = f"Failed to subscribe to {topic.name}: {resp.status} - {resp_json.get('message', 'Unknown error')}"
                         print(f"[EventSubClient] {error_message}")
                         # await self.on_failed_subscription(topic, resp.status, resp_json)
+                        return False
                     else:
-                        print(f"[EventSubClient] Successfully subscribed to {topic.name} for {channel_name}")
+                        print(f"[EventSubClient] Successfully subscribed to {topic.name} for {channel_name}") # debug
+                        return True
                 except Exception as e:
                     error_message = f"Exception while subscribing to {topic.name}: {str(e)}"
-                    print(f"[EventSubClient] {error_message}")
+                    warnings.warn(f"[EventSubClient] {error_message}", stacklevel=2)
+                    return False
                     # await self.on_failed_subscription(topic, None, {"error": str(e)})
+        return False
