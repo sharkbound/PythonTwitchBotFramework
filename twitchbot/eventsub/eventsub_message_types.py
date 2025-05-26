@@ -328,6 +328,9 @@ class EventSubNotificationMessage(EventSubMessage):
 
 @dataclass
 class EventSubRevocationMessage(EventSubMessage):
+    subscription_id: str
+    subscription_status: str
+    subscription_cost: int
     subscription_type_str: str
     subscription_version: str
     subscription_broadcaster_user_id: str
@@ -337,6 +340,7 @@ class EventSubRevocationMessage(EventSubMessage):
     subscription_status: str
     subscription_transport_method: str
     subscription_transport_session_id: str
+    subscription_created_at: datetime
 
     @classmethod
     def from_json(cls, json_data: dict) -> Optional["EventSubRevocationMessage"]:
