@@ -8,6 +8,7 @@ from .eventsub_message_types import (
     EventSubSessionReconnectMessage,
     EventSubSessionKeepaliveMessage,
     EventSubNotificationMessage,
+    EventSubRevocationMessage,
 )
 
 
@@ -43,6 +44,8 @@ def parse_eventsub_json(json_data: str) -> Optional[EventSubMessage]:
 
     if message_type == "session_reconnect":
         return EventSubSessionReconnectMessage.from_json(parsed)
-    # Left: Revocation
+
+    if message_type == "revocation":
+        return EventSubRevocationMessage.from_json(parsed)
 
     return EventSubMessage.from_json(parsed)
