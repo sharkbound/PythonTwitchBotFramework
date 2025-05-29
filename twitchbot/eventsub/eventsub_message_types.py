@@ -166,6 +166,26 @@ class EventSubMessage:
             return None
         return self
 
+    def as_keepalive_message(self) -> Optional["EventSubSessionKeepaliveMessage"]:
+        if self.message_type is not EventSubMessageType.SESSION_KEEPALIVE:
+            return None
+        return self
+
+    def as_reconnect_message(self) -> Optional["EventSubSessionReconnectMessage"]:
+        if self.message_type is not EventSubMessageType.SESSION_RECONNECT:
+            return None
+        return self
+
+    def as_notification_message(self) -> Optional["EventSubNotificationMessage"]:
+        if self.message_type is not EventSubMessageType.NOTIFICATION:
+            return None
+        return self
+
+    def as_revocation_message(self) -> Optional["EventSubRevocationMessage"]:
+        if self.message_type is not EventSubMessageType.REVOCATION:
+            return None
+        return self
+
     @classmethod
     def from_json(cls, json_data: dict) -> Optional["EventSubMessage"]:
         message_type = json_get_path(json_data, "metadata", "message_type")
