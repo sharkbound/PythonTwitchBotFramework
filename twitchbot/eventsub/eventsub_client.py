@@ -39,18 +39,22 @@ class EventSubClient:
     def seconds_since_last_keepalive(self) -> int:
         return int(time.time() - self.last_keepalive_timestamp)
 
-    @property
-    def websocket_connection_state(self) -> EventSubConnectionState:
-        if self.ws is None:
-            return EventSubConnectionState.UNINITIALIZED
+    def _update_connection_state_from_websocket_state(self):
+        # if a reconnect is requested, the websocket needs to be closed, then reconnected, so do nothing.
+        if self._client_connection_state is EventSubConnectionState.RECONNECT_REQUESTED:
+            return
 
-        if self.ws.state == WS_CONNECTING:
-            return EventSubConnectionState.CONNECTING
+        elif self.ws is None:
+            self._client_connection_state = EventSubConnectionState.UNINITIALIZED
 
-        if self.ws.state == WS_CLOSED or self.ws.state == WS_CLOSING:
-            return EventSubConnectionState.CLOSED
+        elif self.ws.state == WS_CONNECTING:
+            self._client_connection_state = EventSubConnectionState.CONNECTING
 
-        return EventSubConnectionState.CONNECTED
+        elif self.ws.state == WS_CLOSED or self.ws.state == WS_CLOSING:
+            self._client_connection_state = EventSubConnectionState.CLOSED
+
+        else:
+            self._client_connection_state = EventSubConnectionState.CONNECTED
 
     @property
     def is_connected(self) -> bool:
