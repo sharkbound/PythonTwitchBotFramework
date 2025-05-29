@@ -58,7 +58,16 @@ class EventSubClient:
 
     @property
     def is_connected(self) -> bool:
-        return self.websocket_connection_state is EventSubConnectionState.CONNECTED
+        return self.ws is not None and self.ws.open
+
+    async def disconnect(self):
+        if self.ws is None:
+            return
+
+        if self.is_connected:
+            await self.ws.close()
+            self.ws = None
+            self._client_connection_state = EventSubConnectionState.UNINITIALIZED
 
     async def connect(self) -> bool:
         """
