@@ -15,7 +15,7 @@ from ..config import get_client_id
 
 from .eventsub_message_types import EventSubMessage, EventSubMessageType
 
-EVENTSUB_WEBSOCKET_URL = 'wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=10'
+EVENTSUB_WEBSOCKET_URL = "wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=300"
 WS_CONNECTING, WS_OPEN, WS_CLOSING, WS_CLOSED = range(4)
 
 
