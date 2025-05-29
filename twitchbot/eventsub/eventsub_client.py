@@ -71,7 +71,9 @@ class EventSubClient:
 
     async def connect(self) -> bool:
         """
-        Connects to EventSub via WebSocket.
+        Connects to EventSub via WebSocket and verifies that it receives a welcome message.
+        If a welcome message is not received, the connection is considered unsuccessful.
+        Also updates the internal connection state accordingly.
         Returns True if connection is successful, False otherwise.
         """
         if self.is_connected:
