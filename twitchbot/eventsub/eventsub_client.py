@@ -119,6 +119,15 @@ class EventSubClient:
             print(f'[EventSubClient] Now connected to Twitch EventSub Websocket server. Keepalive interval: {self.keepalive_seconds_interval}.')
         elif message.message_type is EventSubMessageType.SESSION_KEEPALIVE:
             self.last_keepalive_timestamp = time.time()
+        elif message.message_type is EventSubMessageType.REVOCATION:
+            # todo: Trigger events for revocation
+            pass
+        elif message.message_type is EventSubMessageType.NOTIFICATION:
+            # todo: Trigger events for notifications
+            pass
+        elif message.message_type is EventSubMessageType.SESSION_RECONNECT:
+            self.reconnect_url = message.as_reconnect_message().reconnect_url
+            self._client_connection_state = EventSubConnectionState.RECONNECT_REQUESTED
 
     async def subscribe(self, access_token: str, channel_name: str, topics: Iterable[EventSubTopics]) -> bool:
         """
