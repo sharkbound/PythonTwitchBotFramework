@@ -1,9 +1,8 @@
 import asyncio
-import datetime
 import time
 import warnings
 from enum import Enum, auto
-from typing import Optional, TYPE_CHECKING, Iterable
+from typing import Optional, Iterable
 
 import websockets
 import aiohttp
@@ -175,7 +174,6 @@ class EventSubClient:
                         # await self.on_failed_subscription(topic, resp.status, resp_json)
                         return False
                     else:
-                        print(f"[EventSubClient] Successfully subscribed to {topic.name} for {channel_name}") # debug
                         return True
                 except Exception as e:
                     error_message = f"Exception while subscribing to {topic.name}: {str(e)}"
