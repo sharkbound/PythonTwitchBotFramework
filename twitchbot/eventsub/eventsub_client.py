@@ -33,6 +33,8 @@ class EventSubClient:
         self.session_id: Optional[str] = None
         self.keepalive_seconds_interval: int = 600
         self.last_keepalive_timestamp: float = time.time()
+        self._client_connection_state: EventSubConnectionState = EventSubConnectionState.UNINITIALIZED
+        self.reconnect_url: Optional[str] = EVENTSUB_WEBSOCKET_URL
 
     def seconds_since_last_keepalive(self) -> int:
         return int(time.time() - self.last_keepalive_timestamp)
