@@ -146,7 +146,6 @@ class EventSubClient:
 
         async with aiohttp.ClientSession() as session:
             for topic in topics:
-                print(f'Subscribing to {topic.name}')  # debug
                 headers = {
                     'Client-Id': get_client_id(),
                     'Authorization': f'Bearer {access_token}',
