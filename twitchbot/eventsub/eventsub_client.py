@@ -84,8 +84,10 @@ class EventSubClient:
         if resp is None:
             warnings.warn(
                 "[EventSubClient.connect] Did not receive a welcome message. Without it, session_id is not known, so EventSubClient cannot function.")
+            await self.disconnect()
             return False
 
+        self._client_connection_state = EventSubConnectionState.CONNECTED
         return True
 
     async def _raw_read_next_str(self, timeout: float = 10) -> Optional[str]:
