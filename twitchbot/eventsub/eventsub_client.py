@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import time
 import warnings
 from enum import Enum, auto
@@ -98,10 +99,25 @@ class EventSubClient:
         except asyncio.TimeoutError:
             return None
 
-    async def read_next(self) -> Optional['EventSubMessage']:
-        val = await self._raw_read_next_str()
+    async def read_next(self, timeout: float = 10) -> Optional['EventSubMessage']:
+        val = await self._raw_read_next_str(timeout=timeout)
         message = parse_eventsub_json(val)
         await self._process_message(message)
+
+        if self._client_connection_state is EventSubConnectionState.RECONNECT_REQUESTED:
+            if not await self.connect():
+                warnings.warn("Unable to reconnect to EventSub after a Reconnect was requested.", stacklevel=2)
+                self.reconnect_url = EVENTSUB_WEBSOCKET_URL
+                return None
+
+            # Reset self.reconnect_url after successful connection.
+            # Then wait for the next message again after reconnecting.
+            logging.info(f'[EventSubClient] Successfully reconnected to EventSub after a Reconnect was requested.', stacklevel=2)
+            self.reconnect_url = EVENTSUB_WEBSOCKET_URL
+            val = await self._raw_read_next_str(timeout=timeout)
+            message = parse_eventsub_json(val)
+            await self._process_message(message)
+
         return message
 
     async def _process_message(self, message: Optional['EventSubMessage']):
@@ -115,7 +131,7 @@ class EventSubClient:
             message = message.as_welcome_message()
             self.session_id = message.session_id
             self.keepalive_seconds_interval = message.keepalive_timeout_seconds
-            print(f'[EventSubClient] Now connected to Twitch EventSub Websocket server. Keepalive interval: {self.keepalive_seconds_interval}.')
+            logging.info(f'[EventSubClient] Now connected to Twitch EventSub Websocket server. Keepalive interval: {self.keepalive_seconds_interval}s.')
         elif message.message_type is EventSubMessageType.SESSION_KEEPALIVE:
             self.last_keepalive_timestamp = time.time()
         elif message.message_type is EventSubMessageType.REVOCATION:
@@ -169,7 +185,7 @@ class EventSubClient:
 
                     if resp.status != 202:  # Twitch returns 202 Accepted for successful subscriptions
                         error_message = f"Failed to subscribe to {topic.name}: {resp.status} - {resp_json.get('message', 'Unknown error')}"
-                        print(f"[EventSubClient] {error_message}")
+                        warnings.warn(f"[EventSubClient] {error_message}", stacklevel=2)
                         # await self.on_failed_subscription(topic, resp.status, resp_json)
                         return False
                     else:
