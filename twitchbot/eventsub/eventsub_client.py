@@ -78,7 +78,7 @@ class EventSubClient:
         if self.is_connected:
             return True
 
-        self.ws = await websockets.connect(EVENTSUB_WEBSOCKET_URL)
+        self.ws = await websockets.connect(self.reconnect_url)
         resp = (await self.read_next())
         if resp is None:
             warnings.warn(
