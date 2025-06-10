@@ -116,11 +116,11 @@ class EventSubClient:
             self.reconnect_url = EVENTSUB_WEBSOCKET_URL
             val = await self._raw_read_next_str(timeout=timeout)
             message = parse_eventsub_json(val)
-            await self._process_message(message)
+            await self._handle_message(message)
 
         return message
 
-    async def _process_message(self, message: Optional['EventSubMessage']):
+    async def _handle_message(self, message: Optional['EventSubMessage']):
         if message is None:
             return
 
