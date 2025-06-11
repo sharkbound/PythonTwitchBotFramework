@@ -23,7 +23,10 @@ def get_eventsub_message_type_str(json_data: dict) -> Optional[str]:
     return metadata.get("message_type")
 
 
-def parse_eventsub_json(json_data: str) -> Optional[EventSubMessage]:
+def parse_eventsub_json(json_data: Optional[str]) -> Optional[EventSubMessage]:
+    if json_data is None:
+        return None
+
     try:
         parsed = json.loads(json_data)
     except (json.JSONDecodeError, TypeError):
