@@ -104,9 +104,10 @@ class EventSubClient:
     async def read_next(self, timeout: float = 10) -> Optional['EventSubMessage']:
         val = await self._raw_read_next_str(timeout=timeout)
         message = parse_eventsub_json(val)
-        await self._process_message(message)
+        await self._handle_message(message)
 
         if self._client_connection_state is EventSubConnectionState.RECONNECT_REQUESTED:
+            await self.disconnect()
             if not await self.connect():
                 warnings.warn("Unable to reconnect to EventSub after a Reconnect was requested.", stacklevel=2)
                 self.reconnect_url = EVENTSUB_WEBSOCKET_URL
