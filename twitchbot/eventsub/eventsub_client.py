@@ -35,6 +35,8 @@ class EventSubClient:
         self.last_keepalive_timestamp: float = time.time()
         self._client_connection_state: EventSubConnectionState = EventSubConnectionState.UNINITIALIZED
         self.reconnect_url: Optional[str] = EVENTSUB_WEBSOCKET_URL
+        self._sent_topic_subscriptions: List[dict] = []
+        self._processing_loop_task: Optional[asyncio.Task] = None
 
     def seconds_since_last_keepalive(self) -> int:
         return int(time.time() - self.last_keepalive_timestamp)
