@@ -3,7 +3,7 @@ import logging
 import time
 import warnings
 from enum import Enum, auto
-from typing import Optional, Iterable
+from typing import Optional, Iterable, List
 
 import websockets
 import aiohttp
