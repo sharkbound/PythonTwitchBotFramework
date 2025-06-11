@@ -199,3 +199,16 @@ class EventSubClient:
                     return False
                     # await self.on_failed_subscription(topic, None, {"error": str(e)})
         return False
+
+    async def processing_loop(self):
+        while True:
+            if not self.is_connected:
+                await asyncio.sleep(1)
+                continue
+
+            message = await self.read_next(timeout=10)
+            if message is None:
+                continue
+
+            if message.message_type is EventSubMessageType.NOTIFICATION:
+                pass
