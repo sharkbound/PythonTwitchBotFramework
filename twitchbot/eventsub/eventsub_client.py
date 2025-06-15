@@ -3,7 +3,7 @@ import logging
 import time
 import warnings
 from enum import Enum, auto
-from typing import Optional, Iterable, List
+from typing import Optional, List, Tuple, Union
 
 import websockets
 import aiohttp
@@ -35,7 +35,7 @@ class EventSubClient:
         self.last_keepalive_timestamp: float = time.time()
         self._client_connection_state: EventSubConnectionState = EventSubConnectionState.UNINITIALIZED
         self.reconnect_url: Optional[str] = EVENTSUB_WEBSOCKET_URL
-        self._sent_topic_subscriptions: List[dict] = []
+        self._sent_topic_subscriptions: List[Tuple[str, List[str]]] = []
         self._processing_loop_task: Optional[asyncio.Task] = None
 
     def seconds_since_last_keepalive(self) -> int:
@@ -119,35 +119,10 @@ class EventSubClient:
             self.reconnect_url = EVENTSUB_WEBSOCKET_URL
             val = await self._raw_read_next_str(timeout=timeout)
             message = parse_eventsub_json(val)
-            await self._handle_message(message)
 
         return message
 
-    async def _handle_message(self, message: Optional['EventSubMessage']):
-        if message is None:
-            return
-
-        # debug
-        print(f'[EventSubClient] Received message ({message.message_type}): {message.as_generic().pretty_printed_str()}')
-
-        if message.message_type is EventSubMessageType.SESSION_WELCOME:
-            message = message.as_welcome_message()
-            self.session_id = message.session_id
-            self.keepalive_seconds_interval = message.keepalive_timeout_seconds
-            logging.info(f'[EventSubClient] Now connected to Twitch EventSub Websocket server. Keepalive interval: {self.keepalive_seconds_interval}s.')
-        elif message.message_type is EventSubMessageType.SESSION_KEEPALIVE:
-            self.last_keepalive_timestamp = time.time()
-        elif message.message_type is EventSubMessageType.REVOCATION:
-            # todo: Trigger events for revocation
-            pass
-        elif message.message_type is EventSubMessageType.NOTIFICATION:
-            # todo: Trigger events for notifications
-            pass
-        elif message.message_type is EventSubMessageType.SESSION_RECONNECT:
-            self.reconnect_url = message.as_reconnect_message().reconnect_url
-            self._client_connection_state = EventSubConnectionState.RECONNECT_REQUESTED
-
-    async def subscribe(self, access_token: str, channel_name: str, topics: Iterable[EventSubTopics]) -> bool:
+    async def subscribe(self, access_token: str, channel_name: str, topics: List[Union[EventSubTopics, str]]) -> bool:
         """
         Subscribes to the specified EventSub topics.
         If the EventSub client is not connected, it will attempt to connect to EventSub via WebSocket, then try to subscribe to the EventSub topics.
@@ -163,15 +138,17 @@ class EventSubClient:
             if not connection_successful:
                 return False
 
+        successful_subs = []
         async with aiohttp.ClientSession() as session:
             for topic in topics:
+                topic_str_val = topic.value if isinstance(topic, EventSubTopics) else topic
                 headers = {
                     'Client-Id': get_client_id(),
                     'Authorization': f'Bearer {access_token}',
                     'Content-Type': 'application/json'
                 }
                 data = {
-                    'type': topic.value,
+                    'type': topic_str_val,
                     'version': '2',
                     'condition': {
                         'broadcaster_user_id': broadcaster_id,
@@ -187,17 +164,22 @@ class EventSubClient:
                     resp_json = await resp.json()
 
                     if resp.status != 202:  # Twitch returns 202 Accepted for successful subscriptions
-                        error_message = f"Failed to subscribe to {topic.name}: {resp.status} - {resp_json.get('message', 'Unknown error')}"
+                        error_message = f"Failed to subscribe to {topic_str_val}: {resp.status} - {resp_json.get('message', 'Unknown error')}"
                         warnings.warn(f"[EventSubClient] {error_message}", stacklevel=2)
                         # await self.on_failed_subscription(topic, resp.status, resp_json)
                         return False
                     else:
+                        successful_subs.append(topic_str_val)
                         return True
                 except Exception as e:
-                    error_message = f"Exception while subscribing to {topic.name}: {str(e)}"
+                    error_message = f"Exception while subscribing to {topic_str_val}: {str(e)}"
                     warnings.warn(f"[EventSubClient] {error_message}", stacklevel=2)
                     return False
                     # await self.on_failed_subscription(topic, None, {"error": str(e)})
+
+        if successful_subs: # not empty; there was at least one successful subscription
+            self._sent_topic_subscriptions.append((access_token, successful_subs))
+
         return False
 
     async def processing_loop(self):
@@ -210,5 +192,20 @@ class EventSubClient:
             if message is None:
                 continue
 
-            if message.message_type is EventSubMessageType.NOTIFICATION:
+            if message.message_type is EventSubMessageType.SESSION_WELCOME:
+                message = message.as_welcome_message()
+                self.session_id = message.session_id
+                self.keepalive_seconds_interval = message.keepalive_timeout_seconds
+                logging.info(
+                    f'[EventSubClient] Now connected to Twitch EventSub Websocket server. Keepalive interval: {self.keepalive_seconds_interval}s.')
+            elif message.message_type is EventSubMessageType.SESSION_KEEPALIVE:
+                self.last_keepalive_timestamp = time.time()
+            elif message.message_type is EventSubMessageType.REVOCATION:
+                # todo: Trigger events for revocation
                 pass
+            elif message.message_type is EventSubMessageType.NOTIFICATION:
+                # todo: Trigger events for notifications
+                pass
+            elif message.message_type is EventSubMessageType.SESSION_RECONNECT:
+                self.reconnect_url = message.as_reconnect_message().reconnect_url
+                self._client_connection_state = EventSubConnectionState.RECONNECT_REQUESTED
