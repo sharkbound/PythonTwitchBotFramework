@@ -30,23 +30,18 @@ from ..util import stop_all_tasks
 from ..command_whitelist import is_command_whitelisted, send_message_on_command_whitelist_deny
 from ..poll import poll_event_processor_loop
 from ..event_util import forward_event_with_results, forward_event
-from ..pubsub import PubSubClient
 from ..extra_configs import logging_config
 from ..irc import Irc
 from ..util import get_oauth_token_info, _check_token
 from ..translations import translate
 from ..load_translation_defaults import add_missing_translations
-
-if TYPE_CHECKING:
-    from ..pubsub import PubSubData, PubSubPointRedemption, PubSubBits, PubSubModerationAction, PubSubSubscription, PubSubPollData, PubSubFollow
-
+from ..eventsub import *
 
 # noinspection PyMethodMayBeStatic
 class BaseBot:
     def __init__(self):
         self.irc = Irc()
         self._running = False
-        self.pubsub = PubSubClient()
         self.mainloop_task: Optional[asyncio.Task] = None
         set_bot(self)
 
@@ -185,52 +180,6 @@ class BaseBot:
         :param poll: the poll that has ended
         """
 
-    async def on_pubsub_received(self, raw: 'PubSubData'):
-        """
-        triggered when data is received from the pubsub client
-        """
-
-    async def on_pubsub_custom_channel_point_reward(self, raw: 'PubSubData', data: 'PubSubPointRedemption'):
-        """
-        triggered when a user redeems a channel's custom channel point reward
-        :param raw: the raw pubsub message
-        :param data: data specific to the custom channel point reward redeemed
-        """
-
-    async def on_pubsub_bits(self, raw: 'PubSubData', data: 'PubSubBits'):
-        """
-        triggered when a user sends bits to a channel
-        :param raw: the raw pubsub message
-        :param data: data specific to the bits being sent
-        """
-
-    async def on_pubsub_moderation_action(self, raw: 'PubSubData', data: 'PubSubModerationAction'):
-        """
-        triggered when a moderator does a moderation action such as ban/unban/timeout
-        :param raw: the raw pubsub message
-        :param data: data specific to the moderation action taken
-        """
-
-    async def on_pubsub_subscription(self, raw: 'PubSubData', data: 'PubSubSubscription'):
-        """
-        triggered when a user subscribes or resubscribes to a channel
-        :param raw: the raw pubsub message
-        :param data: data specific to the user subscription
-        """
-
-    async def on_pubsub_twitch_poll_update(self, raw: 'PubSubData', poll: 'PubSubPollData'):
-        """
-        triggered when a poll is start/updated/completed on a channel
-        :param poll: the poll that the triggered the event
-        """
-
-    async def on_pubsub_user_follow(self, raw: 'PubSubData', data: 'PubSubFollow'):
-        """
-        triggered when a user follows a channel that is listened to by the bot's pubsub client
-        :param raw: the raw pubsub message
-        :param data: data specific to the user follow
-        """
-
     async def on_bot_shutdown(self):
         """
         triggered when the bot is shutdown
@@ -242,6 +191,10 @@ class BaseBot:
         this event should be used when you need to do database operations as soon as possible on bot startup
         """
 
+    # endregion
+    # region EventSub handlers
+    async def on_eventsub_received(self, data: 'EventSubMessage'):
+        pass
     # endregion
 
     def _create_channels(self):
