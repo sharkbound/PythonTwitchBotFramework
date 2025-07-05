@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Optional, Union, TYPE_CHECKING
+from typing import Optional, Union
 
 def parse_twitch_timestamp(timestamp: str) -> datetime:
     # Remove the trailing 'Z' if it exists
