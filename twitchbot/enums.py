@@ -67,17 +67,20 @@ class Event(NamedEnum):
     on_bot_timed_out_from_channel = auto()
     on_poll_started = auto()
     on_poll_ended = auto()
-    on_pubsub_received = auto()
-    on_pubsub_custom_channel_point_reward = auto()
-    on_pubsub_bits = auto()
-    on_pubsub_moderation_action = auto()
-    on_pubsub_subscription = auto()
-    on_pubsub_twitch_poll_update = auto()
-    on_pubsub_user_follow = auto()
+    # TODO: add EventSub equivalents
+    # on_pubsub_received = auto()
+    # on_pubsub_custom_channel_point_reward = auto()
+    # on_pubsub_bits = auto()
+    # on_pubsub_moderation_action = auto()
+    # on_pubsub_subscription = auto()
+    # on_pubsub_twitch_poll_update = auto()
+    # on_pubsub_user_follow = auto()
     on_bot_shutdown = auto()
     on_after_database_init = auto()
     on_room_state = auto()
     on_user_state = auto()
+    # EventSub Events
+    on_raw_eventsub_received = auto()
 
 
 class SubtractBalanceResult(NamedEnum):

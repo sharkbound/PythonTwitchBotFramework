@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import time
+import typing
 import warnings
 from enum import Enum, auto
 from typing import Optional, List, Tuple, Union
@@ -12,11 +13,14 @@ from .eventsub_message_parsers import parse_eventsub_json
 from .eventsub_topics import EventSubTopics
 from ..util import get_user_id
 from ..config import get_client_id
+from ..enums import Event
 
 from .eventsub_message_types import EventSubMessage, EventSubMessageType
 
+if typing.TYPE_CHECKING:
+    from websockets.asyncio.client import ClientConnection
+
 EVENTSUB_WEBSOCKET_URL = "wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=300"
-WS_CONNECTING, WS_OPEN, WS_CLOSING, WS_CLOSED = range(4)
 
 
 class EventSubConnectionState(Enum):
@@ -29,7 +33,7 @@ class EventSubConnectionState(Enum):
 
 class EventSubClient:
     def __init__(self):
-        self.ws: Optional[websockets.WebSocketClientProtocol] = None
+        self.ws: Optional[ClientConnection] = None
         self.session_id: Optional[str] = None
         self.keepalive_seconds_interval: int = 300
         self.last_keepalive_timestamp: float = time.time()
@@ -60,7 +64,7 @@ class EventSubClient:
 
     @property
     def is_connected(self) -> bool:
-        return self.ws is not None and self.ws.open
+        return self.ws is not None and self.ws.state == websockets.State.OPEN
 
     async def disconnect(self):
         if self.ws is None:
@@ -70,6 +74,9 @@ class EventSubClient:
             await self.ws.close()
             self.ws = None
             self._client_connection_state = EventSubConnectionState.UNINITIALIZED
+            if self._processing_loop_task is not None:
+                self._processing_loop_task.cancel()
+                self._processing_loop_task = None
 
     async def connect(self) -> bool:
         """
@@ -96,9 +103,10 @@ class EventSubClient:
         if self.reconnect_url == EVENTSUB_WEBSOCKET_URL:
             for token, channel, topics in self._sent_topic_subscriptions:
                 await self.subscribe(token, channel, topics)
-        else: # reconnect url was from a reconnect request; we don't need to resend subscriptions
+        else:  # reconnect url was from a reconnect request; we don't need to resend subscriptions
             self.reconnect_url = EVENTSUB_WEBSOCKET_URL
-
+        if self._processing_loop_task is None:
+            self._processing_loop_task = asyncio.ensure_future(self._processing_loop())
         return True
 
     async def _raw_read_next_str(self, timeout: float = 10) -> Optional[str]:
@@ -130,7 +138,7 @@ class EventSubClient:
         moderator_id = broadcaster_id
 
         if not self.is_connected:
-            connection_successful = await self.connect()
+            connection_successful = await self._connect_with_backoff(4)
             if not connection_successful:
                 return False
 
@@ -162,7 +170,6 @@ class EventSubClient:
                     if resp.status != 202:  # Twitch returns 202 Accepted for successful subscriptions
                         error_message = f"Failed to subscribe to {topic_str_val}: {resp.status} - {resp_json.get('message', 'Unknown error')}"
                         warnings.warn(f"[EventSubClient] {error_message}", stacklevel=2)
-                        # await self.on_failed_subscription(topic, resp.status, resp_json)
                         return False
                     else:
                         successful_subs.append(topic_str_val)
@@ -171,28 +178,52 @@ class EventSubClient:
                     error_message = f"Exception while subscribing to {topic_str_val}: {str(e)}"
                     warnings.warn(f"[EventSubClient] {error_message}", stacklevel=2)
                     return False
-                    # await self.on_failed_subscription(topic, None, {"error": str(e)})
 
-        if successful_subs: # not empty; there was at least one successful subscription
+        if successful_subs:  # not empty; there was at least one successful subscription
             self._sent_topic_subscriptions.append((access_token, channel_name, successful_subs))
+            return True
 
         return False
 
-    async def processing_loop(self):
+    async def _connect_with_backoff(self, max_tries: int = 10) -> bool:
+        backoff_time = 1
+        while True:
+            if max_tries <= 0:
+                return False
+            try:
+                if await self.connect():
+                    break
+            except Exception as e:
+                logging.warning(f'[EventSubClient] Failed to connect to EventSub. Retrying in {backoff_time}s. Error: {str(e)}')
+            else:  # No error
+                logging.warning(f'[EventSubClient] Failed to connect to EventSub. Retrying in {backoff_time}s.')
+
+            await asyncio.sleep(backoff_time)
+            max_tries -= 1
+            backoff_time <<= 2
+        return True
+
+    async def _processing_loop(self):
         TIMEOUT_SECONDS = 10
         while True:
             # initial check for if we are currently connected
             if not self.is_connected:
-                await asyncio.sleep(1)
-                continue
+                await self._connect_with_backoff()
 
             # check if the last keepalive message has not been received in the specified keepalive interval
-            if self.seconds_since_last_keepalive() > self.keepalive_seconds_interval + 10: # add 10 seconds to account for potential latency
+            if self.seconds_since_last_keepalive() > self.keepalive_seconds_interval:
+                logging.warning(f'[EventSubClient] No keepalive message received within {self.keepalive_seconds_interval} seconds. Attempting to reconnect.')
                 await self.disconnect()
-                await self.connect()
+                if not await self._connect_with_backoff():  # todo: add logic to check if the reconnection was successful
+                    logging.error('[EventSubClient] Failed to reconnect to EventSub after disconnect.')
+                    break
                 continue
 
             message = await self.read_next(timeout=TIMEOUT_SECONDS)
+
+            from .. import forward_event
+            forward_event(Event.on_raw_eventsub_received, message, message.channel_name())
+
             if message is None:
                 continue
 
@@ -217,7 +248,3 @@ class EventSubClient:
             elif message.message_type is EventSubMessageType.SESSION_RECONNECT:
                 self.reconnect_url = message.as_reconnect_message().reconnect_url
                 self._client_connection_state = EventSubConnectionState.RECONNECT_REQUESTED
-
-                await self.disconnect()
-                await self.connect()
-

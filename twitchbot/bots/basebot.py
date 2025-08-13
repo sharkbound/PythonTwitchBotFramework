@@ -193,7 +193,10 @@ class BaseBot:
 
     # endregion
     # region EventSub handlers
-    async def on_eventsub_received(self, data: 'EventSubMessage'):
+    async def on_raw_eventsub_received(self, data: 'EventSubMessage'):
+        """
+        Triggers when ANY eventsub message is received. This receives the raw EventSub message in a generic `EventSubMessage` object.
+        """
         pass
     # endregion
 

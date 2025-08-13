@@ -3,6 +3,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional, Union
 
+
 def parse_twitch_timestamp(timestamp: str) -> datetime:
     # Remove the trailing 'Z' if it exists
     if timestamp.endswith("Z"):
@@ -148,6 +149,82 @@ class EventSubMessage:
     def message_id(self) -> Optional[str]:
         return json_get_path(self.raw_data, "metadata", "message_id")
 
+    def channel_name(self) -> Optional[str]:
+        # Prefer login (lowercase) when available; fall back to display name.
+        # Use the subscription condition to disambiguate events that include
+        # both "from_" and "to_" broadcasters (e.g., raids, shoutouts).
+        event = json_get_path(self.raw_data, "payload", "event")
+        if not isinstance(event, dict):
+            return None
+
+        condition = json_get_path(
+            self.raw_data, "payload", "subscription", "condition"
+        )
+
+        def first_in_event(*keys: str) -> Optional[str]:
+            for k in keys:
+                v = json_get_path(event, k)
+                if isinstance(v, str) and v:
+                    return v
+            return None
+
+        if isinstance(condition, dict):
+            key_map = [
+                (
+                    "broadcaster_user_id",
+                    (
+                        "broadcaster_user_login",
+                        "broadcaster_login",
+                        "broadcaster_user_name",
+                        "broadcaster_name",
+                    ),
+                ),
+                (
+                    "to_broadcaster_user_id",
+                    ("to_broadcaster_user_login", "to_broadcaster_user_name"),
+                ),
+                (
+                    "from_broadcaster_user_id",
+                    ("from_broadcaster_user_login", "from_broadcaster_user_name"),
+                ),
+                (
+                    "host_broadcaster_user_id",
+                    ("host_broadcaster_user_login", "host_broadcaster_user_name"),
+                ),
+                (
+                    "source_broadcaster_user_id",
+                    (
+                        "source_broadcaster_user_login",
+                        "source_broadcaster_user_name",
+                    ),
+                ),
+            ]
+
+            for cond_key, login_keys in key_map:
+                if cond_key in condition:
+                    val = first_in_event(*login_keys)
+                    if val:
+                        return val
+
+        # Fallbacks cover most notification types, including chat events,
+        # raids/shoutouts (from/to/host/source), and user-scoped events.
+        return first_in_event(
+            "broadcaster_user_login",
+            "broadcaster_login",
+            "from_broadcaster_user_login",
+            "to_broadcaster_user_login",
+            "host_broadcaster_user_login",
+            "source_broadcaster_user_login",
+            "broadcaster_user_name",
+            "broadcaster_name",
+            "from_broadcaster_user_name",
+            "to_broadcaster_user_name",
+            "host_broadcaster_user_name",
+            "source_broadcaster_user_name",
+            "user_login",
+            "user_name",
+        )
+
     @property
     def message_timestamp(self) -> Optional[datetime]:
         timestamp = json_get_path(self.raw_data, "metadata", "message_timestamp")
@@ -155,7 +232,7 @@ class EventSubMessage:
             return parse_twitch_timestamp(timestamp)
         return None
 
-    def message_type_str(self) -> Optional[str]:
+    def message_type_str(self) -> Optional[str]:  # TODO: handle the json path for broadcaster channel name for all messages
         return json_get_path(self.raw_data, "metadata", "message_type")
 
     def as_generic(self) -> "EventSubGenericMessage":

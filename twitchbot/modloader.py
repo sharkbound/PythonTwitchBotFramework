@@ -12,8 +12,7 @@ from typing import Dict, Callable, Any, Optional
 
 if typing.TYPE_CHECKING:
     from .poll import PollData
-    from .pubsub import PubSubData, PubSubPointRedemption, PubSubBits, PubSubModerationAction, PubSubSubscription, \
-        PubSubPollData, PubSubFollow
+    from .eventsub import EventSubMessage
 
 from .channel import Channel
 from .command import Command
@@ -209,39 +208,11 @@ class Mod:
         :param data: data specific to the custom channel point reward redeemed
         """
 
-    async def on_pubsub_bits(self, raw: 'PubSubData', data: 'PubSubBits'):
+    async def on_raw_eventsub_received(self, data: 'EventSubMessage'):
         """
-        triggered when a user sends bits to a channel
-        :param raw: the raw pubsub message
-        :param data: data specific to the bits being sent
+        Triggers when ANY eventsub message is received. This receives the raw EventSub message in a generic `EventSubMessage` object.
         """
-
-    async def on_pubsub_moderation_action(self, raw: 'PubSubData', data: 'PubSubModerationAction'):
-        """
-        triggered when a moderator does a moderation action such as ban/unban/timeout
-        :param raw: the raw pubsub message
-        :param data: data specific to the moderation action taken
-        """
-
-    async def on_pubsub_twitch_poll_update(self, raw: 'PubSubData', poll: 'PubSubPollData'):
-        """
-        triggered when a poll is start/updated/completed on a channel
-        :param poll: the poll that the triggered the event
-        """
-
-    async def on_pubsub_subscription(self, raw: 'PubSubData', data: 'PubSubSubscription'):
-        """
-        triggered when a user subscribes or resubscribes to a channel
-        :param raw: the raw pubsub message
-        :param data: data specific to the user subscription
-        """
-
-    async def on_pubsub_user_follow(self, raw: 'PubSubData', data: 'PubSubFollow'):
-        """
-        triggered when a user follows a channel that is listened to by the bot's pubsub client
-        :param raw: the raw pubsub message
-        :param data: data specific to the user follow
-        """
+        pass
 
     async def on_bot_shutdown(self):
         """

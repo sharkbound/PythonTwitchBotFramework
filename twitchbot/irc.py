@@ -31,6 +31,7 @@ PRIVMSG_FORMAT = 'PRIVMSG #{channel} :{line}'
 
 if TYPE_CHECKING:
     from .message import Message
+    from websockets.asyncio.client import ClientConnection
 
 
 # :name!name@name.tmi.twitch.tv PRIVMSG #name :hello!
@@ -48,11 +49,11 @@ def create_fake_privmsg(channel: str, content: str = '', msg_class: Type['Messag
 
 class Irc:
     def __init__(self):
-        self.socket: typing.Optional[websockets.WebSocketClientProtocol] = None
+        self.socket: typing.Optional[ClientConnection] = None
 
     @property
     def connected(self):
-        return self.socket and self.socket.open
+        return self.socket and self.socket.state is self.socket.state == websockets.State.OPEN
 
     async def try_close_connection(self):
         if self.connected:
