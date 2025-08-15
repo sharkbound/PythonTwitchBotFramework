@@ -232,7 +232,7 @@ class EventSubMessage:
             return parse_twitch_timestamp(timestamp)
         return None
 
-    def message_type_str(self) -> Optional[str]:  # TODO: handle the json path for broadcaster channel name for all messages
+    def message_type_str(self) -> Optional[str]:
         return json_get_path(self.raw_data, "metadata", "message_type")
 
     def as_generic(self) -> "EventSubGenericMessage":

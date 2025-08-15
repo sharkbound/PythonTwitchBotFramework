@@ -208,7 +208,7 @@ class Mod:
         :param data: data specific to the custom channel point reward redeemed
         """
 
-    async def on_raw_eventsub_received(self, data: 'EventSubMessage'):
+    async def on_raw_eventsub_received(self, data: 'EventSubMessage', channel_name: str):
         """
         Triggers when ANY eventsub message is received. This receives the raw EventSub message in a generic `EventSubMessage` object.
         """

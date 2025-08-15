@@ -11,7 +11,7 @@ setup(
     name='PythonTwitchBotFramework',
     version='.'.join(map(str, BOT_VERSION)),
     python_requires='>=3.6',
-    packages=find_packages(),
+    packages=find_packages() + ['twitchbot.builtin_translations', 'twitchbot.builtin_commands'],
     url='https://github.com/sharkbound/PythonTwitchBotFramework',
     license='MIT',
     author='sharkbound',

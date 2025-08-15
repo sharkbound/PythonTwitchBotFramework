@@ -105,14 +105,21 @@ class EventSubClient:
         self.keepalive_seconds_interval = resp.keepalive_timeout_seconds
         self.session_id = resp.session_id
         self._client_connection_state = EventSubConnectionState.CONNECTED
+
+        print(
+            f'[EventSubClient] Now connected to Twitch EventSub Websocket server. Keepalive interval: {self.keepalive_seconds_interval}s.')
+
         subs_to_remove = []
-        if self._reconnect_url == EVENTSUB_WEBSOCKET_URL: # reconnect url was from the original websocket url; we need to resend subscriptions.
+        if self._reconnect_url == EVENTSUB_WEBSOCKET_URL:  # reconnect url was from the original websocket url; we need to resend subscriptions.
             for i, (token, channel, topic) in enumerate(self._sent_topic_subscriptions_cache):
                 if not await self.subscribe(token, channel, [topic]):
                     subs_to_remove.append(i)
                 await asyncio.sleep(.2)
         else:  # reconnect url was from a reconnect request; we don't need to resend subscriptions.
             self._reconnect_url = EVENTSUB_WEBSOCKET_URL
+
+        if self._processing_loop_task is not None and (self._processing_loop_task.done() or self._processing_loop_task.cancelled()):
+            self._processing_loop_task = None
 
         if self._processing_loop_task is None:
             self._processing_loop_task = asyncio.ensure_future(self._processing_loop())
@@ -194,15 +201,17 @@ class EventSubClient:
                         error_message = f"Failed to subscribe to {topic_str_val}: {resp.status} - {resp_json.get('message', 'Unknown error')}"
                         warnings.warn(f"[EventSubClient] {error_message}", stacklevel=2)
                         return False
-                    else:
-                        if _cache:
-                            self._add_subscribe_to_cache(access_token, channel_name, topic_str_val)
-                        return True
+
+                    if _cache:
+                        self._add_subscribe_to_cache(access_token, channel_name, topic_str_val)
+
+                    return True
+
                 except Exception as e:
                     if _cache:
                         self._remove_subscribe_from_cache(access_token, channel_name, topic_str_val)
                     error_message = f"Exception while subscribing to {topic_str_val}: {str(e)}"
-                    warnings.warn(f"[EventSubClient] {error_message}", stacklevel=2)
+                    logging.warning(f"[EventSubClient] {error_message}", stacklevel=2)
                     return False
 
         return False
@@ -234,20 +243,21 @@ class EventSubClient:
 
             # check if the last keepalive message has not been received in the specified keepalive interval
             if self.seconds_since_last_keepalive() > self.keepalive_seconds_interval:
-                logging.warning(f'[EventSubClient] No keepalive message received within {self.keepalive_seconds_interval} seconds. Attempting to reconnect.')
+                logging.warning(
+                    f'[EventSubClient] No keepalive message received within {self.keepalive_seconds_interval} seconds. Attempting to reconnect.')
                 await self.disconnect()
-                if not await self._connect_with_backoff():  # todo: add logic to check if the reconnection was successful
+                if not await self._connect_with_backoff():
                     logging.error('[EventSubClient] Failed to reconnect to EventSub after disconnect.')
                     break
                 continue
 
             message = await self.read_next(timeout=TIMEOUT_SECONDS)
 
-            from .. import forward_event
-            forward_event(Event.on_raw_eventsub_received, message, message.channel_name())
-
             if message is None:
                 continue
+
+            from .. import forward_event
+            forward_event(Event.on_raw_eventsub_received, message, message.channel_name())
 
             if message.message_type is EventSubMessageType.SESSION_WELCOME:
                 message = message.as_welcome_message()
@@ -271,7 +281,9 @@ class EventSubClient:
                 self._reconnect_url = message.as_reconnect_message().reconnect_url
                 self._client_connection_state = EventSubConnectionState.RECONNECT_REQUESTED
 
+
 def get_eventsub_client() -> EventSubClient:
     return _eventsub_client
+
 
 _eventsub_client = EventSubClient()
