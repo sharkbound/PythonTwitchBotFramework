@@ -20,6 +20,11 @@ from .eventsub_message_types import EventSubMessage, EventSubMessageType
 if typing.TYPE_CHECKING:
     from websockets.asyncio.client import ClientConnection
 
+__all__ = (
+    'EventSubClient',
+    'get_eventsub_client'
+)
+
 EVENTSUB_WEBSOCKET_URL = "wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=300"
 
 
@@ -38,8 +43,9 @@ class EventSubClient:
         self.keepalive_seconds_interval: int = 300
         self.last_keepalive_timestamp: float = time.time()
         self._client_connection_state: EventSubConnectionState = EventSubConnectionState.UNINITIALIZED
-        self.reconnect_url: Optional[str] = EVENTSUB_WEBSOCKET_URL
-        self._sent_topic_subscriptions: List[Tuple[str, str, List[str]]] = []
+        self._reconnect_url: Optional[str] = EVENTSUB_WEBSOCKET_URL
+        #                               access_token, channel_name, topic_str_val
+        self._sent_topic_subscriptions_cache: List[Tuple[str, str, str]] = []
         self._processing_loop_task: Optional[asyncio.Task] = None
 
     def seconds_since_last_keepalive(self) -> int:
@@ -53,10 +59,10 @@ class EventSubClient:
         elif self.ws is None:
             self._client_connection_state = EventSubConnectionState.UNINITIALIZED
 
-        elif self.ws.state == WS_CONNECTING:
+        elif self.ws.state == websockets.State.CONNECTING:
             self._client_connection_state = EventSubConnectionState.CONNECTING
 
-        elif self.ws.state == WS_CLOSED or self.ws.state == WS_CLOSING:
+        elif self.ws.state == websockets.State.CLOSED or self.ws.state == websockets.State.CLOSING:
             self._client_connection_state = EventSubConnectionState.CLOSED
 
         else:
@@ -88,7 +94,7 @@ class EventSubClient:
         if self.is_connected:
             return True
 
-        self.ws = await websockets.connect(self.reconnect_url)
+        self.ws = await websockets.connect(self._reconnect_url)
         resp = (await self.read_next()).as_welcome_message()
         if resp is None:
             warnings.warn(
@@ -99,14 +105,22 @@ class EventSubClient:
         self.keepalive_seconds_interval = resp.keepalive_timeout_seconds
         self.session_id = resp.session_id
         self._client_connection_state = EventSubConnectionState.CONNECTED
+        subs_to_remove = []
+        if self._reconnect_url == EVENTSUB_WEBSOCKET_URL: # reconnect url was from the original websocket url; we need to resend subscriptions.
+            for i, (token, channel, topic) in enumerate(self._sent_topic_subscriptions_cache):
+                if not await self.subscribe(token, channel, [topic]):
+                    subs_to_remove.append(i)
+                await asyncio.sleep(.2)
+        else:  # reconnect url was from a reconnect request; we don't need to resend subscriptions.
+            self._reconnect_url = EVENTSUB_WEBSOCKET_URL
 
-        if self.reconnect_url == EVENTSUB_WEBSOCKET_URL:
-            for token, channel, topics in self._sent_topic_subscriptions:
-                await self.subscribe(token, channel, topics)
-        else:  # reconnect url was from a reconnect request; we don't need to resend subscriptions
-            self.reconnect_url = EVENTSUB_WEBSOCKET_URL
         if self._processing_loop_task is None:
             self._processing_loop_task = asyncio.ensure_future(self._processing_loop())
+
+        # remove subscriptions that failed to subscribe
+        for sub_i in reversed(subs_to_remove):
+            del self._sent_topic_subscriptions_cache[sub_i]
+
         return True
 
     async def _raw_read_next_str(self, timeout: float = 10) -> Optional[str]:
@@ -118,6 +132,16 @@ class EventSubClient:
         except asyncio.TimeoutError:
             return None
 
+    def _add_subscribe_to_cache(self, token: str, channel: str, topic: str):
+        t = (token, channel, topic)
+        if t not in self._sent_topic_subscriptions_cache:
+            self._sent_topic_subscriptions_cache.append(t)
+
+    def _remove_subscribe_from_cache(self, token: str, channel: str, topic: str):
+        t = (token, channel, topic)
+        if t in self._sent_topic_subscriptions_cache:
+            self._sent_topic_subscriptions_cache.remove(t)
+
     async def read_next(self, timeout: float = 10) -> Optional['EventSubMessage']:
         val = await self._raw_read_next_str(timeout=timeout)
         if val is None:
@@ -126,7 +150,7 @@ class EventSubClient:
         message = parse_eventsub_json(val)
         return message
 
-    async def subscribe(self, access_token: str, channel_name: str, topics: List[Union[EventSubTopics, str]]) -> bool:
+    async def subscribe(self, access_token: str, channel_name: str, topics: List[Union[EventSubTopics, str]], _cache=True) -> bool:
         """
         Subscribes to the specified EventSub topics.
         If the EventSub client is not connected, it will attempt to connect to EventSub via WebSocket, then try to subscribe to the EventSub topics.
@@ -142,7 +166,6 @@ class EventSubClient:
             if not connection_successful:
                 return False
 
-        successful_subs = []
         async with aiohttp.ClientSession() as session:
             for topic in topics:
                 topic_str_val = topic.value if isinstance(topic, EventSubTopics) else topic
@@ -172,16 +195,15 @@ class EventSubClient:
                         warnings.warn(f"[EventSubClient] {error_message}", stacklevel=2)
                         return False
                     else:
-                        successful_subs.append(topic_str_val)
+                        if _cache:
+                            self._add_subscribe_to_cache(access_token, channel_name, topic_str_val)
                         return True
                 except Exception as e:
+                    if _cache:
+                        self._remove_subscribe_from_cache(access_token, channel_name, topic_str_val)
                     error_message = f"Exception while subscribing to {topic_str_val}: {str(e)}"
                     warnings.warn(f"[EventSubClient] {error_message}", stacklevel=2)
                     return False
-
-        if successful_subs:  # not empty; there was at least one successful subscription
-            self._sent_topic_subscriptions.append((access_token, channel_name, successful_subs))
-            return True
 
         return False
 
@@ -246,5 +268,10 @@ class EventSubClient:
                 pass
 
             elif message.message_type is EventSubMessageType.SESSION_RECONNECT:
-                self.reconnect_url = message.as_reconnect_message().reconnect_url
+                self._reconnect_url = message.as_reconnect_message().reconnect_url
                 self._client_connection_state = EventSubConnectionState.RECONNECT_REQUESTED
+
+def get_eventsub_client() -> EventSubClient:
+    return _eventsub_client
+
+_eventsub_client = EventSubClient()

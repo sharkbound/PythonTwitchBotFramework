@@ -39,3 +39,4 @@ from .argument_annotations import *
 from .auto_cast_handler import *
 from .ratelimit_twitch_api_queue import *
 from .load_translation_defaults import *
+from .eventsub import *
