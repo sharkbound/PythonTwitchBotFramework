@@ -8,7 +8,7 @@ with open('README.md') as f:
     long_description = f.read()
 
 setup(
-    name='PythonTwitchBotFramework',
+    name='pythontwitchbotframework',
     version='.'.join(map(str, BOT_VERSION)),
     python_requires='>=3.6',
     packages=find_packages() + ['twitchbot.builtin_translations', 'twitchbot.builtin_commands'],

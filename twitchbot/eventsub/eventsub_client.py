@@ -25,6 +25,17 @@ __all__ = (
     'get_eventsub_client'
 )
 
+EVENTSUB_TOPIC_TYPE = Union[
+    EventSubTopics,
+    str,
+    Tuple[
+        Union[EventSubTopics, str],
+        Union[str, int]
+    ],
+    List[ # NOTE: This matches this format: ['channel:moderate', '2']
+        Union[EventSubTopics, str],
+    ],
+]
 EVENTSUB_WEBSOCKET_URL = "wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=300"
 
 
@@ -45,7 +56,7 @@ class EventSubClient:
         self._client_connection_state: EventSubConnectionState = EventSubConnectionState.UNINITIALIZED
         self._reconnect_url: Optional[str] = EVENTSUB_WEBSOCKET_URL
         #                               access_token, channel_name, topic_str_val
-        self._sent_topic_subscriptions_cache: List[Tuple[str, str, str]] = []
+        self._sent_topic_subscriptions_cache: List[Tuple[str, str, Union[list, tuple]]] = []
         self._processing_loop_task: Optional[asyncio.Task] = None
 
     def seconds_since_last_keepalive(self) -> int:
@@ -157,7 +168,8 @@ class EventSubClient:
         message = parse_eventsub_json(val)
         return message
 
-    async def subscribe(self, access_token: str, channel_name: str, topics: List[Union[EventSubTopics, str]], _cache=True) -> bool:
+    async def subscribe(self, access_token: str, channel_name: str, topics: List[EVENTSUB_TOPIC_TYPE], _cache=True,
+                        client_id: Optional[str] = None) -> bool:
         """
         Subscribes to the specified EventSub topics.
         If the EventSub client is not connected, it will attempt to connect to EventSub via WebSocket, then try to subscribe to the EventSub topics.
@@ -175,15 +187,21 @@ class EventSubClient:
 
         async with aiohttp.ClientSession() as session:
             for topic in topics:
-                topic_str_val = topic.value if isinstance(topic, EventSubTopics) else topic
+                if isinstance(topic, (tuple, list)) and len(topic) == 2 and isinstance(topic[1], (int, str)):
+                    version = str(topic[1])
+                else:
+                    version = '2'
+
+                topic_val = topic[0] if isinstance(topic, (list, tuple)) else topic
+                topic_str_val = topic_val.value if isinstance(topic_val, EventSubTopics) else topic_val
                 headers = {
-                    'Client-Id': get_client_id(),
+                    'Client-Id': client_id if client_id is not None else get_client_id(),
                     'Authorization': f'Bearer {access_token}',
                     'Content-Type': 'application/json'
                 }
                 data = {
                     'type': topic_str_val,
-                    'version': '2',
+                    'version': version,
                     'condition': {
                         'broadcaster_user_id': broadcaster_id,
                         'moderator_user_id': moderator_id,
@@ -198,19 +216,19 @@ class EventSubClient:
                     resp_json = await resp.json()
 
                     if resp.status != 202:  # Twitch returns 202 Accepted for successful subscriptions
-                        error_message = f"Failed to subscribe to {topic_str_val}: {resp.status} - {resp_json.get('message', 'Unknown error')}"
+                        error_message = f"Failed to subscribe to {topic}: {resp.status} - {resp_json.get('message', 'Unknown error')}"
                         warnings.warn(f"[EventSubClient] {error_message}", stacklevel=2)
                         return False
 
                     if _cache:
-                        self._add_subscribe_to_cache(access_token, channel_name, topic_str_val)
+                        self._add_subscribe_to_cache(access_token, channel_name, topic)
 
                     return True
 
                 except Exception as e:
                     if _cache:
-                        self._remove_subscribe_from_cache(access_token, channel_name, topic_str_val)
-                    error_message = f"Exception while subscribing to {topic_str_val}: {str(e)}"
+                        self._remove_subscribe_from_cache(access_token, channel_name, topic)
+                    error_message = f"Exception while subscribing to {topic}: {str(e)}"
                     logging.warning(f"[EventSubClient] {error_message}", stacklevel=2)
                     return False
 
