@@ -53,7 +53,7 @@ class Irc:
 
     @property
     def connected(self):
-        return self.socket and self.socket.state is self.socket.state == websockets.State.OPEN
+        return self.socket and self.socket.state == websockets.State.OPEN
 
     async def try_close_connection(self):
         if self.connected:
