@@ -181,7 +181,7 @@ class EventSubClient:
         moderator_id = broadcaster_id
 
         if not self.is_connected:
-            connection_successful = await self._connect_with_backoff(4)
+            connection_successful = await self._connect_with_backoff(5)
             if not connection_successful:
                 return False
 
@@ -223,8 +223,6 @@ class EventSubClient:
                     if _cache:
                         self._add_subscribe_to_cache(access_token, channel_name, topic)
 
-                    return True
-
                 except Exception as e:
                     if _cache:
                         self._remove_subscribe_from_cache(access_token, channel_name, topic)
@@ -232,7 +230,9 @@ class EventSubClient:
                     logging.warning(f"[EventSubClient] {error_message}", stacklevel=2)
                     return False
 
-        return False
+                await asyncio.sleep(.05)
+
+        return True
 
     async def _connect_with_backoff(self, max_tries: int = 10) -> bool:
         backoff_time = 1
