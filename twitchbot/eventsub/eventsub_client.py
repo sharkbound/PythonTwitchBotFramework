@@ -30,9 +30,9 @@ EVENTSUB_TOPIC_TYPE = Union[
     str,
     Tuple[
         Union[EventSubTopics, str],
-        Union[str, int]
+        str
     ],
-    List[ # NOTE: This matches this format: ['channel:moderate', '2']
+    List[  # NOTE: This matches this format: ['channel:moderate', '2']
         Union[EventSubTopics, str],
     ],
 ]
@@ -55,7 +55,7 @@ class EventSubClient:
         self.last_keepalive_timestamp: float = time.time()
         self._client_connection_state: EventSubConnectionState = EventSubConnectionState.UNINITIALIZED
         self._reconnect_url: Optional[str] = EVENTSUB_WEBSOCKET_URL
-        #                               access_token, channel_name, topic_str_val
+        #                               access_token, channel_name, [topic_str_val, 'version']
         self._sent_topic_subscriptions_cache: List[Tuple[str, str, Union[list, tuple]]] = []
         self._processing_loop_task: Optional[asyncio.Task] = None
 
@@ -150,13 +150,13 @@ class EventSubClient:
         except asyncio.TimeoutError:
             return None
 
-    def _add_subscribe_to_cache(self, token: str, channel: str, topic: str):
-        t = (token, channel, topic)
+    def _add_subscribe_to_cache(self, token: str, channel: str, topic: str, version: str):
+        t = (token, channel, (topic, version))
         if t not in self._sent_topic_subscriptions_cache:
             self._sent_topic_subscriptions_cache.append(t)
 
-    def _remove_subscribe_from_cache(self, token: str, channel: str, topic: str):
-        t = (token, channel, topic)
+    def _remove_subscribe_from_cache(self, token: str, channel: str, topic: str, version: str):
+        t = (token, channel, (topic, version))
         if t in self._sent_topic_subscriptions_cache:
             self._sent_topic_subscriptions_cache.remove(t)
 
@@ -187,13 +187,35 @@ class EventSubClient:
 
         async with aiohttp.ClientSession() as session:
             for topic in topics:
-                if isinstance(topic, (tuple, list)) and len(topic) == 2 and isinstance(topic[1], (int, str)):
-                    version = str(topic[1])
-                else:
-                    version = '2'
+                # CASE: input topic is a tuple/list. EX: ('channel.moderate', 'v1')
+                if isinstance(topic, (tuple, list)) and len(topic) == 2 and isinstance(topic[0], str) and isinstance(topic[1], str):
+                    topic_val = topic[0].strip().lower()
+                    topic_str_val = topic_val
+                    version = topic[1]
 
-                topic_val = topic[0] if isinstance(topic, (list, tuple)) else topic
-                topic_str_val = topic_val.value if isinstance(topic_val, EventSubTopics) else topic_val
+                # CASE: input topic is only a string identifier. EX: 'channel.moderate'. In this case, try to find the version from the enum.
+                elif isinstance(topic, str):
+                    topic_val = topic.strip().lower()
+                    topic_str_val = topic_val
+                    # try to find the version from the enum.
+                    for e_topic in EventSubTopics:
+                        if e_topic.value[0] == topic_str_val:
+                            version = e_topic.value[1]
+                            break
+                    # no break was hit; no valid topic found in the enum; default to v1, as most topics use v1.
+                    else:
+                        version = '1'
+
+                    # CASE: input topic is from the enum. This already has all the info we need, so just grab it from the enum value.
+                elif isinstance(topic, EventSubTopics):
+                    topic_val = topic.value[0]
+                    topic_str_val = topic_val
+                    version = topic.value[1]
+
+                # CASE: input topic is not a string or list/tuple or an enum. This is an error.
+                else:
+                    raise ValueError(f"Invalid topic type: {topic}")
+
                 headers = {
                     'Client-Id': client_id if client_id is not None else get_client_id(),
                     'Authorization': f'Bearer {access_token}',
@@ -219,13 +241,15 @@ class EventSubClient:
                         error_message = f"Failed to subscribe to {topic}: {resp.status} - {resp_json.get('message', 'Unknown error')}"
                         warnings.warn(f"[EventSubClient] {error_message}", stacklevel=2)
                         return False
+                    # else:
+                    #     print(f"[EventSubClient] Subscribed to {topic} - {version}") # debug
 
                     if _cache:
-                        self._add_subscribe_to_cache(access_token, channel_name, topic)
+                        self._add_subscribe_to_cache(access_token, channel_name, topic, version)
 
                 except Exception as e:
                     if _cache:
-                        self._remove_subscribe_from_cache(access_token, channel_name, topic)
+                        self._remove_subscribe_from_cache(access_token, channel_name, topic, version)
                     error_message = f"Exception while subscribing to {topic}: {str(e)}"
                     logging.warning(f"[EventSubClient] {error_message}", stacklevel=2)
                     return False
