@@ -227,6 +227,7 @@ class EventSubClient:
                     'condition': {
                         'broadcaster_user_id': broadcaster_id,
                         'moderator_user_id': moderator_id,
+                        'user_id': moderator_id,
                     },
                     'transport': {
                         'method': 'websocket',
