@@ -172,8 +172,22 @@ class EventSubClient:
                         client_id: Optional[str] = None) -> bool:
         """
         Subscribes to the specified EventSub topics.
-        If the EventSub client is not connected, it will attempt to connect to EventSub via WebSocket, then try to subscribe to the EventSub topics.
-        Returns True if subscription is successful, False otherwise.
+
+        If the EventSub client is not connected, it will attempt to connect to EventSub via WebSocket,
+        then try to subscribe to the EventSub topics.
+
+        :param access_token: The access token to use for the subscription.
+        :type access_token: str
+        :param channel_name: The name of the channel.
+        :type channel_name: str
+        :param topics: A list of topics to subscribe to.
+        :type topics: List[EVENTSUB_TOPIC_TYPE]
+        :param _cache: Whether to cache the subscription request.
+        :type _cache: bool
+        :param client_id: The client ID for the application. If not provided, the bot's client ID will be used.
+        :type client_id: Optional[str]
+        :return: True if subscription is successful, False otherwise.
+        :rtype: bool
         """
         broadcaster_id = await get_user_id(channel_name)
         # Here for clarity. This id is the user who authorized the app to access the channel.
