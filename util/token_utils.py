@@ -38,10 +38,10 @@ def join_scopes(*scopes):
 
 def validate_oauth(token: str) -> dict:
     import requests
-    return requests.get(VALIDATE_URL, headers={'Authorization': f'OAuth {token}'}).json()
+    return requests.get(VALIDATE_URL, headers={'Authorization': f'OAuth {token}'}, timeout=10).json()
 
 
 def revoke_oauth_token(client_id: str, oauth: str):
     import requests
     oauth = oauth.replace('oauth:', '')
-    return requests.post(f'https://id.twitch.tv/oauth2/revoke?client_id={client_id}&token={oauth}')
+    return requests.post(f'https://id.twitch.tv/oauth2/revoke?client_id={client_id}&token={oauth}', timeout=10)
